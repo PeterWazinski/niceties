@@ -131,6 +131,17 @@ Mock-ups: Should the proposals/ folder be deleted once the real UI is built, or 
 for the moment just keep in it in refactor folder
 
 
-
+$env:LOG_REQUESTS="1"
+$hb = Start-Process -PassThru -WindowStyle Hidden node -ArgumentList "C:\Users\Peter\AppData\Local\Temp\hb.js" -RedirectStandardOutput "$env:TEMP\um-hb.log"
+$p = Start-Process -PassThru -WindowStyle Hidden node -ArgumentList "tests/e2e/server.js" -RedirectStandardOutput "$env:TEMP\um-server4.log"
+Start-Sleep 1
+for ($i=1; $i -le 3; $i++) {
+  $out = npx playwright test --repeat-each=2 --timeout=12000 2>&1 | Select-String "^\s+x\s|passed|failed"
+  "run $i : " + (($out | ForEach-Object { $_.Line.Trim() }) -join " | ")
+  if ($out -match "failed") { break }
+}
+Stop-Process -Id $p.Id; Stop-Process -Id $hb.Id
+"--- server"; Get-Content "$env:TEMP\um-server4.log" | Select-String "BLOCKED"
+"--- independent heartbeat"; Get-Content "$env:TEMP\um-hb.log"
 
 

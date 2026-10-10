@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Color Sudoku - Suggestion 2: Explorer</title>
+<style>
+  /* Suggestion 2 "Explorer": explains how the pattern is built.
+     Left the nested pattern, right the three source Sudokus. Hover any cell to see
+     the same position in every layer, click a digit to follow it through the pattern. */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 16px; color: #e8f3ff; font: 15px/1.4 Consolas, "Courier New", monospace;
+    background: #0a2f52;
+  }
+  .wrap { max-width: 1150px; margin: 0 auto; }
+  h1 { margin: 0 0 12px; font-size: 22px; letter-spacing: .2em; text-transform: uppercase; }
+  h1 span { color: #8fb4d8; font-size: 13px; letter-spacing: .05em; text-transform: none; margin-left: 12px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr); gap: 16px; }
+  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+  .card { border: 2px solid #e8f3ff; padding: 12px; background: #0d3b66; }
+  h2 { margin: 0 0 8px; color: #8fb4d8; font-size: 12px; font-weight: 400; letter-spacing: .2em; text-transform: uppercase; }
+  #pattern { display: block; width: 100%; aspect-ratio: 1; background: #0d3b66; }
+  .minis { display: grid; gap: 12px; }
+  .mini { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: center; }
+  .mini b { color: #ffd23f; font-size: 20px; text-align: center; }
+  .sg { display: grid; grid-template-columns: repeat(9, 1fr); aspect-ratio: 1; max-width: 230px; border: 2px solid #e8f3ff; }
+  .sg i {
+    font-style: normal; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #0a2f52;
+    border: 1px solid rgba(10,47,82,.35); cursor: crosshair;
+  }
+  .sg i:nth-child(3n):not(:nth-child(9n)) { border-right: 2px solid #0a2f52; }
+  .sg i:nth-child(n+19):nth-child(-n+27), .sg i:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid #0a2f52; }
+  .sg i.hot { outline: 3px solid #fff; outline-offset: -3px; z-index: 1; }
+  .sg i.dim { opacity: .2; }
+  .legend { display: flex; gap: 6px; margin: 12px 0; flex-wrap: wrap; }
+  .legend button {
+    width: 34px; height: 34px; font: inherit; font-weight: 700; color: #0a2f52; border: 2px solid transparent; cursor: pointer;
+  }
+  .legend button[aria-pressed="true"] { border-color: #fff; transform: scale(1.12); }
+  .bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+  .bar button { font: inherit; color: #e8f3ff; background: transparent; border: 2px solid #e8f3ff; padding: 8px 12px; cursor: pointer;
+    text-transform: uppercase; letter-spacing: .1em; }
+  .bar button.primary { background: #e8f3ff; color: #0a2f52; }
+  .hint { color: #8fb4d8; font-size: 13px; margin: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Color Sudoku <span>explorer</span></h1>
+  <div class="grid">
+    <div class="card">
+      <h2>Nested pattern</h2>
+      <canvas id="pattern" width="900" height="900"></canvas>
+      <div class="bar">
+        <button class="primary" id="new" type="button">New pattern</button>
+        <p class="hint" id="info">Hover a square or a Sudoku cell.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Digits - click to follow</h2>
+      <div class="legend" id="legend"></div>
+      <h2>The three Sudokus</h2>
+      <div class="minis" id="minis"></div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/sudoku.js"></script>
+<script src="../js/render.js"></script>
+<script>
+  const PALETTE = [null, "#7fc8ff","#ffd23f","#6ef0b0","#ff8fa3","#c9b6ff","#ffb26b","#a0e7e5","#e8f3ff","#b5e48c"];
+  const NAMES = ["large", "medium", "small"];
+  const $ = (id) => document.getElementById(id);
+  const canvas = $("pattern"), ctx = canvas.getContext("2d");
+  const UNIT = canvas.width / ColorSudokuRender.SIZE;
+  let sudokus, focus = 0, hot = -1;
+
+  function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ColorSudokuRender.draw(ctx, sudokus, { palette: PALETTE, unit: UNIT, focus });
+    if (hot >= 0) {
+      const r = Math.floor(hot / 9), c = hot % 9, s = 5 * UNIT;
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 4;
+      ctx.strokeRect(c * s + 2, r * s + 2, s - 4, s - 4);
+    }
+    document.querySelectorAll(".sg").forEach((g, layer) => [...g.children].forEach((cell, n) => {
+      cell.classList.toggle("hot", n === hot);
+      cell.classList.toggle("dim", focus && sudokus[layer][n] !== focus);
+    }));
+    $("info").textContent = hot < 0 ? "Hover a square or a Sudoku cell." :
+      "Row " + (Math.floor(hot / 9) + 1) + ", column " + (hot % 9 + 1) + ": " +
+      sudokus.map((g, i) => NAMES[i] + " = " + g[hot]).join(", ");
+  }
+
+  function build() {
+    const minis = $("minis"); minis.innerHTML = "";
+    sudokus.forEach((g, layer) => {
+      const row = document.createElement("div"); row.className = "mini";
+      row.innerHTML = "<b>" + (layer + 1) + "</b>";
+      const grid = document.createElement("div"); grid.className = "sg";
+      g.forEach((v, n) => {
+        const i = document.createElement("i");
+        i.textContent = v; i.style.background = PALETTE[v];
+        i.onmouseenter = () => { hot = n; render(); };
+        i.onmouseleave = () => { hot = -1; render(); };
+        grid.appendChild(i);
+      });
+      row.appendChild(grid); minis.appendChild(row);
+    });
+    render();
+  }
+
+  canvas.addEventListener("mousemove", (e) => {
+    const b = canvas.getBoundingClientRect();
+    const c = Math.floor(((e.clientX - b.left) / b.width) * 9), r = Math.floor(((e.clientY - b.top) / b.height) * 9);
+    const n = r * 9 + c; if (n !== hot) { hot = n; render(); }
+  });
+  canvas.addEventListener("mouseleave", () => { hot = -1; render(); });
+
+  for (let d = 1; d <= 9; d++) {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = d; b.style.background = PALETTE[d]; b.setAttribute("aria-pressed", "false");
+    b.onclick = () => {
+      focus = focus === d ? 0 : d;
+      [...$("legend").children].forEach((x, i) => x.setAttribute("aria-pressed", i + 1 === focus));
+      render();
+    };
+    $("legend").appendChild(b);
+  }
+  $("new").onclick = () => { sudokus = Sudoku.generate(); build(); };
+  sudokus = Sudoku.generate(); build();
+</script>
+</body>
+</html>

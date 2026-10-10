@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Color Sudoku - Suggestion 1: Studio</title>
+<style>
+  /* Suggestion 1 "Studio": no sidebar - the pattern is the hero.
+     A floating dock holds the controls, a filmstrip keeps every pattern you generated. */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    display: grid; grid-template-rows: auto 1fr auto; justify-items: center; gap: 14px;
+    padding: 14px; color: #4a3f5c; font: 15px/1.4 "Segoe UI", system-ui, sans-serif;
+    background: radial-gradient(900px 600px at 50% 40%, #fffaf3, #f4e7dc);
+  }
+  header { text-align: center; }
+  h1 { margin: 0; font-size: 20px; letter-spacing: .14em; }
+  header p { margin: 0; color: #8d7f9a; font-size: 13px; }
+  .stage { display: grid; place-items: center; width: 100%; min-height: 0; }
+  #pattern {
+    width: min(100%, 76vh); aspect-ratio: 1; height: auto; background: #fffdf8; border-radius: 14px;
+    box-shadow: 0 24px 60px rgba(120, 90, 80, .25);
+  }
+  .dock {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: center;
+    padding: 8px 10px; background: rgba(255,255,255,.85); border-radius: 999px;
+    box-shadow: 0 6px 24px rgba(120, 90, 80, .2); backdrop-filter: blur(8px);
+  }
+  .dock button, .dock label.pill {
+    font: inherit; font-size: 14px; color: inherit; background: transparent; cursor: pointer;
+    border: 0; border-radius: 999px; padding: 8px 14px;
+  }
+  .dock .primary { background: linear-gradient(90deg, #ff9a6b, #e8618c); color: #fff; font-weight: 600; }
+  .seg { display: flex; background: #f3e8de; border-radius: 999px; padding: 3px; }
+  .seg button { padding: 5px 12px; }
+  .seg button[aria-pressed="true"] { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+  .dots { display: flex; gap: 6px; }
+  .dots button { width: 22px; height: 22px; padding: 0; border: 2px solid #fff; box-shadow: 0 0 0 1px #c9b8a8; }
+  .dots button[aria-pressed="true"] { box-shadow: 0 0 0 2px #4a3f5c; }
+  .film { display: flex; gap: 8px; overflow-x: auto; max-width: min(100%, 720px); padding: 4px; }
+  .film canvas { width: 56px; height: 56px; border-radius: 8px; background: #fffdf8; cursor: pointer; flex: none;
+    box-shadow: 0 2px 8px rgba(120,90,80,.2); }
+  .film canvas.on { outline: 3px solid #e8618c; }
+  .dock button:focus-visible, .film canvas:focus-visible { outline: 3px solid #e8618c; outline-offset: 2px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>COLOR SUDOKU</h1>
+    <p>Space = new pattern &middot; click a thumbnail to go back</p>
+  </header>
+  <div class="stage"><canvas id="pattern" width="900" height="900"></canvas></div>
+  <div>
+    <div class="film" id="film" aria-label="Pattern history"></div>
+    <div class="dock">
+      <button class="primary" id="new" type="button">New pattern</button>
+      <div class="seg" id="layers" role="group" aria-label="Layers">
+        <button type="button" aria-pressed="true">Large</button>
+        <button type="button" aria-pressed="true">Medium</button>
+        <button type="button" aria-pressed="true">Small</button>
+      </div>
+      <button type="button" id="numbers" aria-pressed="false">Numbers</button>
+      <div class="dots" id="themes" role="group" aria-label="Theme"></div>
+    </div>
+  </div>
+
+<script src="../js/sudoku.js"></script>
+<script src="../js/render.js"></script>
+<script>
+  const PALETTES = {
+    Pastel:    { bg: "#fffdf8", c: ["#6495ed","#ff7f50","#008b8b","#ff69b4","#90ee90","#7b68ee","#ffa500","#dda0dd","#ffd700"] },
+    Blueprint: { bg: "#0d3b66", c: ["#7fc8ff","#ffd23f","#6ef0b0","#ff8fa3","#c9b6ff","#ffb26b","#a0e7e5","#e8f3ff","#b5e48c"] },
+    Neon:      { bg: "#0a0720", c: ["#4dd2ff","#ff7a3d","#00f0c8","#ff2e93","#b6ff3b","#7c5cff","#ffe14d","#ff6bff","#3d8bff"] },
+  };
+  const $ = (id) => document.getElementById(id);
+  const canvas = $("pattern"), ctx = canvas.getContext("2d");
+  let history = [], current = -1, theme = "Pastel", layers = [true, true, true], numbers = false;
+
+  function paint(c, sudokus, unit) {
+    const p = PALETTES[theme];
+    const x = c.getContext("2d");
+    x.fillStyle = p.bg; x.fillRect(0, 0, c.width, c.height);
+    ColorSudokuRender.draw(x, sudokus, { palette: [null, ...p.c], unit, layers, numbers });
+  }
+  function refresh() {
+    paint(canvas, history[current], canvas.width / ColorSudokuRender.SIZE);
+    const film = $("film");
+    film.innerHTML = "";
+    history.forEach((s, i) => {
+      const t = document.createElement("canvas");
+      t.width = t.height = 112; t.tabIndex = 0;
+      if (i === current) t.className = "on";
+      paint(t, s, 112 / ColorSudokuRender.SIZE);
+      t.onclick = () => { current = i; refresh(); };
+      t.onkeydown = (e) => { if (e.key === "Enter") t.onclick(); };
+      film.appendChild(t);
+    });
+  }
+  function add() { history.push(Sudoku.generate()); if (history.length > 12) history.shift(); current = history.length - 1; refresh(); }
+
+  $("new").onclick = add;
+  document.addEventListener("keydown", (e) => { if (e.code === "Space") { e.preventDefault(); add(); } });
+  $("numbers").onclick = (e) => { numbers = !numbers; e.target.setAttribute("aria-pressed", numbers); refresh(); };
+  [...$("layers").children].forEach((b, i) => b.onclick = () => {
+    layers[i] = !layers[i]; b.setAttribute("aria-pressed", layers[i]); refresh();
+  });
+  Object.keys(PALETTES).forEach((name) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.title = name; b.setAttribute("aria-label", name + " theme");
+    b.style.background = PALETTES[name].c[0];
+    b.setAttribute("aria-pressed", name === theme);
+    b.onclick = () => { theme = name; [...$("themes").children].forEach((x) => x.setAttribute("aria-pressed", x === b)); refresh(); };
+    $("themes").appendChild(b);
+  });
+  add();
+</script>
+</body>
+</html>

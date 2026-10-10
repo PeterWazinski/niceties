@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Color Sudoku - Theme suggestions</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 20px; font: 15px/1.4 "Segoe UI", system-ui, sans-serif; background: #ece8e1; color: #333; }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  p.lead { margin: 0 0 18px; color: #666; }
+  .row { display: flex; flex-wrap: wrap; gap: 24px; }
+  figure { margin: 0; flex: 1 1 380px; max-width: 520px; }
+  canvas { display: block; width: 100%; aspect-ratio: 1; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+  figcaption { margin-top: 10px; }
+  figcaption b { font-size: 17px; }
+  .sw { display: flex; gap: 4px; margin: 8px 0; }
+  .sw i { flex: 1; height: 26px; font: 700 12px/26px sans-serif; text-align: center; font-style: normal; }
+</style>
+</head>
+<body>
+  <h1>Two more colour sets for Color Sudoku</h1>
+  <p class="lead">Both are drop-in: nine digit colours, a paper colour and a few UI accents (see README.md for the CSS).</p>
+  <div class="row" id="row"></div>
+
+<script src="../js/sudoku.js"></script>
+<script src="../js/render.js"></script>
+<script>
+  const THEMES = [
+    {
+      name: "Risograph",
+      text: "Two-colour print look: fluorescent inks on warm uncoated paper. Flat, a little retro, prints well.",
+      paper: "#f4efe3", ink: "#1d1d1b", swatchInk: "#1d1d1b",
+      c: ["#0078bf", "#ff48b0", "#ffe800", "#00a95c", "#ff6c2f", "#765ba7", "#00838a", "#ff665e", "#92d5e6"],
+      ui: "paper #f4efe3 / ink #1d1d1b / accent #ff48b0 / sharp 2px corners / font: Courier-like or Rubik Mono",
+    },
+    {
+      name: "Mediterranean",
+      text: "Glazed-tile blues with terracotta, olive and cream.",
+      paper: "#fffdf8", ink: "#1d1d1b",
+      c: ["#1f5fa8", "#e07a2f", "#f2c14e", "#3a8f5c", "#c8472f", "#2b2b6b", "#88b7d5", "#e8d9b5", "#7a8f3a"],
+      ui: "paper #fffdf8",
+    },
+  ];
+  const sudokus = Sudoku.generate();
+  const row = document.getElementById("row");
+  THEMES.forEach((t) => {
+    const fig = document.createElement("figure");
+    const c = document.createElement("canvas");
+    c.width = c.height = 900;
+    const x = c.getContext("2d");
+    x.fillStyle = t.paper; x.fillRect(0, 0, 900, 900);
+    ColorSudokuRender.draw(x, sudokus, { palette: [null, ...t.c], unit: 900 / ColorSudokuRender.SIZE, numbers: false });
+    const cap = document.createElement("figcaption");
+    cap.innerHTML = "<b>" + t.name + "</b><div class='sw'>" +
+      t.c.map((col, i) => "<i style='background:" + col + ";color:" +
+        (ColorSudokuRender.luminance(col) > 0.6 ? "#111" : "#fff") + "'>" + (i + 1) + "</i>").join("") +
+      "</div>" + t.text + "<br><small>" + t.ui + "</small>";
+    fig.append(c, cap);
+    row.appendChild(fig);
+  });
+</script>
+</body>
+</html>

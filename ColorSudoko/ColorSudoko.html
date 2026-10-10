@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="classic">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Color Sudoku</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <script>
+    // Apply the saved colour set before first paint to avoid a flash.
+    try {
+      var p = localStorage.getItem("colorSudoku.palette");
+      if (/^(classic|glass|autumn|harbor)$/.test(p)) document.documentElement.dataset.palette = p;
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <div id="app">
+    <header class="titleblock">
+      <h1>Color Sudoku</h1>
+      <span class="tagline">Three random Sudokus nested into one pattern.
+        <a target="_blank" rel="noopener" href="http://www.theguardian.com/books/2015/sep/17/nested-fish-and-golden-triangles-adult-colouring-and-the-beauty-of-maths">About the idea</a>
+      </span>
+    </header>
+
+    <main class="layout">
+      <div class="sheet">
+        <canvas id="pattern" width="1350" height="1350" role="img"
+                aria-label="Nested coloured squares generated from three Sudoku grids"></canvas>
+      </div>
+
+      <aside class="panel">
+        <h2>Pattern</h2>
+        <div class="actions">
+          <button id="new" class="primary" type="button">New pattern <kbd>N</kbd></button>
+          <button id="save" type="button">Save as PNG</button>
+          <span id="status" role="status" aria-live="polite"></span>
+        </div>
+
+        <h2>Layers</h2>
+        <label class="check"><input type="checkbox" class="layer" data-layer="0" checked> Large squares</label>
+        <label class="check"><input type="checkbox" class="layer" data-layer="1" checked> Medium squares</label>
+        <label class="check"><input type="checkbox" class="layer" data-layer="2" checked> Small squares</label>
+        <label class="check"><input type="checkbox" id="numbers"> Print numbers</label>
+
+        <h2>Digits</h2>
+        <div class="legend" id="legend"></div>
+        <p class="legend-hint">Click a digit to find it in all layers.</p>
+
+        <h2>Sudoku colours</h2>
+        <label class="select">Colour set
+          <select id="palette" aria-label="Colour set">
+            <option value="classic">Classic</option>
+            <option value="glass">Stained glass</option>
+            <option value="autumn">Autumn</option>
+            <option value="harbor">Harbor</option>
+          </select>
+        </label>
+      </aside>
+    </main>
+  </div>
+
+  <script src="js/sudoku.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

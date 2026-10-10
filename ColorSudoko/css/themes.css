@@ -1,0 +1,48 @@
+/* The app has one fixed look (pastel). */
+:root {
+  --scheme: light;
+  --page-bg: linear-gradient(160deg, #fff3e6 0%, #fde6ef 55%, #e8eefc 100%);
+  --sheet-bg: rgba(255, 255, 255, .55);
+  --panel-bg: rgba(255, 255, 255, .7);
+  --paper: #fffdf8;
+  --canvas-shadow: 0 8px 24px rgba(120, 90, 80, .18);
+  --frame: #e6d5c8;
+  --control-bg: #fffaf4;
+  --ink: #4a3f5c;
+  --dim: #8d7f9a;
+  --accent: #e8618c;
+  --ok: #2f9e6e;
+  --primary-bg: linear-gradient(90deg, #ff9a6b, #e8618c);
+  --primary-ink: #fff;
+  --radius: 18px;
+  --radius-sm: 10px;
+  --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+.titleblock h1 { letter-spacing: .12em; text-transform: none; }
+
+/* Sudoku colour sets: --d1 .. --d9 are the colours of the digits 1..9 (read by main.js). */
+:root,
+[data-palette="classic"] {
+  --d1: #6495ed; --d2: #ff7f50; --d3: #008b8b;
+  --d4: #ff69b4; --d5: #90ee90; --d6: #7b68ee;
+  --d7: #ffa500; --d8: #dda0dd; --d9: #ffd700;
+}
+/* Stained glass - jewel tones on a dark "lead" background */
+[data-palette="glass"] {
+  --paper: #1c1a1f;
+  --d1: #2980b9; --d2: #c0392b; --d3: #f1c40f;
+  --d4: #27ae60; --d5: #e67e22; --d6: #5b4bb7;
+  --d7: #16a085; --d8: #c2579a; --d9: #d9e4ec;
+}
+/* Autumn - warm earth tones with a cool leaf and slate accent */
+[data-palette="autumn"] {
+  --d1: #c8553d; --d2: #f28f3b; --d3: #f6c85f;
+  --d4: #a1b86b; --d5: #5b8e7d; --d6: #3d7c98;
+  --d7: #6b5b95; --d8: #b4607a; --d9: #8d6e63;
+}
+/* Harbor - deep sea blues with sand and coral */
+[data-palette="harbor"] {
+  --d1: #264653; --d2: #2a9d8f; --d3: #e9c46a;
+  --d4: #f4a261; --d5: #e76f51; --d6: #8e5572;
+  --d7: #5e60ce; --d8: #4ea8de; --d9: #80b918;
+}
