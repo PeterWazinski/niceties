@@ -40,6 +40,7 @@ body {
   text-transform: uppercase;
 }
 .tagline { color: var(--dim); }
+.tagline a { color: var(--bad); }
 
 /* ---- layout ---- */
 .layout {
