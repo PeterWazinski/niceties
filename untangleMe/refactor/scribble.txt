@@ -131,17 +131,37 @@ Mock-ups: Should the proposals/ folder be deleted once the real UI is built, or 
 for the moment just keep in it in refactor folder
 
 
-$env:LOG_REQUESTS="1"
-$hb = Start-Process -PassThru -WindowStyle Hidden node -ArgumentList "C:\Users\Peter\AppData\Local\Temp\hb.js" -RedirectStandardOutput "$env:TEMP\um-hb.log"
-$p = Start-Process -PassThru -WindowStyle Hidden node -ArgumentList "tests/e2e/server.js" -RedirectStandardOutput "$env:TEMP\um-server4.log"
-Start-Sleep 1
-for ($i=1; $i -le 3; $i++) {
-  $out = npx playwright test --repeat-each=2 --timeout=12000 2>&1 | Select-String "^\s+x\s|passed|failed"
-  "run $i : " + (($out | ForEach-Object { $_.Line.Trim() }) -join " | ")
-  if ($out -match "failed") { break }
-}
-Stop-Process -Id $p.Id; Stop-Process -Id $hb.Id
-"--- server"; Get-Content "$env:TEMP\um-server4.log" | Select-String "BLOCKED"
-"--- independent heartbeat"; Get-Content "$env:TEMP\um-hb.log"
+----
+
+now look at ColorSudoko.html : 
+- it creates nested pastel-colored patterns from 3 randomly sudokus.
+- I want similar to untangle me game to beautify the UI
+- there shall also be 2 more color themes to chose between
+- create folder \ColorSudoko and move the file into this folder
+- make 2 suggestions for an improved UI in folder ColorSudoko\refactor
+- make suggestion for 2 more color themes for the sudokus
+
+
+---
+
+- remove "Generated" and "Solve time" from the side panel. thats not important.
+- i created a misunderstanding. there shall be only one hard coded app theme: the pastel theme.
+- But: there shall be 2 more coloring themes for the sudoku number. right now number 1 is alwas encoded with blue etc.
+Please create 3 other color sets for the 9 numbers that fit together nicely but are different from the current one.
+Instead of "VIEW" you may write "SUDOKU COLOURS" or similar 
+
+---
+- now we want to refactor ammann-beenker.html in the same way
+- create folder AmmanBenker and move ammann-beenker.html to AmmanBenker\index.html
+- change app layout and introduce side panel for degree 1-5 for the curve.
+- introduce dropdown button for 2 other color sets than green and blue, make a suggestion
+
+
+-- 
+
+last not least look at app HeathInvaders\index.html .
+it is a simple adoption of the famous space invaders game with the namur icon set used for field device diagnostics in the process industry. 
+the layout can be left unchanged I assume. Please check the code if there is some big bug to be fixed.
+any suggestions for enhancing fancyness of this game? Is so let me know
 
 
