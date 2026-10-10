@@ -57,11 +57,19 @@
             <option value="harbor">Harbor</option>
           </select>
         </label>
+        <label class="slider" for="saturation">Saturation <b id="saturation-value">0</b></label>
+        <input type="range" id="saturation" min="-100" max="100" step="1" value="0">
+        <label class="slider" for="vibrance">Vibrance <b id="vibrance-value">0</b></label>
+        <input type="range" id="vibrance" min="-100" max="100" step="1" value="0">
+        <label class="slider" for="tint">Tint (hue) <b id="tint-value">0&deg;</b></label>
+        <input type="range" id="tint" min="-180" max="180" step="1" value="0">
+        <div class="actions"><button id="reset-colours" type="button">Reset colours</button></div>
       </aside>
     </main>
   </div>
 
   <script src="js/sudoku.js"></script>
+  <script src="js/color.js"></script>
   <script src="js/render.js"></script>
   <script src="js/main.js"></script>
 </body>

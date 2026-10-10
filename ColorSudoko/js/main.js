@@ -7,6 +7,10 @@
   const UNIT = 15 * SCALE;
   const POP_MS = 900;
 
+  const ADJUST_KEY = "colorSudoku.adjust";
+  const SLIDERS = ["saturation", "vibrance", "tint"];
+  const LIMITS = { saturation: 100, vibrance: 100, tint: 180 };
+
   const $ = (id) => document.getElementById(id);
   const canvas = $("pattern");
   const ctx = canvas.getContext("2d");
@@ -17,12 +21,15 @@
     numbers: false,
     focus: 0,
     anim: 0,
+    adjust: { saturation: 0, vibrance: 0, tint: 0 },
   };
 
   function palette() {
     const cs = getComputedStyle(document.documentElement);
     const p = [null];
-    for (let d = 1; d <= 9; d++) p.push(cs.getPropertyValue("--d" + d).trim());
+    for (let d = 1; d <= 9; d++) {
+      p.push(ColorSudokuColor.adjust(cs.getPropertyValue("--d" + d).trim(), state.adjust));
+    }
     return p;
   }
 
@@ -102,6 +109,35 @@
     if (state.sudokus) redraw();
   }
 
+  // ---- saturation / vibrance / tint ----
+  function loadAdjust() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(ADJUST_KEY) || "null");
+      if (raw && typeof raw === "object") {
+        SLIDERS.forEach((k) => {
+          const v = Number(raw[k]);
+          if (Number.isFinite(v)) state.adjust[k] = Math.max(-LIMITS[k], Math.min(LIMITS[k], Math.round(v)));
+        });
+      }
+    } catch (e) { /* storage blocked or corrupt */ }
+  }
+
+  function showAdjust() {
+    SLIDERS.forEach((k) => {
+      $(k).value = state.adjust[k];
+      $(k + "-value").textContent = state.adjust[k] + (k === "tint" ? "°" : "");
+    });
+  }
+
+  function applyAdjust(persist) {
+    showAdjust();
+    paintLegend();
+    redraw();
+    if (persist) {
+      try { localStorage.setItem(ADJUST_KEY, JSON.stringify(state.adjust)); } catch (e) { /* ignore */ }
+    }
+  }
+
   // ---- PNG export ----
   function savePng() {
     const out = document.createElement("canvas");
@@ -139,6 +175,17 @@
         !/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName)) newPattern();
   });
 
+  SLIDERS.forEach((k) => $(k).addEventListener("input", (e) => {
+    state.adjust[k] = Number(e.target.value);
+    applyAdjust(true);
+  }));
+  $("reset-colours").addEventListener("click", () => {
+    state.adjust = { saturation: 0, vibrance: 0, tint: 0 };
+    applyAdjust(true);
+  });
+
+  loadAdjust();
+  showAdjust();
   const initial = document.documentElement.dataset.palette;
   setPalette(PALETTES.indexOf(initial) >= 0 ? initial : "classic", false);
   newPattern();
