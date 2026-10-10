@@ -86,7 +86,7 @@ Commit trailer for every commit: `Co-Authored-By: Claude Sonnet 5.5 <noreply@ant
 - **Tests:** the characterisation spec runs green in Chromium/Firefox/WebKit; a trivial unit test proves `node --test` works.
 - [x] Commit: "Add Node/Playwright tooling, rename entry page to index.html".
 
-- Note: Playwright is capped at `workers: 2` in `playwright.config.js` - 3-4 parallel browsers made page loads stall on this machine.
+- Note: Playwright runs with `retries: 2` because a page load occasionally stalls ~10 s (test server / WebKit on Windows; not the game). It is capped at `workers: 2` in `playwright.config.js` - 3-4 parallel browsers made page loads stall on this machine.
 
 ### Phase 1 – Pure core: rng, geometry, graph
 - [x] `config.js`, `rng.js` (mulberry32), `geometry.js`, `graph.js`, `puzzle.js` per §2/§3 (ported from the old `planarGraph`, `addPlanarLink`, `scramble`, `intersect`, with density limit and attempt cap).
@@ -130,9 +130,9 @@ Commit trailer for every commit: `Co-Authored-By: Claude Sonnet 5.5 <noreply@ant
 - [x] Commit: "Controls: presets, slider, reset, copy link, toggles, theme switch, pause on blur".
 
 ### Phase 6 – Neon theme
-- [ ] Port mock-up A into `themes.css` under `[data-theme=neon]` (glow via `filter: drop-shadow`, grid background, neon stats); both themes use the same markup.
+- [x] Port mock-up A into `themes.css` under `[data-theme=neon]` (glow via `filter: drop-shadow`, grid background, neon stats); both themes use the same markup.
 - **Tests:** e2e – switching theme sets `data-theme`, changes computed edge stroke colour, persists across reload; screenshots of both themes (idle + solved) saved to `test-results/` for your eyeballing (no pixel-diff assertions – too brittle across engines).
-- [ ] Commit: "Neon theme".
+- [x] Commit: "Neon theme".
 
 ### Phase 7 – Confetti, title, favicon
 - [ ] `confetti.js`: full-board canvas, ~120 particles, ≈2.5 s, `requestAnimationFrame`, removed afterwards, skipped under `prefers-reduced-motion`; fired once on transition to `solved`.

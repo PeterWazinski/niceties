@@ -11,7 +11,22 @@ const TYPES = {
   ".json": "application/json", ".ico": "image/x-icon"
 };
 
+if (process.env.LOG_REQUESTS) {
+  let last = Date.now();
+  setInterval(() => {
+    const now = Date.now();
+    if (now - last > 1000) console.log(now, "EVENT LOOP BLOCKED for", now - last, "ms");
+    last = now;
+  }, 100);
+}
+
 http.createServer((req, res) => {
+  if (process.env.LOG_REQUESTS) {
+    const t0 = Date.now();
+    console.log(t0, "->", req.url);
+    res.on("finish", () => console.log(Date.now(), "<-", req.url, Date.now() - t0 + "ms"));
+    res.on("close", () => { if (!res.writableFinished) console.log(Date.now(), "ABORTED", req.url); });
+  }
   let rel = decodeURIComponent(req.url.split("?")[0]);
   if (rel.endsWith("/")) rel += "index.html";
   const file = path.normalize(path.join(ROOT, rel));

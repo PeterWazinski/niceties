@@ -1,10 +1,17 @@
 /* Structure and behaviour. Colours come from themes.css (CSS variables). */
 * { box-sizing: border-box; }
 
-html, body { margin: 0; min-height: 100%; }
+html {
+  color-scheme: dark; /* native controls (select, checkbox, slider) match the dark themes */
+  margin: 0;
+  min-height: 100%;
+  background: var(--page-bg);
+  background-attachment: fixed;
+}
 
 body {
-  background: var(--page-bg);
+  margin: 0;
+  min-height: 100vh;
   color: var(--ink);
   font: 15px/1.4 var(--font);
 }
@@ -97,7 +104,7 @@ input[type="range"] { width: 100%; accent-color: var(--bad); }
 .check input { accent-color: var(--bad); width: 16px; height: 16px; }
 .select { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
 select {
-  font: inherit; color: var(--ink); background: var(--page-bg);
+  font: inherit; color: var(--ink); background-color: var(--control-bg);
   border: 2px solid var(--frame); padding: 6px 8px;
 }
 
@@ -117,14 +124,14 @@ button {
   letter-spacing: .12em;
 }
 button:hover { border-color: var(--bad); }
-button.primary { background: var(--ink); color: var(--page-bg); }
+button.primary { background: var(--primary-bg, var(--ink)); color: var(--primary-ink, var(--page-bg)); }
 button:focus-visible, input:focus-visible { outline: 3px solid var(--bad); outline-offset: 2px; }
 
 /* ---- board elements ---- */
-.edge { stroke: var(--edge); stroke-width: 1.8; stroke-linecap: round; }
-.edge.x { stroke: var(--bad); stroke-width: 2.4; }
-.node { fill: var(--node-fill); stroke: var(--edge); stroke-width: 2.4; cursor: grab; }
-.node.x { stroke: var(--bad); }
+.edge { stroke: var(--edge); stroke-width: 1.8; stroke-linecap: round; filter: var(--glow, none); }
+.edge.x { stroke: var(--bad); stroke-width: 2.4; filter: var(--glow-bad, none); }
+.node { fill: var(--node-fill); stroke: var(--edge); stroke-width: 2.4; cursor: grab; filter: var(--glow, none); }
+.node.x { stroke: var(--bad); filter: var(--glow-bad, none); }
 .node.grab { cursor: grabbing; fill: var(--edge); }
 .mark { fill: none; stroke: var(--bad); stroke-width: 2; pointer-events: none; }
 html[data-status="solved"] .edge,

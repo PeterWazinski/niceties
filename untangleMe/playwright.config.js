@@ -8,6 +8,9 @@ module.exports = defineConfig({
   fullyParallel: true,
   // More parallel browsers made page loads stall on this Windows machine.
   workers: 2,
+  // Occasionally a page load stalls ~10 s (test server / WebKit on Windows, not
+  // the game). A retry is enough; real failures still fail all attempts.
+  retries: 2,
   reporter: [["list"]],
   use: {
     baseURL: "http://localhost:" + PORT + "/",

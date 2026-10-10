@@ -12,6 +12,7 @@
     #0d3b66;
   --panel-bg: transparent;
   --frame: #e8f3ff;
+  --control-bg: #0a2f52;
   --ink: #e8f3ff;
   --dim: #8fb4d8;
   --edge: #cfe6ff;
@@ -20,3 +21,48 @@
   --ok: #6ef0b0;
   --font: Consolas, "Courier New", monospace;
 }
+
+/* Neon */
+[data-theme="neon"] {
+  --page-bg:
+    radial-gradient(1200px 600px at 20% -10%, #2a1565 0, transparent 60%),
+    radial-gradient(900px 500px at 100% 100%, #04304a 0, transparent 60%),
+    #0b0820;
+  --sheet-bg:
+    linear-gradient(rgba(124,92,255,.12) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(90deg, rgba(124,92,255,.12) 1px, transparent 1px) 0 0 / 40px 40px,
+    #0a0720;
+  --panel-bg: linear-gradient(180deg, #15103a, #100c2c);
+  --frame: #2c2466;
+  --control-bg: #15103a;
+  --ink: #e9e6ff;
+  --dim: #8a85b8;
+  --edge: #00f0c8;
+  --node-fill: #0a0720;
+  --bad: #ff2e93;
+  --ok: #00f0c8;
+  --glow: drop-shadow(0 0 5px #00f0c8);
+  --glow-bad: drop-shadow(0 0 6px #ff2e93);
+  --primary-bg: linear-gradient(90deg, #ff2e93, #7c5cff);
+  --primary-ink: #fff;
+  --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+[data-theme="neon"] .titleblock,
+[data-theme="neon"] .sheet,
+[data-theme="neon"] .panel { border-radius: 16px; }
+[data-theme="neon"] .sheet { box-shadow: 0 0 40px rgba(124,92,255,.2); overflow: hidden; }
+[data-theme="neon"] .panel { box-shadow: 0 0 30px rgba(124,92,255,.15) inset; }
+[data-theme="neon"] .titleblock h1 {
+  background: linear-gradient(90deg, #ff2e93, #7c5cff, #00f0c8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 12px rgba(124,92,255,.55));
+}
+[data-theme="neon"] button { border-radius: 12px; border-color: #3a2f85; }
+[data-theme="neon"] button.primary { border: 0; box-shadow: 0 0 22px rgba(255,46,147,.4); }
+[data-theme="neon"] .presets button[aria-pressed="true"] { box-shadow: 0 0 12px rgba(124,92,255,.6); border-color: #7c5cff; color: #fff; }
+[data-theme="neon"] .row b { font-family: Consolas, "Courier New", monospace; }
+[data-theme="neon"] .row.cross b { text-shadow: 0 0 14px var(--bad); }
+html[data-theme="neon"][data-status="solved"] .row.cross b { text-shadow: 0 0 14px var(--ok); }
+[data-theme="neon"] .node.grab { fill: #fff; }
