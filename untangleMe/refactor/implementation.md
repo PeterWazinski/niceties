@@ -97,9 +97,9 @@ Commit trailer for every commit: `Co-Authored-By: Claude Sonnet 5.5 <noreply@ant
 - [x] Commit: "Core: seeded planar graph generation and robust crossing detection".
 
 ### Phase 2 – Game state machine
-- [ ] `game.js`: `createGame(puzzle, clock)`, `moveNode(i, x, y)`, `beginDrag/endDrag` (move counting), `reset()`, `pause()/resume()`, `elapsed()`, derived `crossings`, `status`, subscribe/notify.
+- [x] `game.js`: `createGame(puzzle, clock)`, `moveNode(i, x, y)`, `beginDrag/endDrag` (move counting), `reset()`, `pause()/resume()`, `elapsed()`, derived `crossings`, `status`, subscribe/notify.
 - **Tests (unit, fake clock):** idle→playing on first displacement only; click without movement is not a move; timer starts on first move, not at creation; solved when moved to `solution`; timer frozen after solved; dragging after solved doesn't resume timer or re-emit `solved`; reset restores start positions, zero moves/time, status idle; pause/resume excludes paused span; pause while idle is a no-op; clamping to [0,1].
-- [ ] Commit: "Game state machine with timer, moves, reset and pause".
+- [x] Commit: "Game state machine with timer, moves, reset and pause".
 
 ### Phase 3 – URL state & settings
 - [ ] `urlstate.js`: `parse(hash) → {n, seed}`, `serialise`, clamp `n` to `[MIN_NODES, MAX_NODES]`, invalid/missing seed ⇒ random seed (then written back with `history.replaceState`).
