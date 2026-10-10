@@ -41,5 +41,5 @@ Glazed-tile blues with terracotta, olive and cream.
 ```
 
 To enable one: paste the block into `css/themes.css`, add an `<option>` to the colour set
-select in `ColorSudoko.html`, and add the name to `PALETTES` in `js/main.js` and to the
+select in `ColorSudoku.html`, and add the name to `PALETTES` in `js/main.js` and to the
 regex in the inline script in the `<head>`.
