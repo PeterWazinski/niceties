@@ -137,6 +137,15 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--bad); outli
 html[data-status="solved"] .edge,
 html[data-status="solved"] .node { stroke: var(--ok); }
 
+#confetti {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
 /* ---- small screens (phones) ---- */
 #small-screen { display: none; }
 html.too-small #app { display: none; }

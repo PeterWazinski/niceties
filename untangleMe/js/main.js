@@ -21,6 +21,10 @@
 
   const settings = UM.settings.load();
   const boardView = UM.view.createBoardView($("board"));
+  const confetti = UM.confetti.createConfetti($("confetti"), {
+    reducedMotion: () => !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)
+  });
+  const BASE_TITLE = "Untangle Me";
   let game = null;
   let tickId = null;
   let copyTimer = null;
@@ -35,6 +39,7 @@
     els.crossings.textContent = state.crossings;
     els.timer.textContent = formatTime(state.elapsed);
     root.setAttribute("data-status", state.status);
+    document.title = state.status === "solved" ? "✓ " + BASE_TITLE : BASE_TITLE;
   }
 
   // ---- puzzle lifecycle ----
@@ -50,8 +55,12 @@
     const puzzle = UM.puzzle.createPuzzle(n, seed);
     game = UM.game.createGame(puzzle);
     if (document.hidden) game.pause();
+    confetti.stop();
     boardView.show(game);
-    game.subscribe((e) => renderStats(e.state));
+    game.subscribe((e) => {
+      renderStats(e.state);
+      if (e.type === "solved") confetti.fire();
+    });
     renderStats(game.getState());
     syncSizeControls(n);
     if (settings.nodes !== n) { settings.nodes = n; saveSettings(); }
@@ -196,6 +205,7 @@
 
   UM.app = {
     getGame: () => game,
+    confetti: confetti,
     getSettings: () => Object.assign({}, settings),
     newPuzzle: newPuzzle,
     go: go

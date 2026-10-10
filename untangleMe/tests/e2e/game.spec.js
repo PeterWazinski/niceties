@@ -7,7 +7,7 @@ test("loads the default puzzle with n nodes and a seed in the URL", async ({ pag
   expect(page.url()).toMatch(/#n=8&seed=\d+$/);
   expect(Number(await page.locator("#crossings").textContent())).toBeGreaterThan(0);
   expect(await page.locator("#moves").textContent()).toBe("0");
-  expect(await page.title()).toBe("Untangle Me");
+  await expect(page).toHaveTitle("Untangle Me");
   expect(errors).toEqual([]);
 });
 
