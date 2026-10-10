@@ -1,0 +1,22 @@
+/* Themes only define variables (plus a few theme specific decorations). */
+
+/* Blueprint (default) */
+:root,
+[data-theme="blueprint"] {
+  --page-bg: #0a2f52;
+  --sheet-bg:
+    linear-gradient(rgba(255,255,255,.2) 1px, transparent 1px) 0 0 / 80px 80px,
+    linear-gradient(90deg, rgba(255,255,255,.2) 1px, transparent 1px) 0 0 / 80px 80px,
+    linear-gradient(rgba(255,255,255,.09) 1px, transparent 1px) 0 0 / 16px 16px,
+    linear-gradient(90deg, rgba(255,255,255,.09) 1px, transparent 1px) 0 0 / 16px 16px,
+    #0d3b66;
+  --panel-bg: transparent;
+  --frame: #e8f3ff;
+  --ink: #e8f3ff;
+  --dim: #8fb4d8;
+  --edge: #cfe6ff;
+  --node-fill: #0d3b66;
+  --bad: #ffd23f;
+  --ok: #6ef0b0;
+  --font: Consolas, "Courier New", monospace;
+}

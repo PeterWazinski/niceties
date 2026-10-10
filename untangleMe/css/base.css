@@ -1,0 +1,122 @@
+/* Structure and behaviour. Colours come from themes.css (CSS variables). */
+* { box-sizing: border-box; }
+
+html, body { margin: 0; min-height: 100%; }
+
+body {
+  background: var(--page-bg);
+  color: var(--ink);
+  font: 15px/1.4 var(--font);
+}
+
+#app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* ---- header ---- */
+.titleblock {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px 16px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  border: 2px solid var(--frame);
+}
+.titleblock h1 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+.tagline { color: var(--dim); }
+
+/* ---- layout ---- */
+.layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+}
+.sheet {
+  flex: 1 1 520px;
+  min-width: 0;
+  position: relative;
+  border: 2px solid var(--frame);
+  background: var(--sheet-bg);
+}
+.panel {
+  flex: 1 1 220px;
+  max-width: 100%;
+  padding: 14px;
+  border: 2px solid var(--frame);
+  background: var(--panel-bg);
+}
+@media (min-width: 900px) {
+  .panel { flex: 0 0 250px; }
+}
+
+#board {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ---- panel ---- */
+.panel h2 {
+  margin: 0 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--dim);
+  color: var(--dim);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+.row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; }
+.row b { font-size: 22px; font-variant-numeric: tabular-nums; }
+.row.cross b { color: var(--bad); }
+html[data-status="solved"] .row.cross b { color: var(--ok); }
+
+.actions { margin-top: 16px; display: grid; gap: 8px; }
+
+button {
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 2px solid var(--frame);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+button:hover { border-color: var(--bad); }
+button.primary { background: var(--ink); color: var(--page-bg); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--bad); outline-offset: 2px; }
+
+/* ---- board elements ---- */
+.edge { stroke: var(--edge); stroke-width: 1.8; stroke-linecap: round; }
+.edge.x { stroke: var(--bad); stroke-width: 2.4; }
+.node { fill: var(--node-fill); stroke: var(--edge); stroke-width: 2.4; cursor: grab; }
+.node.x { stroke: var(--bad); }
+.node.grab { cursor: grabbing; fill: var(--edge); }
+.mark { fill: none; stroke: var(--bad); stroke-width: 2; pointer-events: none; }
+html[data-status="solved"] .edge,
+html[data-status="solved"] .node { stroke: var(--ok); }
+
+/* ---- small screens (phones) ---- */
+#small-screen { display: none; }
+html.too-small #app { display: none; }
+html.too-small #small-screen {
+  display: block;
+  min-height: 100vh;
+  padding: 32px 24px;
+  text-align: center;
+}
+html.too-small #small-screen h1 { letter-spacing: .2em; text-transform: uppercase; font-size: 22px; }

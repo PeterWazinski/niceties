@@ -77,14 +77,16 @@ Commit trailer for every commit: `Co-Authored-By: Claude Sonnet 5.5 <noreply@ant
 ---
 
 ### Phase 0 – Tooling & scaffolding
-- [ ] Install Node LTS with Chocolatey (`choco install nodejs-lts -y`; needs an **elevated** shell – if mine isn't, I'll ask you to run that one command).
-- [ ] `npm init`, dev-dependency `@playwright/test`; `npx playwright install chromium firefox webkit`.
-- [ ] Add `.gitignore` (`node_modules`, `test-results`, `playwright-report`).
-- [ ] Add npm scripts: `test` (node --test), `test:e2e` (playwright), `test:all`.
-- [ ] `git mv untangleMe.html index.html` (script path unchanged for now).
-- [ ] Characterisation e2e test of the **old** game: page loads, 8 circles, crossings > 0, "New Graph" changes the graph, node count input changes circle count.
+- [x] Install Node LTS with Chocolatey (`choco install nodejs-lts -y`; needs an **elevated** shell – if mine isn't, I'll ask you to run that one command).
+- [x] `npm init`, dev-dependency `@playwright/test`; `npx playwright install chromium firefox webkit`.
+- [x] Add `.gitignore` (`node_modules`, `test-results`, `playwright-report`).
+- [x] Add npm scripts: `test` (node --test), `test:e2e` (playwright), `test:all`.
+- [x] Entry page is now `index.html` (done in Phase 4 together with the new page).
+- [x] ~~Characterisation e2e test of the **old** game~~ skipped: the old game was replaced in Phase 4 before it paid off; the new e2e suite covers the same ground. Original text: Characterisation e2e test of the **old** game: page loads, 8 circles, crossings > 0, "New Graph" changes the graph, node count input changes circle count.
 - **Tests:** the characterisation spec runs green in Chromium/Firefox/WebKit; a trivial unit test proves `node --test` works.
-- [ ] Commit: "Add Node/Playwright tooling, rename entry page to index.html".
+- [x] Commit: "Add Node/Playwright tooling, rename entry page to index.html".
+
+- Note: Playwright is capped at `workers: 2` in `playwright.config.js` - 3-4 parallel browsers made page loads stall on this machine.
 
 ### Phase 1 – Pure core: rng, geometry, graph
 - [x] `config.js`, `rng.js` (mulberry32), `geometry.js`, `graph.js`, `puzzle.js` per §2/§3 (ported from the old `planarGraph`, `addPlanarLink`, `scramble`, `intersect`, with density limit and attempt cap).
@@ -108,15 +110,15 @@ Commit trailer for every commit: `Co-Authored-By: Claude Sonnet 5.5 <noreply@ant
 - [x] Commit: "URL hash and persisted settings".
 
 ### Phase 4 – New page, layout, Blueprint theme, view
-- [ ] New `index.html`: header (title, tagline), flex layout with board + side panel (stats, controls placeholders), meta viewport, `data-theme` on `<html>`.
-- [ ] `css/base.css`, `css/themes.css` – Blueprint complete, ported from mock-up C (grid sheet, title block, stat rows).
-- [ ] `view.js`: render edges/nodes/crossing markers from game state, pointer drag with `getScreenCTM` conversion, live crossing counter + timer + moves.
-- [ ] `main.js`: boot from URL hash → puzzle → game → view; "New puzzle" button; remove d3 `<script>`, delete `d3.js`, `untangleMe.js`, inline CSS.
-- [ ] Small-screen notice (§1 decision 3) with CSS + JS gate; game is not initialised while blocked.
+- [x] New `index.html`: header (title, tagline), flex layout with board + side panel (stats, controls placeholders), meta viewport, `data-theme` on `<html>`.
+- [x] `css/base.css`, `css/themes.css` – Blueprint complete, ported from mock-up C (grid sheet, title block, stat rows).
+- [x] `view.js`: render edges/nodes/crossing markers from game state, pointer drag with `getScreenCTM` conversion, live crossing counter + timer + moves.
+- [x] `main.js`: boot from URL hash → puzzle → game → view; "New puzzle" button; remove d3 `<script>`, delete `d3.js`, `untangleMe.js`, inline CSS.
+- [x] Small-screen notice (§1 decision 3) with CSS + JS gate; game is not initialised while blocked.
 - **Tests:**
   - unit: view helper that maps client coords → board coords (pure function, tested with a fake matrix).
   - e2e (3 engines): page loads with n = 8 circles; counters render; dragging a node with the real mouse changes `cx/cy`, increments moves, starts timer; dragging all nodes onto `UM.game` solution positions gives crossings 0 and `status === 'solved'`; `#n=10&seed=7` yields 10 nodes and the same edge list on reload; **iPad** viewport (landscape + portrait) shows the board; **iPhone** emulation shows the notice and no board.
-- [ ] Commit: "New responsive UI with Blueprint theme (d3 removed)".
+- [x] Commit: "New responsive UI with Blueprint theme (d3 removed)".
 
 ### Phase 5 – Controls: presets, slider, reset, copy link, toggles, theme, pause
 - [ ] Preset buttons (6/8/14/25) → new puzzle; slider 6–30 (applies on release, label shows value); **Reset**; **Copy link** (`navigator.clipboard`, fallback `execCommand`/selectable input; brief "Copied" label).

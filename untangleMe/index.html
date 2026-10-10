@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="blueprint">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Untangle Me</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/themes.css">
+</head>
+<body>
+  <div id="app">
+    <header class="titleblock">
+      <h1>Untangle Me</h1>
+      <span class="tagline">Drag the vertices until no two lines cross.</span>
+    </header>
+
+    <main class="layout">
+      <div class="sheet">
+        <svg id="board" preserveAspectRatio="xMidYMid meet" role="img"
+             aria-label="Graph board: drag the vertices so that no lines cross"></svg>
+      </div>
+
+      <aside class="panel">
+        <h2>Measurements</h2>
+        <div class="row"><span>Time</span><b><span id="timer">0.0</span> s</b></div>
+        <div class="row"><span>Moves</span><b id="moves">0</b></div>
+        <div class="row cross"><span>Crossings</span><b id="crossings">0</b></div>
+
+        <div class="actions">
+          <button id="new-puzzle" class="primary" type="button">New puzzle</button>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <div id="small-screen" role="alert">
+    <h1>Untangle Me</h1>
+    <p>Your display is too small for this puzzle.</p>
+    <p>Please open this page on a tablet or a larger screen.</p>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/rng.js"></script>
+  <script src="js/geometry.js"></script>
+  <script src="js/graph.js"></script>
+  <script src="js/puzzle.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/urlstate.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/boardcoords.js"></script>
+  <script src="js/view.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
