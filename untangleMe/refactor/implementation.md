@@ -121,13 +121,13 @@ Commit trailer for every commit: `Co-Authored-By: Claude Sonnet 5.5 <noreply@ant
 - [x] Commit: "New responsive UI with Blueprint theme (d3 removed)".
 
 ### Phase 5 – Controls: presets, slider, reset, copy link, toggles, theme, pause
-- [ ] Preset buttons (6/8/14/25) → new puzzle; slider 6–30 (applies on release, label shows value); **Reset**; **Copy link** (`navigator.clipboard`, fallback `execCommand`/selectable input; brief "Copied" label).
-- [ ] Toggles: crossing markers, timer visibility; **Theme switch** (Blueprint ⇄ Neon, placeholder Neon = Blueprint variables until phase 7).
-- [ ] Persist settings on change; restore on load (hash n wins over stored n).
-- [ ] `visibilitychange` → `game.pause()/resume()`.
+- [x] Preset buttons (6/8/14/25) → new puzzle; slider 6–30 (applies on release, label shows value); **Reset**; **Copy link** (`navigator.clipboard`, fallback `execCommand`/selectable input; brief "Copied" label).
+- [x] Toggles: crossing markers, timer visibility; **Theme switch** (Blueprint ⇄ Neon, placeholder Neon = Blueprint variables until phase 7).
+- [x] Persist settings on change; restore on load (hash n wins over stored n).
+- [x] `visibilitychange` → `game.pause()/resume()`.
 - **Tests:**
   - e2e: each preset yields the right node count and updates the URL hash; slider release changes node count, bounds 6/30 respected; Reset restores identical coordinates and zeroes counters; Copy link puts the current URL on the clipboard (Chromium permission granted; other engines assert the fallback input value); markers toggle hides `.mark` elements; timer toggle hides only the timer; reload keeps theme/toggles/node count; hash overrides stored node count; simulated `visibilitychange` (dispatch + `document.hidden` override) pauses and resumes the timer (elapsed unchanged while hidden).
-- [ ] Commit: "Controls: presets, slider, reset, copy link, toggles, theme switch, pause on blur".
+- [x] Commit: "Controls: presets, slider, reset, copy link, toggles, theme switch, pause on blur".
 
 ### Phase 6 – Neon theme
 - [ ] Port mock-up A into `themes.css` under `[data-theme=neon]` (glow via `filter: drop-shadow`, grid background, neon stats); both themes use the same markup.

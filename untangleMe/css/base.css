@@ -84,7 +84,27 @@ body {
 .row.cross b { color: var(--bad); }
 html[data-status="solved"] .row.cross b { color: var(--ok); }
 
-.actions { margin-top: 16px; display: grid; gap: 8px; }
+.panel h2:not(:first-child) { margin-top: 18px; }
+
+.presets { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+.presets button { padding: 8px 6px; font-size: 13px; letter-spacing: .06em; }
+.presets button[aria-pressed="true"] { border-color: var(--bad); color: var(--bad); }
+
+.slider { display: flex; justify-content: space-between; margin-top: 4px; }
+input[type="range"] { width: 100%; accent-color: var(--bad); }
+
+.check { display: flex; gap: 8px; align-items: center; padding: 4px 0; cursor: pointer; }
+.check input { accent-color: var(--bad); width: 16px; height: 16px; }
+.select { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+select {
+  font: inherit; color: var(--ink); background: var(--page-bg);
+  border: 2px solid var(--frame); padding: 6px 8px;
+}
+
+.actions { margin-top: 12px; display: grid; gap: 8px; }
+#copy-status { min-height: 1.2em; color: var(--ok); font-size: 13px; }
+#link-field { width: 100%; font: inherit; font-size: 12px; padding: 6px; }
+html[data-timer="hidden"] #time-row { display: none; }
 
 button {
   padding: 10px 12px;

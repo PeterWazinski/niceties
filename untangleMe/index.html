@@ -22,13 +22,31 @@
 
       <aside class="panel">
         <h2>Measurements</h2>
-        <div class="row"><span>Time</span><b><span id="timer">0.0</span> s</b></div>
+        <div class="row" id="time-row"><span>Time</span><b><span id="timer">0.0</span> s</b></div>
         <div class="row"><span>Moves</span><b id="moves">0</b></div>
         <div class="row cross"><span>Crossings</span><b id="crossings">0</b></div>
 
+        <h2>Puzzle</h2>
+        <div class="presets" id="presets"></div>
+        <label class="slider" for="nodes">Vertices <b id="nodes-value">8</b></label>
+        <input type="range" id="nodes" step="1">
         <div class="actions">
           <button id="new-puzzle" class="primary" type="button">New puzzle</button>
+          <button id="reset" type="button">Reset</button>
+          <button id="copy-link" type="button">Copy link to this puzzle</button>
+          <span id="copy-status" role="status" aria-live="polite"></span>
+          <input id="link-field" type="text" readonly aria-label="Link to this puzzle" hidden>
         </div>
+
+        <h2>View</h2>
+        <label class="check"><input type="checkbox" id="toggle-markers"> Crossing markers</label>
+        <label class="check"><input type="checkbox" id="toggle-timer"> Show timer</label>
+        <label class="select">Theme
+          <select id="theme" aria-label="Theme">
+            <option value="blueprint">Blueprint</option>
+            <option value="neon">Neon</option>
+          </select>
+        </label>
       </aside>
     </main>
   </div>
