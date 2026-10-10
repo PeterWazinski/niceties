@@ -1018,10 +1018,10 @@
       }
 
       function drawStartScreen() {
-        fillCenteredText("Health Invaders", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2.75, '#FFFFFF', 36);
+        fillCenteredText("Health Invaders", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2.75 - (gameOver ? 50 : 0), '#FFFFFF', 36);
         if (gameOver) {
           fillCenteredText("GAME OVER - HEALTHSCORE: " + player.score + "  (WAVE " + wave + ")", CANVAS_WIDTH / 2,
-            CANVAS_HEIGHT / 2.2, '#FF5555', 20);
+            CANVAS_HEIGHT / 2.2 - 50, '#FF5555', 20);
         }
         fillBlinkingText("Press enter to play!", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 500, '#FFFFFF', 36);
         fillCenteredText("Move with arrows, heal up with <space>", CANVAS_WIDTH / 2, CANVAS_HEIGHT - 30, 'white', 20);
