@@ -1,5 +1,4 @@
-const { test } = require("@playwright/test");
-const { expect, openPuzzle, solveByDragging } = require("./helpers");
+const { test, expect, openPuzzle, solveByDragging } = require("./helpers");
 
 const edgeStroke = (page) =>
   page.locator("#board .edge").first().evaluate((el) => getComputedStyle(el).stroke);

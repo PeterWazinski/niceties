@@ -1,5 +1,4 @@
-const { test } = require("@playwright/test");
-const { expect, openPuzzle, solveByDragging, dragNodeTo, getState } = require("./helpers");
+const { test, expect, openPuzzle, solveByDragging, dragNodeTo, getState } = require("./helpers");
 
 test("page has a favicon and the title is the game name", async ({ page }) => {
   await openPuzzle(page, "#n=8&seed=42");

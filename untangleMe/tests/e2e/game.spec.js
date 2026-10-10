@@ -1,5 +1,4 @@
-const { test } = require("@playwright/test");
-const { expect, openPuzzle, dragNodeTo, getState, solveByDragging } = require("./helpers");
+const { test, expect, openPuzzle, dragNodeTo, getState, solveByDragging } = require("./helpers");
 
 test("loads the default puzzle with n nodes and a seed in the URL", async ({ page }) => {
   const errors = await openPuzzle(page);

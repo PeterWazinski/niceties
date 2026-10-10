@@ -1,4 +1,17 @@
-const { expect } = require("@playwright/test");
+const base = require("@playwright/test");
+const expect = base.expect;
+
+// Drop-in replacement for Playwright's `test`: every test fails on page errors
+// and console.error output.
+const test = base.test.extend({
+  page: async ({ page }, use) => {
+    const problems = [];
+    page.on("pageerror", (e) => problems.push("pageerror: " + e));
+    page.on("console", (m) => { if (m.type() === "error") problems.push("console.error: " + m.text()); });
+    await use(page);
+    expect(problems, "browser errors during the test").toEqual([]);
+  }
+});
 
 // Opens a puzzle by URL hash and fails the test on any page error.
 async function openPuzzle(page, hash) {
@@ -46,4 +59,4 @@ async function solveByDragging(page) {
   }
 }
 
-module.exports = { expect, openPuzzle, unitToPixel, dragNodeTo, getState, solveByDragging };
+module.exports = { test, expect, openPuzzle, unitToPixel, dragNodeTo, getState, solveByDragging };

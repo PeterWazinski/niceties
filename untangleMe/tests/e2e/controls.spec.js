@@ -1,5 +1,4 @@
-const { test } = require("@playwright/test");
-const { expect, openPuzzle, dragNodeTo, getState } = require("./helpers");
+const { test, expect, openPuzzle, dragNodeTo, getState } = require("./helpers");
 
 // Moves node 0 somewhere else so the game leaves "idle".
 async function touchGame(page) {

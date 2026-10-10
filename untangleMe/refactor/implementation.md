@@ -141,13 +141,13 @@ Commit trailer for every commit: `Co-Authored-By: Claude Sonnet 5.5 <noreply@ant
 - [x] Commit: "Confetti on win, title and favicon".
 
 ### Phase 8 – Cross-browser hardening
-- [ ] Playwright projects: Chromium, Firefox, WebKit (desktop), WebKit iPad landscape/portrait, WebKit iPhone (notice only).
-- [ ] One test loading `index.html` via `file://` (double-click scenario).
-- [ ] Touch drag test on iPad profile (`touchscreen` / pointer events).
-- [ ] Console-error guard: every e2e test fails on `pageerror` or `console.error`.
-- [ ] Stress: n = 30 drag stays responsive (a drag of 50 pointer moves finishes < 1 s).
+- [x] Playwright projects: Chromium, Firefox, WebKit (desktop), WebKit iPad landscape/portrait, WebKit iPhone (notice only).
+- [x] One test loading `index.html` via `file://` (double-click scenario).
+- [x] Touch drag test on iPad profile (`touchscreen` / pointer events).
+- [x] Console-error guard: every e2e test fails on `pageerror` or `console.error`.
+- [x] Stress: n = 30 drag stays responsive (a drag of 50 pointer moves finishes < 1 s).
 - **Tests:** the above; full `npm run test:all` green on all projects.
-- [ ] Commit: "Cross-browser and device test matrix".
+- [x] Commit: "Cross-browser and device test matrix".
 
 ### Phase 9 – Docs & deployment
 - [ ] `untangleMe/README.md`: how to play, run locally (double-click or `npx http-server`), run tests, constants to tweak (`MAX_NODES`, `EDGE_DENSITY`, presets).

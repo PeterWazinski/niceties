@@ -51,7 +51,7 @@
       el.addEventListener("pointerdown", (ev) => {
         if (!game || ev.button > 0) return;
         ev.preventDefault();
-        el.setPointerCapture(ev.pointerId);
+        try { el.setPointerCapture(ev.pointerId); } catch (e) { /* pointer already gone */ }
         el.dataset.grab = "1";
         game.beginDrag();
         const inv = svg.getScreenCTM().inverse(),
