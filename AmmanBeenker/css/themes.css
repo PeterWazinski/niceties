@@ -1,0 +1,35 @@
+/* The app has one fixed look (pastel). */
+:root {
+  --scheme: light;
+  --page-bg: linear-gradient(160deg, #fff3e6 0%, #fde6ef 55%, #e8eefc 100%);
+  --sheet-bg: rgba(255, 255, 255, .55);
+  --panel-bg: rgba(255, 255, 255, .7);
+  --canvas-shadow: 0 8px 24px rgba(120, 90, 80, .18);
+  --frame: #e6d5c8;
+  --control-bg: #fffaf4;
+  --ink: #4a3f5c;
+  --dim: #8d7f9a;
+  --accent: #e8618c;
+  --ok: #2f9e6e;
+  --primary-bg: linear-gradient(90deg, #ff9a6b, #e8618c);
+  --primary-ink: #fff;
+  --radius: 18px;
+  --radius-sm: 10px;
+  --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+.titleblock h1 { letter-spacing: .12em; text-transform: none; }
+
+/* Tile colour sets, read by js/main.js:
+   --sq squares, --rh rhombi, --edge outlines, --paper background */
+:root,
+[data-palette="classic"] {
+  --sq: #008000; --rh: #0000ff; --edge: #000000; --paper: #fffdf8;
+}
+/* Sunset - warm coral squares and deep plum rhombi */
+[data-palette="sunset"] {
+  --sq: #ff8a5c; --rh: #7a2e6e; --edge: #3b1536; --paper: #fff3e8;
+}
+/* Ink & paper - cream squares and ink black rhombi, prints well */
+[data-palette="ink"] {
+  --sq: #f4efe3; --rh: #1d1d1b; --edge: #8d8678; --paper: #e9e2d0;
+}

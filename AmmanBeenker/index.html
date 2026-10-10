@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="classic">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ammann-Beenker Tiling</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <script>
+    // Apply the saved colour set before first paint to avoid a flash.
+    try {
+      var p = localStorage.getItem("ammannBeenker.palette");
+      if (/^(classic|sunset|ink)$/.test(p)) document.documentElement.dataset.palette = p;
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <div id="app">
+    <header class="titleblock">
+      <h1>Ammann-Beenker Tiling</h1>
+      <span class="tagline">An aperiodic tiling with eightfold symmetry, built by repeated subdivision.
+        <a target="_blank" rel="noopener" href="https://geometricolor.wordpress.com/2013/08/24/iterative-method-for-the-ammann-beenker-tiling-using-vector/">About the method</a>
+      </span>
+    </header>
+
+    <main class="layout">
+      <div class="sheet">
+        <canvas id="canvas" width="2000" height="1600" role="img"
+                aria-label="Ammann-Beenker tiling made of squares and rhombi"></canvas>
+      </div>
+
+      <aside class="panel">
+        <h2>Degree</h2>
+        <div class="degrees" id="degrees" role="group" aria-label="Degree of the tiling"></div>
+        <div class="row"><span>Squares</span><b id="squares">0</b></div>
+        <div class="row"><span>Rhombi</span><b id="rhombi">0</b></div>
+        <div class="actions">
+          <button id="redraw" class="primary" type="button">Draw again <kbd>N</kbd></button>
+          <button id="save" type="button">Save as PNG</button>
+          <span id="status" role="status" aria-live="polite"></span>
+        </div>
+
+        <h2>Display</h2>
+        <label class="select">Drawing speed
+          <select id="speed" aria-label="Drawing speed">
+            <option value="instant">Instant</option>
+            <option value="fast">Fast</option>
+            <option value="normal">Normal</option>
+            <option value="slow">Slow</option>
+          </select>
+        </label>
+        <label class="check"><input type="checkbox" id="edges" checked> Show edges</label>
+
+        <h2>Tile colours</h2>
+        <label class="select">Colour set
+          <select id="palette" aria-label="Colour set">
+            <option value="classic">Green &amp; blue</option>
+            <option value="sunset">Sunset</option>
+            <option value="ink">Ink &amp; paper</option>
+          </select>
+        </label>
+        <div class="swatches" aria-hidden="true"><i id="sw-sq"></i><i id="sw-rh"></i></div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="js/tiling.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
