@@ -5,7 +5,9 @@
   const STORAGE_KEY = "colorSudoku.palette";
   const SCALE = 2; // canvas backing store pixels per logical pixel (45 units * 15px * 2 = 1350)
   const UNIT = 15 * SCALE;
-  const POP_MS = 900;
+  const POP_MS = 320; // time one square needs to pop in
+  const SPEEDS = { instant: 0, fast: 2500, normal: 6000, slow: 12000 }; // whole pattern, ms
+  const SPEED_KEY = "colorSudoku.speed";
 
   const ADJUST_KEY = "colorSudoku.adjust";
   const SLIDERS = ["saturation", "vibrance", "tint"];
@@ -21,6 +23,7 @@
     numbers: false,
     focus: 0,
     anim: 0,
+    speed: "normal",
     adjust: { saturation: 0, vibrance: 0, tint: 0 },
   };
 
@@ -33,7 +36,7 @@
     return p;
   }
 
-  function render(progress) {
+  function render(progress, popFraction) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ColorSudokuRender.draw(ctx, state.sudokus, {
       palette: palette(),
@@ -42,16 +45,19 @@
       numbers: state.numbers,
       focus: state.focus,
       progress: progress,
+      popFraction: popFraction,
     });
   }
 
   function animate() {
     cancelAnimationFrame(state.anim);
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return render(1);
+    const total = SPEEDS[state.speed];
+    if (!total || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return render(1);
+    const pop = Math.min(1, POP_MS / total);
     const t0 = performance.now();
     (function frame(now) {
-      const p = Math.min(1, (now - t0) / POP_MS);
-      render(p);
+      const p = Math.min(1, (now - t0) / total);
+      render(p, pop);
       if (p < 1) state.anim = requestAnimationFrame(frame);
     })(t0);
   }
@@ -182,6 +188,17 @@
   $("reset-colours").addEventListener("click", () => {
     state.adjust = { saturation: 0, vibrance: 0, tint: 0 };
     applyAdjust(true);
+  });
+
+  try {
+    const s = localStorage.getItem(SPEED_KEY);
+    if (s && s in SPEEDS) state.speed = s;
+  } catch (e) { /* ignore */ }
+  $("speed").value = state.speed;
+  $("speed").addEventListener("change", (e) => {
+    state.speed = e.target.value;
+    try { localStorage.setItem(SPEED_KEY, state.speed); } catch (err) { /* ignore */ }
+    newPattern();
   });
 
   loadAdjust();

@@ -12,6 +12,7 @@ any static web host (GitHub Pages works).
 ## Using it
 
 - **New pattern** (or press `N`) generates three new Sudokus.
+- **Drawing speed**: Instant, Fast (2.5 s), Normal (6 s) or Slow (12 s) for building a new pattern square by square.
 - **Save as PNG** downloads the current pattern.
 - **Layers**: show or hide the large, medium and small squares. **Print numbers**
   writes the digit into each square.

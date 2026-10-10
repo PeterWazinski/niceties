@@ -25,6 +25,8 @@
    *       layers   [bool, bool, bool] visibility of large / medium / small squares
    *       numbers  print the digit in every square
    *       progress 0..1 pop-in animation (default 1 = fully drawn)
+   *       popFraction share of the animation each square needs to pop in; when given the
+   *                squares appear one after another (layer by layer, row by row)
    *       focus    digit 1..9 to emphasise, others are dimmed (default none)
    */
   function draw(ctx, sudokus, opts) {
@@ -32,6 +34,9 @@
     const layers = opts.layers || [true, true, true];
     const progress = opts.progress === undefined ? 1 : opts.progress;
     const focus = opts.focus || 0;
+    const sequential = opts.popFraction > 0;
+    const visible = layers.filter(Boolean).length;
+    let drawn = 0; // index of the square in reveal order
 
     for (let layer = 0; layer < 3; layer++) {
       if (!layers[layer]) continue;
@@ -43,8 +48,12 @@
 
       for (let row = 0; row < CELLS; row++) {
         for (let col = 0; col < CELLS; col++) {
-          const start = layer * 0.28 + ((row + col) / 16) * 0.3;
-          const t = Math.max(0, Math.min(1, (progress - start) / 0.42));
+          let start = layer * 0.28 + ((row + col) / 16) * 0.3, span = 0.42;
+          if (sequential) {
+            span = opts.popFraction;
+            start = (drawn++ / (visible * CELLS * CELLS)) * (1 - span);
+          }
+          const t = Math.max(0, Math.min(1, (progress - start) / span));
           if (t === 0) continue;
           const s = progress >= 1 ? 1 : easeOutBack(t);
 
