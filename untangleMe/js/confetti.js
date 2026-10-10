@@ -15,7 +15,7 @@
           reducedMotion = e.reducedMotion || (() => false),
           random = e.random || Math.random,
           count = e.count || 120,
-          duration = e.duration || 2500;
+          duration = e.duration || 4500;
 
     let particles = [], active = false, startedAt = 0, frameId = null, fired = 0, last = 0;
 
@@ -29,11 +29,11 @@
         particles.push({
           x: random() * w,
           y: -10 - random() * 80,
-          vx: (random() - 0.5) * 140,        // px / s
-          vy: 120 + random() * 220,
+          vx: (random() - 0.5) * 90,         // px / s
+          vy: 60 + random() * 120,
           size: 4 + random() * 5,
           rot: random() * Math.PI * 2,
-          vr: (random() - 0.5) * 8,
+          vr: (random() - 0.5) * 5,
           color: COLORS[Math.floor(random() * COLORS.length)]
         });
       }

@@ -135,7 +135,7 @@ Commit trailer for every commit: `Co-Authored-By: Claude Sonnet 5.5 <noreply@ant
 - [x] Commit: "Neon theme".
 
 ### Phase 7 – Confetti, title, favicon
-- [x] `confetti.js`: full-board canvas, ~120 particles, ≈2.5 s, `requestAnimationFrame`, removed afterwards, skipped under `prefers-reduced-motion`; fired once on transition to `solved`.
+- [x] `confetti.js`: full-board canvas, ~120 particles, ≈4.5 s, `requestAnimationFrame`, removed afterwards, skipped under `prefers-reduced-motion`; fired once on transition to `solved`.
 - [x] `<title>Untangle Me</title>`, `assets/favicon.svg` (tangled-graph glyph, theme-neutral); tab title shows "✓ Untangle Me" while solved.
 - **Tests:** unit – confetti module with a fake canvas context: spawns N particles, stops and cleans up after duration; e2e – solving a puzzle creates the confetti canvas exactly once and it disappears; with `reducedMotion: 'reduce'` it never appears; title toggles on solve and resets on New; favicon link present.
 - [x] Commit: "Confetti on win, title and favicon".
