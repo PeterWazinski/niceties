@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Untangle Me</title>
+    <script src="./d3.js"></script>
+	
+	<style>
+		circle { fill: #e5007d; cursor: move; stroke: #000; stroke-width: 1.5px; }
+		circle.intersection { fill: #009ee3; }
+		line { stroke: #e5007d; stroke-width: 1.5px; }
+		line.intersection { stroke:  #009ee3; }
+	</style>
+  </head>
+  <body>
+    
+    <p>Can you untangle me? See if you can position my vertices so that no two lines cross.
+    </p>
+		
+	 <table style="width:800px; border-radius:5px;border:4px solid #009ee3">		
+
+	 <tr style="vertical-align: top;">
+	    <td style="text-align: top">
+		   <table style="text-align: left; width:150px">
+			<tr><td>	<span id="move-count">0 moves</span></td> 
+			</tr><tr>	<td><span id="timer">0</span> seconds</td>
+			</tr><tr>   <td><span id="count"></span> crossings</td>
+			</tr><tr> 	<td><input value="8" id="nodes" min="4" type="number" style="width:40px"> vertices</td>
+			</tr><tr>	<td><button id="generate" class="first last">New Graph</button></td>
+		    </tr>
+			</table> 
+		</td>
+		
+	    <td> 
+		   <div id="vis"></div>
+		</td>
+	</tr>
+	
+  </table> 
+	
+	
+  <script src="./untangleMe.js"></script>
+    
+</body>
+</html>

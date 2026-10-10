@@ -1,0 +1,299 @@
+<head>
+<title>Ammann-Beenker-Tiling</title>
+</head>
+<body>
+
+ <fieldset>  <legend><a target="_blank" href="https://geometricolor.wordpress.com/2013/08/24/iterative-method-for-the-ammann-beenker-tiling-using-vector/">Ammann-Beenker Tiling Level </a> </legend>
+ <input type="radio" id="l1" name="level" value="1" onclick="tiling.generate_and_render(1);">1
+ <input type="radio" id="l2" name="level" value="2" onclick="tiling.generate_and_render(2);">2 
+ <input type="radio" id="l3" name="level" value="3" checked onclick="tiling.generate_and_render(3);">3
+ <input type="radio" id="l4" name="level" value="4" onclick="tiling.generate_and_render(4);">4
+  <input type="radio" id="l5" name="level" value="5" onclick="tiling.generate_and_render(5);">5
+ </fieldset> 
+
+<div align="center">
+<canvas id="canv" width="1000" height="800" style="border:solid 1px">
+</canvas></div>
+
+<script type="text/javascript">
+
+//vector algebra
+function Vec (x, y) {
+  if (!(this instanceof Vec)) {
+    return new Vec(x, y);
+  }
+
+  this.x = x || 0;
+  this.y = y || 0;
+};
+
+Vec.prototype.copy = function (){
+    return new Vec(this.x, this.y);
+  }
+
+Vec.prototype.add = function (v){
+    this.x+=v.x;
+    this.y+=v.y;
+    return this;
+  }
+
+Vec.prototype.sub = function (v){
+    this.x-=v.x;
+    this.y-=v.y;
+    return this;
+  }
+
+Vec.prototype.mult = function (t){
+    this.x*=t;
+    this.y*=t;
+    return this;
+  }
+ 
+Vec.prototype.divide = function (vector) {
+          this.x /= vector.x;
+          this.y /= vector.y;
+          return this;
+};
+
+Vec.prototype.normalize = function (){
+   var length = this.length();
+
+	  if (length === 0) {
+		this.x = 1;
+		this.y = 0;
+	  } else {
+		this.divide(Vec(length, length));
+	  }
+	  return this;
+  }
+  
+Vec.prototype.rotate90 = function (){
+    var h =this.x;
+    this.x=-this.y;
+    this.y=h;
+    return this;
+  } 
+  
+Vec.prototype.rotate45 = function (){
+	var sqrt05=Math.sqrt(0.5);
+    var xx=this.x;
+    var yy=this.y;
+    this.x=sqrt05*(xx-yy);
+    this.y=sqrt05*(xx+yy);
+    return this;
+  }
+
+Vec.prototype.length = function (){
+  var sq = this.x * this.x + this.y * this.y;
+  return Math.sqrt(sq);
+}
+
+// angle(a) returns the angle of a in radians
+Vec.prototype.angle = function (){
+  return Math.atan2(this.y,this.x);
+}
+
+// a.scalar(b) returns the scalar product of a and b
+Vec.prototype.scalar = function (b){
+  return this.x* b.x + this.y*b.y;
+}
+
+// a.cross(b) returns the z-component of the cross-product of a and b
+Vec.prototype.cross = function (b){
+  return this.x * b.y - this.y *b.x;
+}
+
+Vec.prototype.toString = function (){
+    return "Vec("+ this.x + "," + this.y + ")";
+  }
+
+// linearcombination(t,a,s,b) returns  t*a+s*b
+
+Vec.prototype.linearcombination = function (t, v1, s, v2){
+  return new Vec(t*v1.x+s*v2.x,t*v1.y+s*v2.y);
+}
+
+// interpolate(t,a,b) returns the vector (1-t)*a+t*b
+Vec.prototype.interpolate = function (t, a, b){
+  return this.linearcombination(1-t,a,t,b);
+}
+
+Vec.prototype.draw = function (color, fromVec){
+  var canv = document.getElementById("canv");
+  var ctx = canv.getContext("2d");
+  var c = color != undefined ? color : "black";
+
+  var sx = 0, sy = 0;
+  if (fromVec != undefined ) { 
+    sx= fromVec.x,
+    sy= fromVec.y  
+  };
+  
+  var ex = sx + this.x;
+  var ey = sy + this.y;
+
+  ctx.strokeStyle=color;
+  ctx.beginPath();
+  ctx.lineWidth = 7;
+  ctx.moveTo(sx, sy);
+  ctx.lineTo(ex, ey);
+  ctx.stroke();
+
+}
+
+
+// Ammann Beenker Tiling
+// Adapted from https://geometricolor.wordpress.com/2013/08/24/iterative-method-for-the-ammann-beenker-tiling-using-vector/
+
+
+function ABTiling (canvasID, v1, v2, v3, color1, color2) {
+  if (!(this instanceof ABTiling)) {
+    return new ABTiling(canvasID, color1, color2);
+  }
+
+  this.canvas = document.getElementById(canvasID);
+  this.ctx = this.canvas.getContext("2d");
+  this.color1 = color1 != undefined ? color1 : "green";
+  this.color2 = color2 != undefined ? color2 : "blue";
+};
+
+ABTiling.prototype.triangle = function (a, b, c, level){
+  if(level == 0){
+    this.quad(a, b, c, this.color1);
+    return;
+  }
+
+  var f = 1/(1+ Math.sqrt(2));
+
+  var m= a.interpolate(0.5,b,c);
+  var z= a.interpolate(f,m,a);
+  var mc= a.interpolate(f,m,c);
+  var mb= a.interpolate(f,m,b);
+  var ac= a.interpolate(f,a,c);
+  var ba= a.interpolate(f,b,a);
+  
+  this.triangle(z,mc,mb,level-1);
+  this.triangle(mc,c,ac,level-1);
+  this.triangle(z,a,ba,level-1);
+  this.rhomb(z,mb,ba,level-1);
+  this.rhomb(a,ac,z,level-1);
+}
+
+ABTiling.prototype.rhomb = function (a, b, c, level){
+  
+if(level==0){
+    this.quad(a,b,c, this.color2);
+    return;
+  }
+
+  var f = 1/(1+ Math.sqrt(2));
+
+  var d=c.copy().sub(a).add(b);
+
+  var z=a.interpolate(0.5,a,d);
+  var za=a.interpolate(f/(2+f),z,a);
+  var zd=a.interpolate(f/(2+f),z,d);
+  var ac=a.interpolate(f,a,c);
+  var ab=a.interpolate(f,a,b);
+  var dc=a.interpolate(f,d,c);
+  var db=a.interpolate(f,d,b);
+  
+  this.triangle(za,c,ac,level-1);
+  this.triangle(za,b,ab,level-1);
+  this.triangle(zd,c,dc,level-1);
+  this.triangle(zd,b,db,level-1);
+  this.rhomb(c,za,zd,level-1);
+  this.rhomb(a,ab,ac,level-1);
+  this.rhomb(d,dc,db,level-1);
+}
+
+ ABTiling.prototype.drawRect = function(x1, y1, x2, y2, x3, y3, x4, y4, color){
+
+  var ctx = this.ctx;
+  ctx.beginPath();
+  ctx.lineWidth = 2;
+  ctx.moveTo(x1,y1);
+  sctx.lineTo(x2, y2);
+  ctx.lineTo(x3, y3);
+  ctx.lineTo(x4, y4);
+  ctx.closePath();
+  ctx.fillStyle=color;
+  ctx.stroke();
+  ctx.fill(); 
+}
+
+ ABTiling.prototype.draw = function(ctx, a, b, c, d, color){
+
+  ctx.beginPath();
+  ctx.lineWidth = 2;
+  ctx.moveTo(a.x,a.y);
+  ctx.lineTo(b.x, b.y);
+  ctx.lineTo(c.x, c.y);
+  ctx.lineTo(d.x, d.y);
+  ctx.closePath();
+  ctx.fillStyle=color;
+  ctx.stroke();
+  ctx.fill(); 
+}
+
+ ABTiling.prototype.quad = function (a, b, c, color){
+  var d = c.copy().sub(a).add(b);  
+  this.rects.push([a, b, d, c, color]);
+
+  // direct draw
+  //this.drawRect(a.x,a.y,b.x,b.y,d.x,d.y,c.x,c.y, color);
+}
+
+
+ ABTiling.prototype.render = function (self, timeout){
+  //debugger;
+  if (self.rects.length > 0 ){
+    var p = self.rects.shift();
+    self.draw(self.ctx, p[0], p[1], p[2], p[3], p[4]);
+    setTimeout(self.render, timeout, self, timeout);
+  }
+
+}
+
+ABTiling.prototype.generate = function (level){
+
+	var lev = level != undefined ? level : 4,
+		margin = 50
+		v1= new Vec(margin,margin),
+		v2= new Vec(this.canvas.width-margin,margin),
+		v3= new Vec(margin, this.canvas.height-margin),
+		v4= new Vec(this.canvas.width-margin, this.canvas.height-margin);
+	
+	this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	
+  this.rects = [];
+
+	this.triangle(v1,v2,v3,lev);
+	this.triangle(v4,v2,v3,lev);
+}
+
+ABTiling.prototype.generate_and_render = function (level){
+    tiling = new ABTiling("canv");
+    tiling.generate(level);
+
+    var timeout;
+    switch (level) {
+      case 4: timeout = 5; break;
+      case 5: timeout = 2; break;
+      default: timeout = 10; break;
+    }
+
+    tiling.render(tiling, timeout);
+}
+
+//debugger;
+
+tiling = new ABTiling("canv");
+tiling.generate_and_render(3);
+
+</script>
+
+</body>
+</html>
+
+

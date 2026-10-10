@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html>
+
+<!-- 
+  
+  taken from https://codepen.io/anthdeldev/pen/BHuGL, 
+  many thx to Anthony Del Ciotto 
+
+-->
+
+  <head>
+    <title>Health Invaders</title>
+
+    <style type="text/css">
+      body,
+      html {
+        background-color: #EEEEEE;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      canvas {
+        display: block;
+        margin: auto;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+
+        image-rendering: optimizeSpeed;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: optimize-contrast
+      }
+    </style>
+    <script type="text/javascript">
+      /* Simple JavaScript Inheritance
+       * By John Resig http://ejohn.org/
+       * MIT Licensed.
+       */
+      // Inspired by base2 and Prototype
+      (function () {
+        var initializing = false,
+          fnTest = /xyz/.test(function () {
+            xyz;
+          }) ? /\b_super\b/ : /.*/;
+
+        // The base Class implementation (does nothing)
+        this.Class = function () {};
+
+        // Create a new Class that inherits from this class
+        Class.extend = function (prop) {
+          var _super = this.prototype;
+
+          // Instantiate a base class (but only create the instance,
+          // don't run the init constructor)
+          initializing = true;
+          var prototype = new this();
+          initializing = false;
+
+          // Copy the properties over onto the new prototype
+          for (var name in prop) {
+            // Check if we're overwriting an existing function
+            prototype[name] = typeof prop[name] == "function" &&
+              typeof _super[name] == "function" && fnTest.test(prop[name]) ?
+              (function (name, fn) {
+                return function () {
+                  var tmp = this._super;
+
+                  // Add a new ._super() method that is the same method
+                  // but on the super-class
+                  this._super = _super[name];
+
+                  // The method only need to be bound temporarily, so we
+                  // remove it when we're done executing
+                  var ret = fn.apply(this, arguments);
+                  this._super = tmp;
+
+                  return ret;
+                };
+              })(name, prop[name]) :
+              prop[name];
+          }
+
+          // The dummy class constructor
+          function Class() {
+            // All construction is actually done in the init method
+            if (!initializing && this.init)
+              this.init.apply(this, arguments);
+          }
+
+          // Populate our constructed prototype object
+          Class.prototype = prototype;
+
+          // Enforce the constructor to be what we expect
+          Class.prototype.constructor = Class;
+
+          // And make this class extendable
+          Class.extend = arguments.callee;
+
+          return Class;
+        };
+      })();
+
+
+      // ###################################################################
+      // shims
+      //
+      // ###################################################################
+      (function () {
+        var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame ||
+          window.msRequestAnimationFrame;
+        window.requestAnimationFrame = requestAnimationFrame;
+      })();
+
+      (function () {
+        if (!window.performance.now) {
+          window.performance.now = (!Date.now) ? function () {
+              return new Date().getTime();
+            } :
+            function () {
+              return Date.now();
+            }
+        }
+      })();
+
+      // ###################################################################
+      // Constants
+      //
+      // ###################################################################
+      var IS_CHROME = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+      var CANVAS_WIDTH = 640;
+      var CANVAS_HEIGHT = 640;
+      var SPRITE_SHEET_SRC =
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAEACAYAAAADRnAGAAACGUlEQVR42u3aSQ7CMBAEQIsn8P+/hiviAAK8zFIt5QbELiTHmfEYE3L9mZE9AAAAqAVwBQ8AAAD6THY5CgAAAKbfbPX3AQAAYBEEAADAuZrC6UUyfMEEAIBiAN8OePXnAQAAsLcmmKFPAQAAgHMbm+gbr3Sdo/LtcAAAANR6GywPAgBAM4D2JXAAABoBzBjA7AmlOx8AAEAzAOcDAADovTc4vQim6wUCABAYQG8QAADd4dPd2fRVYQAAANQG0B4HAABAawDnAwAA6AXgfAAAALpA2uMAAABwPgAAgPoAM9Ci/R4AAAD2dmqcEQIAIC/AiQGuAAYAAECcRS/a/cJXkUf2AAAAoBaA3iAAALrD+gIAAADY9baX/nwAAADNADwFAADo9YK0e5FMX/UFACA5QPSNEAAAAHKtCekmDAAAAADvBljtfgAAAGgMMGOrunvCy2uCAAAACFU6BwAAwF6AGQPa/XsAAADYB+B8AAAAtU+ItD4OAwAAAFVhAACaA0T7B44/BQAAANALwGMQAAAAADYO8If2+P31AgAAQN0SWbhFDwCAZlXgaO1xAAAA1FngnA8AACAeQPSNEAAAAM4CnC64AAAA4GzN4N9NSfgKEAAAAACszO26X8/X6BYAAAD0Anid8KcLAAAAAAAAAJBnwNEvAAAA9Jns1ygAAAAAAAAAAAAAAAAAAABAQ4COCENERERERERERBrnAa1sJuUVr3rsAAAAAElFTkSuQmCC';
+
+      var ne107Sprites ='data:image/png;base64,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'
+      var healthplayerSprite = 'data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAD4AAAAgCAIAAADFf1z4AAAABnRSTlMAAAAAAABupgeRAAAACXBIWXMAACTpAAAk6QFQJOf4AAAEvklEQVRYhe2Wa2xTZRjH/+85PW233sZulu7WdqObTBnIRUBkRhagZBhjYuIHE/ykX/SbS/ykfpKon41BFhBvLF4IBMIYbAScZhLkMm4d7dyG3dau7dpuvZ/b64cNkLpBd6hhJPxzPpyT8zz/95fnvOd5XkIpxeJTiKe/T4rzvWUJtpRxDJXFyxcv/HlbXl8AQCYWPHSsC0DvicNDvvB/kydHXD8f7wn5xxJp8fyZo/2D4/lF/+hGKslTjoKjSPG0YzjDUXQM8xzFvqHMzr7EEZ/AEBCd/q40ag6ALPKB0CSA6GQwxQtT4UB3d080npoOB0+dOukLhGVeSCXj7V99caTrNM+ngv7RX3/rk/P3/XoCYouZW1+iUgG3ErJVz+6wcPZCZoeFs+kYlmDNEpahVBr0eNw33TNXMDw1kzzsHujs7Lw64AGwZ2/7sjrbNwd+YDm1raZ6b/t+AITVLLNbN2x8gRBEYpnkxIDLG8oL93BS9sRlACoGMkFcoO/UagC8XaeZCbDrmNpCRkUY1crnVt0pmN5QNHNjczQ4nU4xPAogEZ+aDEed21sOfn+gedurjCzdXYdSALW19pjnViLN5wX9dGB2l6dFei4o6lkylaHQIZqRa/QMgJfLVIRARWVp0OMRpVn2KrvDZNCx6gJ7TRWApVU2Y6G2dfv2cZ/fWmhaVlc35HY5Guo1BlO1RaoyLT3fe+Zpm0WnL9CYq9UGbV7Qu4Oz6Ho1ecOmpkDHCN9UXPCjV2gqUQHYUsYBIIuww6w6HeuPSrsbtQYVAUApTvgEp4U7Nia0VnBHfcK363SlarIY0X1peTw9L1URR2p1DBZn1XMU86gBlEtFAVGSHhy4QDGEsAwDQJTl/+PDciyrkmU5FI3n3VqnVRt1BQCm4ilemHekKxNDyFPFxsd5w/z7wR2++Ff0SlaERW9vKt+cr/VoIil09cpjE2ydlWvZAI5TbHUveuTSyZHvsiJWm7fkC10a8sZ3tcle3+zaTQ36/Z+RYpMyt/ttmMby1fYly5X5zqnk+7vVJkPhi2sAmF530rGJ5CdfKnabF32leWN9SdNwxKXYOkuyLyBeupG+5tY+W2/+tI0KohSKCJ1nobT/qLKeSwvNay0v+RNea5HjkGs/kL++dvuIR5MpRq+TkykAkGXFftlVDyX9kXTQWlR/2PV1PrkBxlLOOmzaZxxSZHr83Y/Vtkq2dAnXvA6EKDPMrjqAP0Z7Hg5yHhGi+/yD2K629DU3gPCeDsZaWfDhe4r97kGvNtZvtLRmRdQYGxS7Z4ldUW88sY8/1DXTHNWvbSVGvWI3IkpSIBLLF9wd3Zmmk9OJJ9M0W0/QH4Xm6DBz6m/35QvXb7GUX/F8s7WiPO8cfWe6EjziKX7nK61sbu0y16oXlVY4W1s3rW0823vuIQjnlpSZ7rvobtm6zUCj/Te9OWblim4sLnNd6Dv4y/HmzRuUEs6r9PSE1lgCoKy4zD/uzzFrAXt91fpNb+168/BPHUro7iuW5UQxA0CUJE6T6zF4AegCnx64ftVcUaOE7r7SFFXIsUA6I9zwDC531OaYletICvtH3cNeS1VNVaUll59ooSMpFgn1X7laaXNYqyseGDwzkh7jafoPdrUXpr0i8vkAAAAASUVORK5CYII=';
+
+
+      var LEFT_KEY = 37;
+      var RIGHT_KEY = 39;
+      var SHOOT_KEY = 32;
+      var TEXT_BLINK_FREQ = 500;
+
+      var PLAYER_CLIP_RECT = {
+        x: 0,
+        y: 0,
+        w: 64,  
+        h: 32
+      };
+      var ALIEN_BOTTOM_ROW = [{
+        x: 0,
+        y: 0,
+        w: 50,
+        h: 50
+      }, {
+        x: 0,
+        y: 50,
+        w: 50,
+        h: 50
+      }];
+      var ALIEN_MIDDLE_ROW = [{
+        x: 0,
+        y: 100,
+        w: 50,
+        h: 50
+      }, {
+        x: 0,
+        y: 150,
+        w: 50,
+        h: 50
+      }];
+      var ALIEN_TOP_ROW = [{
+        x: 0,
+        y: 200,
+        w: 50,
+        h: 50
+      }, {
+        x: 0,
+        y: 250,
+        w: 50,
+        h: 50
+      }];
+
+      /*
+      var PLAYER_CLIP_RECT = {
+        x: 0,
+        y: 204,
+        w: 62,
+        h: 32
+      };
+      var ALIEN_BOTTOM_ROW = [{
+        x: 0,
+        y: 0,
+        w: 51,
+        h: 34
+      }, {
+        x: 0,
+        y: 102,
+        w: 51,
+        h: 34
+      }];
+      var ALIEN_MIDDLE_ROW = [{
+        x: 0,
+        y: 137,
+        w: 50,
+        h: 33
+      }, {
+        x: 0,
+        y: 170,
+        w: 50,
+        h: 34
+      }];
+      var ALIEN_TOP_ROW = [{
+        x: 0,
+        y: 68,
+        w: 50,
+        h: 32
+      }, {
+        x: 0,
+        y: 34,
+        w: 50,
+        h: 32
+      }];
+      */
+      var ALIEN_X_MARGIN = 40;
+      var ALIEN_SQUAD_WIDTH = 11 * ALIEN_X_MARGIN;
+
+
+
+      // ###################################################################
+      // Utility functions & classes
+      //
+      // ###################################################################
+      function getRandomArbitrary(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function clamp(num, min, max) {
+        return Math.min(Math.max(num, min), max);
+      }
+
+      function valueInRange(value, min, max) {
+        return (value <= max) && (value >= min);
+      }
+
+      function checkRectCollision(A, B) {
+        var xOverlap = valueInRange(A.x, B.x, B.x + B.w) ||
+          valueInRange(B.x, A.x, A.x + A.w);
+
+        var yOverlap = valueInRange(A.y, B.y, B.y + B.h) ||
+          valueInRange(B.y, A.y, A.y + A.h);
+        return xOverlap && yOverlap;
+      }
+
+      var Point2D = Class.extend({
+        init: function (x, y) {
+          this.x = (typeof x === 'undefined') ? 0 : x;
+          this.y = (typeof y === 'undefined') ? 0 : y;
+        },
+
+        set: function (x, y) {
+          this.x = x;
+          this.y = y;
+        }
+      });
+
+      var Rect = Class.extend({
+        init: function (x, y, w, h) {
+          this.x = (typeof x === 'undefined') ? 0 : x;
+          this.y = (typeof y === 'undefined') ? 0 : y;
+          this.w = (typeof w === 'undefined') ? 0 : w;
+          this.h = (typeof h === 'undefined') ? 0 : h;
+        },
+
+        set: function (x, y, w, h) {
+          this.x = x;
+          this.y = y;
+          this.w = w;
+          this.h = h;
+        }
+      });
+
+
+
+      // ###################################################################
+      // Globals
+      //
+      // ###################################################################
+      var canvas = null;
+      var ctx = null;
+      var spriteSheetImg = null;
+      var bulletImg = null;
+      var keyStates = null;
+      var prevKeyStates = null;
+      var lastTime = 0;
+      var player = null;
+      var aliens = [];
+      var particleManager = null;
+      var updateAlienLogic = false;
+      var alienDirection = -1;
+      var alienYDown = 0;
+      var alienCount = 0;
+      var wave = 1;
+      var hasGameStarted = false;
+
+
+
+      // ###################################################################
+      // Entities
+      //
+      // ###################################################################
+      var BaseSprite = Class.extend({
+        init: function (img, x, y) {
+          this.img = img;
+          this.position = new Point2D(x, y);
+          this.scale = new Point2D(1, 1);
+          this.bounds = new Rect(x, y, this.img.width, this.img.height);
+          this.doLogic = true;
+        },
+
+        update: function (dt) {},
+
+        _updateBounds: function () {
+          this.bounds.set(this.position.x, this.position.y, ~~(0.5 + this.img.width * this.scale.x), ~~(0.5 +
+            this.img
+            .height * this.scale.y));
+        },
+
+        _drawImage: function () {
+          ctx.drawImage(this.img, this.position.x, this.position.y);
+        },
+
+        draw: function (resized) {
+          this._updateBounds();
+
+          this._drawImage();
+        }
+      });
+
+      var SheetSprite = BaseSprite.extend({
+        init: function (sheetImg, clipRect, x, y) {
+          this._super(sheetImg, x, y);
+          this.clipRect = clipRect;
+          this.bounds.set(x, y, this.clipRect.w, this.clipRect.h);
+        },
+
+        update: function (dt) {},
+
+        _updateBounds: function () {
+          var w = ~~(0.5 + this.clipRect.w * this.scale.x);
+          var h = ~~(0.5 + this.clipRect.h * this.scale.y);
+          this.bounds.set(this.position.x - w / 2, this.position.y - h / 2, w, h);
+        },
+
+        _drawImage: function () {
+          ctx.save();
+          ctx.transform(this.scale.x, 0, 0, this.scale.y, this.position.x, this.position.y);
+          ctx.drawImage(this.img, this.clipRect.x, this.clipRect.y, this.clipRect.w, this.clipRect.h, ~~(0.5 + -
+            this.clipRect.w * 0.5), ~~(0.5 + -this.clipRect.h * 0.5), this.clipRect.w, this.clipRect.h);
+          ctx.restore();
+
+        },
+
+        draw: function (resized) {
+          this._super(resized);
+        }
+      });
+
+      var Player = SheetSprite.extend({
+        init: function () {
+          this._super(healthplayerspriteSheetImg, PLAYER_CLIP_RECT, CANVAS_WIDTH / 2, CANVAS_HEIGHT - 70);
+          this.scale.set(0.85, 0.85);
+          this.lives = 3;
+          this.xVel = 0;
+          this.bullets = [];
+          this.bulletDelayAccumulator = 0;
+          this.score = 0;
+        },
+
+        reset: function () {
+          this.lives = 3;
+          this.score = 0;
+          this.position.set(CANVAS_WIDTH / 2, CANVAS_HEIGHT - 70);
+        },
+
+        shoot: function () {
+          var bullet = new Bullet(this.position.x, this.position.y - this.bounds.h / 2, 1, 1000);
+          this.bullets.push(bullet);
+        },
+
+        handleInput: function () {
+          if (isKeyDown(LEFT_KEY)) {
+            this.xVel = -175;
+          } else if (isKeyDown(RIGHT_KEY)) {
+            this.xVel = 175;
+          } else this.xVel = 0;
+
+          if (wasKeyPressed(SHOOT_KEY)) {
+            if (this.bulletDelayAccumulator > 0.5) {
+              this.shoot();
+              this.bulletDelayAccumulator = 0;
+            }
+          }
+        },
+
+        updateBullets: function (dt) {
+          for (var i = this.bullets.length - 1; i >= 0; i--) {
+            var bullet = this.bullets[i];
+            if (bullet.alive) {
+              bullet.update(dt);
+            } else {
+              this.bullets.splice(i, 1);
+              bullet = null;
+            }
+          }
+        },
+
+        update: function (dt) {
+          // update time passed between shots
+          this.bulletDelayAccumulator += dt;
+
+          // apply x vel
+          this.position.x += this.xVel * dt;
+
+          // cap player position in screen bounds
+          this.position.x = clamp(this.position.x, this.bounds.w / 2, CANVAS_WIDTH - this.bounds.w / 2);
+          this.updateBullets(dt);
+        },
+
+        draw: function (resized) {
+          this._super(resized);
+
+          // draw bullets
+          for (var i = 0, len = this.bullets.length; i < len; i++) {
+            var bullet = this.bullets[i];
+            if (bullet.alive) {
+              bullet.draw(resized);
+            }
+          }
+        }
+      });
+
+      var Bullet = BaseSprite.extend({
+        init: function (x, y, direction, speed) {
+          this._super(bulletImg, x, y);
+          this.direction = direction;
+          this.speed = speed;
+          this.alive = true;
+        },
+
+        update: function (dt) {
+          this.position.y -= (this.speed * this.direction) * dt;
+
+          if (this.position.y < 0) {
+            this.alive = false;
+          }
+        },
+
+        draw: function (resized) {
+          this._super(resized);
+        }
+      });
+
+      var Enemy = SheetSprite.extend({
+        init: function (clipRects, x, y) {
+          this._super(ne107spriteSheetImg, clipRects[0], x, y);
+          this.clipRects = clipRects;
+          this.scale.set(0.5, 0.5);
+          this.alive = true;
+          this.onFirstState = true;
+          this.stepDelay = 1; // try 2 secs to start with...
+          this.stepAccumulator = 0;
+          this.doShoot - false;
+          this.bullet = null;
+        },
+
+        toggleFrame: function () {
+          this.onFirstState = !this.onFirstState;
+          this.clipRect = (this.onFirstState) ? this.clipRects[0] : this.clipRects[1];
+        },
+
+        shoot: function () {
+          this.bullet = new Bullet(this.position.x, this.position.y + this.bounds.w / 2, -1, 500);
+        },
+
+        update: function (dt) {
+          this.stepAccumulator += dt;
+
+          if (this.stepAccumulator >= this.stepDelay) {
+            if (this.position.x < this.bounds.w / 2 + 20 && alienDirection < 0) {
+              updateAlienLogic = true;
+            }
+            if (alienDirection === 1 && this.position.x > CANVAS_WIDTH - this.bounds.w / 2 - 20) {
+              updateAlienLogic = true;
+            }
+            if (this.position.y > CANVAS_WIDTH - 50) {
+              reset();
+            }
+
+            var fireTest = Math.floor(Math.random() * (this.stepDelay + 1));
+            if (getRandomArbitrary(0, 1000) <= 5 * (this.stepDelay + 1)) {
+              this.doShoot = true;
+            }
+            this.position.x += 10 * alienDirection;
+            this.toggleFrame();
+            this.stepAccumulator = 0;
+          }
+          this.position.y += alienYDown;
+
+          if (this.bullet !== null && this.bullet.alive) {
+            this.bullet.update(dt);
+          } else {
+            this.bullet = null;
+          }
+        },
+
+        draw: function (resized) {
+          this._super(resized);
+          if (this.bullet !== null && this.bullet.alive) {
+            this.bullet.draw(resized);
+          }
+        }
+      });
+
+      var ParticleExplosion = Class.extend({
+        init: function () {
+          this.particlePool = [];
+          this.particles = [];
+        },
+
+        draw: function () {
+          for (var i = this.particles.length - 1; i >= 0; i--) {
+            var particle = this.particles[i];
+            particle.moves++;
+            particle.x += particle.xunits;
+            particle.y += particle.yunits + (particle.gravity * particle.moves);
+            particle.life--;
+
+            if (particle.life <= 0) {
+              if (this.particlePool.length < 100) {
+                this.particlePool.push(this.particles.splice(i, 1));
+              } else {
+                this.particles.splice(i, 1);
+              }
+            } else {
+              ctx.globalAlpha = (particle.life) / (particle.maxLife);
+              ctx.fillStyle = particle.color;
+              ctx.fillRect(particle.x, particle.y, particle.width, particle.height);
+              ctx.globalAlpha = 1;
+            }
+          }
+        },
+
+        createExplosion: function (x, y, color, number, width, height, spd, grav, lif) {
+          for (var i = 0; i < number; i++) {
+            var angle = Math.floor(Math.random() * 360);
+            var speed = Math.floor(Math.random() * spd / 2) + spd;
+            var life = Math.floor(Math.random() * lif) + lif / 2;
+            var radians = angle * Math.PI / 180;
+            var xunits = Math.cos(radians) * speed;
+            var yunits = Math.sin(radians) * speed;
+
+            if (this.particlePool.length > 0) {
+              var tempParticle = this.particlePool.pop();
+              tempParticle.x = x;
+              tempParticle.y = y;
+              tempParticle.xunits = xunits;
+              tempParticle.yunits = yunits;
+              tempParticle.life = life;
+              tempParticle.color = color;
+              tempParticle.width = width;
+              tempParticle.height = height;
+              tempParticle.gravity = grav;
+              tempParticle.moves = 0;
+              tempParticle.alpha = 1;
+              tempParticle.maxLife = life;
+              this.particles.push(tempParticle);
+            } else {
+              this.particles.push({
+                x: x,
+                y: y,
+                xunits: xunits,
+                yunits: yunits,
+                life: life,
+                color: color,
+                width: width,
+                height: height,
+                gravity: grav,
+                moves: 0,
+                alpha: 1,
+                maxLife: life
+              });
+            }
+
+          }
+        }
+      });
+
+
+
+      // ###################################################################
+      // Initialization functions
+      //
+      // ###################################################################
+      function initCanvas() {
+        // create our canvas and context
+        canvas = document.getElementById('game-canvas');
+        ctx = canvas.getContext('2d');
+
+        // turn off image smoothing
+        setImageSmoothing(false);
+
+        // create our main sprite sheet img
+        //spriteSheetImg = new Image();
+        //spriteSheetImg.src = SPRITE_SHEET_SRC;
+
+        ne107spriteSheetImg = new Image();
+        ne107spriteSheetImg.src = ne107Sprites;
+
+        healthplayerspriteSheetImg = new Image();
+        healthplayerspriteSheetImg.src = healthplayerSprite;
+
+        preDrawImages();
+
+        // add event listeners and initially resize
+        window.addEventListener('resize', resize);
+        document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('keyup', onKeyUp);
+      }
+
+      function preDrawImages() {
+        var canvas = drawIntoCanvas(2, 8, function (ctx) {
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        });
+        bulletImg = new Image();
+        bulletImg.src = canvas.toDataURL();
+      }
+
+      function setImageSmoothing(value) {
+        this.ctx['imageSmoothingEnabled'] = value;
+        this.ctx['mozImageSmoothingEnabled'] = value;
+        this.ctx['oImageSmoothingEnabled'] = value;
+        this.ctx['webkitImageSmoothingEnabled'] = value;
+        this.ctx['msImageSmoothingEnabled'] = value;
+      }
+
+      function initGame() {
+        dirtyRects = [];
+        aliens = [];
+        player = new Player();
+        particleManager = new ParticleExplosion();
+        setupAlienFormation();
+        drawBottomHud();
+      }
+
+      function setupAlienFormation() {
+        alienCount = 0;
+        for (var i = 0, len = 5 * 11; i < len; i++) {
+          var gridX = (i % 11);
+          var gridY = Math.floor(i / 11);
+          var clipRects;
+          switch (gridY) {
+            case 0:
+            case 1:
+              clipRects = ALIEN_BOTTOM_ROW;
+              break;
+            case 2:
+            case 3:
+              clipRects = ALIEN_MIDDLE_ROW;
+              break;
+            case 4:
+              clipRects = ALIEN_TOP_ROW;
+              break;
+          }
+          aliens.push(new Enemy(clipRects, (CANVAS_WIDTH / 2 - ALIEN_SQUAD_WIDTH / 2) + ALIEN_X_MARGIN / 2 + gridX *
+            ALIEN_X_MARGIN, CANVAS_HEIGHT / 3.25 - gridY * 40));
+          alienCount++;
+        }
+      }
+
+      function reset() {
+        aliens = [];
+        setupAlienFormation();
+        player.reset();
+      }
+
+      function init() {
+        initCanvas();
+        keyStates = [];
+        prevKeyStates = [];
+        resize();
+      }
+
+
+
+      // ###################################################################
+      // Helpful input functions
+      //
+      // ###################################################################
+      function isKeyDown(key) {
+        return keyStates[key];
+      }
+
+      function wasKeyPressed(key) {
+        return !prevKeyStates[key] && keyStates[key];
+      }
+
+
+      // ###################################################################
+      // Drawing & Update functions
+      //
+      // ###################################################################
+      function updateAliens(dt) {
+        if (updateAlienLogic) {
+          updateAlienLogic = false;
+          alienDirection = -alienDirection;
+          alienYDown = 25;
+        }
+
+        for (var i = aliens.length - 1; i >= 0; i--) {
+          var alien = aliens[i];
+          if (!alien.alive) {
+            aliens.splice(i, 1);
+            alien = null;
+            alienCount--;
+            if (alienCount < 1) {
+              wave++;
+              setupAlienFormation();
+            }
+            return;
+          }
+
+          alien.stepDelay = ((alienCount * 20) - (wave * 10)) / 1000;
+          if (alien.stepDelay <= 0.05) {
+            alien.stepDelay = 0.05;
+          }
+          alien.update(dt);
+
+          if (alien.doShoot) {
+            alien.doShoot = false;
+            alien.shoot();
+          }
+        }
+        alienYDown = 0;
+      }
+
+      function resolveBulletEnemyCollisions() {
+        var bullets = player.bullets;
+
+        for (var i = 0, len = bullets.length; i < len; i++) {
+          var bullet = bullets[i];
+          for (var j = 0, alen = aliens.length; j < alen; j++) {
+            var alien = aliens[j];
+            if (checkRectCollision(bullet.bounds, alien.bounds)) {
+              alien.alive = bullet.alive = false;
+              particleManager.createExplosion(alien.position.x, alien.position.y, 'white', 70, 5, 5, 3, .15, 50);
+              player.score += 25;
+            }
+          }
+        }
+      }
+
+      function resolveBulletPlayerCollisions() {
+        for (var i = 0, len = aliens.length; i < len; i++) {
+          var alien = aliens[i];
+          if (alien.bullet !== null && checkRectCollision(alien.bullet.bounds, player.bounds)) {
+            if (player.lives === 0) {
+              hasGameStarted = false;
+            } else {
+              alien.bullet.alive = false;
+              particleManager.createExplosion(player.position.x, player.position.y, 'green', 100, 8, 8, 6, 0.001, 40);
+              player.position.set(CANVAS_WIDTH / 2, CANVAS_HEIGHT - 70);
+              player.lives--;
+              break;
+            }
+
+          }
+        }
+      }
+
+      function resolveCollisions() {
+        resolveBulletEnemyCollisions();
+        resolveBulletPlayerCollisions();
+      }
+
+      function updateGame(dt) {
+        player.handleInput();
+        prevKeyStates = keyStates.slice();
+        player.update(dt);
+        updateAliens(dt);
+        resolveCollisions();
+      }
+
+      function drawIntoCanvas(width, height, drawFunc) {
+        var canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        var ctx = canvas.getContext('2d');
+        drawFunc(ctx);
+        return canvas;
+      }
+
+      function fillText(text, x, y, color, fontSize) {
+        if (typeof color !== 'undefined') ctx.fillStyle = color;
+        if (typeof fontSize !== 'undefined') ctx.font = fontSize + 'px Play';
+        ctx.fillText(text, x, y);
+      }
+
+      function fillCenteredText(text, x, y, color, fontSize) {
+        var metrics = ctx.measureText(text);
+
+        //debugger;
+        console.log(text, x, y, color, fontSize);
+        fillText(text, x - metrics.width / 2, y, color, fontSize);
+      }
+
+      function fillBlinkingText(text, x, y, blinkFreq, color, fontSize) {
+        if (~~(0.5 + Date.now() / blinkFreq) % 2) {
+          fillCenteredText(text, x, y, color, fontSize);
+        }
+      }
+
+      function drawBottomHud() {
+        ctx.fillStyle = '#02ff12';
+        ctx.fillRect(0, CANVAS_HEIGHT - 30, CANVAS_WIDTH, 2);
+        fillText(player.lives + ' x ', 10, CANVAS_HEIGHT - 7.5, 'white', 20);
+        ctx.drawImage(healthplayerspriteSheetImg, player.clipRect.x, player.clipRect.y, player.clipRect.w,
+          player.clipRect.h, 45, CANVAS_HEIGHT - 23, player.clipRect.w * 0.5,
+          player.clipRect.h * 0.5);
+        fillText('CREDIT: ', CANVAS_WIDTH - 115, CANVAS_HEIGHT - 7.5);
+        fillCenteredText('HEALTHSCORE: ' + player.score, CANVAS_WIDTH / 2, 20);
+        fillBlinkingText('00', CANVAS_WIDTH - 25, CANVAS_HEIGHT - 7.5, TEXT_BLINK_FREQ);
+      }
+
+      function drawAliens(resized) {
+        for (var i = 0; i < aliens.length; i++) {
+          var alien = aliens[i];
+          alien.draw(resized);
+        }
+      }
+
+      function drawGame(resized) {
+        player.draw(resized);
+        drawAliens(resized);
+        particleManager.draw();
+        drawBottomHud();
+      }
+
+      function drawStartScreen() {
+        fillCenteredText("Health Invaders                         ", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2.75, '#FFFFFF', 36);
+        fillBlinkingText("Press enter to play!", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 500, '#FFFFFF', 36);
+        //fillCenteredText("Move with arrows, heal up with <space>", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 1.7, '#FFFFFF', 18);
+
+          fillText('           Move with arrows, heal up with <space> ', 10, CANVAS_HEIGHT - 30, 'white', 20);
+      }
+
+      function animate() {
+        var now = window.performance.now();
+        var dt = now - lastTime;
+        if (dt > 100) dt = 100;
+        if (wasKeyPressed(13) && !hasGameStarted) {
+          initGame();
+          hasGameStarted = true;
+        }
+
+        if (hasGameStarted) {
+          updateGame(dt / 1000);
+        }
+
+
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        if (hasGameStarted) {
+          drawGame(false);
+        } else {
+          drawStartScreen();
+        }
+        lastTime = now;
+        requestAnimationFrame(animate);
+      }
+
+
+
+      // ###################################################################
+      // Event Listener functions
+      //
+      // ###################################################################
+      function resize() {
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+
+        // calculate the scale factor to keep a correct aspect ratio
+        var scaleFactor = Math.min(w / CANVAS_WIDTH, h / CANVAS_HEIGHT);
+
+        if (IS_CHROME) {
+          canvas.width = CANVAS_WIDTH * scaleFactor;
+          canvas.height = CANVAS_HEIGHT * scaleFactor;
+          setImageSmoothing(false);
+          ctx.transform(scaleFactor, 0, 0, scaleFactor, 0, 0);
+        } else {
+          // resize the canvas css properties
+          canvas.style.width = CANVAS_WIDTH * scaleFactor + 'px';
+          canvas.style.height = CANVAS_HEIGHT * scaleFactor + 'px';
+        }
+      }
+
+      function onKeyDown(e) {
+        e.preventDefault();
+        keyStates[e.keyCode] = true;
+      }
+
+      function onKeyUp(e) {
+        e.preventDefault();
+        keyStates[e.keyCode] = false;
+      }
+
+
+      // ###################################################################
+      // Start game!
+      //
+      // ###################################################################
+      window.onload = function () {
+        init();
+        animate();
+      };
+    </script>
+  </head>
+
+  <body>
+    <link href='https://fonts.googleapis.com/css?family=Play:400,700' rel='stylesheet' type='text/css'>
+    <canvas id="game-canvas" width="640" height="640"></canvas>
+  </body>
+
+</html>
