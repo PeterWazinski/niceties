@@ -102,10 +102,10 @@ Commit trailer for every commit: `Co-Authored-By: Claude Sonnet 5.5 <noreply@ant
 - [x] Commit: "Game state machine with timer, moves, reset and pause".
 
 ### Phase 3 – URL state & settings
-- [ ] `urlstate.js`: `parse(hash) → {n, seed}`, `serialise`, clamp `n` to `[MIN_NODES, MAX_NODES]`, invalid/missing seed ⇒ random seed (then written back with `history.replaceState`).
-- [ ] `settings.js`: load/save `{theme, nodes, showMarkers, showTimer}` with defaults, tolerant of corrupt JSON and unavailable storage.
+- [x] `urlstate.js`: `parse(hash) → {n, seed}`, `serialise`, clamp `n` to `[MIN_NODES, MAX_NODES]`, invalid/missing seed ⇒ random seed (then written back with `history.replaceState`).
+- [x] `settings.js`: load/save `{theme, nodes, showMarkers, showTimer}` with defaults, tolerant of corrupt JSON and unavailable storage.
 - **Tests (unit):** hash round trips; garbage (`#n=abc&seed=-3`, `#n=999`) is clamped/replaced; unknown keys ignored; settings defaults; corrupt JSON ⇒ defaults; storage throwing ⇒ defaults and no exception; unknown theme name ⇒ Blueprint.
-- [ ] Commit: "URL hash and persisted settings".
+- [x] Commit: "URL hash and persisted settings".
 
 ### Phase 4 – New page, layout, Blueprint theme, view
 - [ ] New `index.html`: header (title, tagline), flex layout with board + side panel (stats, controls placeholders), meta viewport, `data-theme` on `<html>`.
