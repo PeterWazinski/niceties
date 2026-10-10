@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Untangle Me – Proposal A: Neon Arcade</title>
+<style>
+  :root { --bg:#0b0820; --panel:#15103a; --ink:#e9e6ff; --dim:#8a85b8;
+          --ok:#00f0c8; --bad:#ff2e93; --accent:#7c5cff; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; color:var(--ink);
+         font:16px/1.4 "Segoe UI",system-ui,sans-serif;
+         background:radial-gradient(1200px 600px at 20% -10%,#2a1565 0,transparent 60%),
+                    radial-gradient(900px 500px at 100% 100%,#04304a 0,transparent 60%),var(--bg); }
+  .wrap { max-width:1100px; margin:0 auto; padding:24px 16px 40px; }
+  h1 { margin:0; font-size:34px; letter-spacing:.14em; text-transform:uppercase;
+       background:linear-gradient(90deg,var(--bad),var(--accent),var(--ok));
+       -webkit-background-clip:text; background-clip:text; color:transparent;
+       filter:drop-shadow(0 0 12px rgba(124,92,255,.55)); }
+  .sub { color:var(--dim); margin:4px 0 18px; }
+  .layout { display:grid; grid-template-columns:230px 1fr; gap:18px; }
+  @media (max-width:820px){ .layout{ grid-template-columns:1fr; } }
+  .panel { background:linear-gradient(180deg,var(--panel),#100c2c); border:1px solid #2c2466;
+           border-radius:16px; padding:16px; box-shadow:0 0 30px rgba(124,92,255,.15) inset; }
+  .stat { display:flex; justify-content:space-between; align-items:baseline;
+          padding:10px 0; border-bottom:1px solid #261f55; }
+  .stat:last-of-type { border:0; }
+  .stat small { color:var(--dim); text-transform:uppercase; letter-spacing:.12em; font-size:11px; }
+  .stat b { font:700 28px "Consolas","Courier New",monospace; }
+  .stat.cross b { color:var(--bad); text-shadow:0 0 14px var(--bad); }
+  body[data-solved=true] .stat.cross b { color:var(--ok); text-shadow:0 0 14px var(--ok); }
+  label { display:block; color:var(--dim); font-size:12px; letter-spacing:.1em;
+          text-transform:uppercase; margin:14px 0 6px; }
+  input[type=range] { width:100%; accent-color:var(--accent); }
+  .chips { display:flex; gap:6px; }
+  .chip { flex:1; padding:6px 0; text-align:center; font-size:13px; border-radius:999px;
+          border:1px solid #3a2f85; color:var(--dim); cursor:pointer; background:transparent; }
+  .chip.on { color:#fff; border-color:var(--accent); box-shadow:0 0 12px rgba(124,92,255,.6); }
+  button.go { width:100%; margin-top:16px; padding:12px; border:0; border-radius:12px; cursor:pointer;
+              font:700 15px inherit; letter-spacing:.12em; text-transform:uppercase; color:#fff;
+              background:linear-gradient(90deg,var(--bad),var(--accent)); box-shadow:0 0 22px rgba(255,46,147,.45); }
+  button.ghost { width:100%; margin-top:8px; padding:8px; background:none; color:var(--dim);
+                 border:1px dashed #3a2f85; border-radius:12px; cursor:pointer; }
+  .stage { position:relative; border-radius:16px; border:1px solid #2c2466; overflow:hidden;
+           background:
+             linear-gradient(rgba(124,92,255,.10) 1px,transparent 1px) 0 0/40px 40px,
+             linear-gradient(90deg,rgba(124,92,255,.10) 1px,transparent 1px) 0 0/40px 40px,
+             #0a0720; box-shadow:0 0 40px rgba(124,92,255,.2); }
+  svg { display:block; width:100%; height:auto; touch-action:none; }
+  .edge { stroke:var(--ok); stroke-width:2.5; stroke-linecap:round;
+          filter:drop-shadow(0 0 5px var(--ok)); transition:stroke .15s; }
+  .edge.x { stroke:var(--bad); filter:drop-shadow(0 0 6px var(--bad)); }
+  .node { fill:#0a0720; stroke:var(--ok); stroke-width:3; cursor:grab;
+          filter:drop-shadow(0 0 7px var(--ok)); transition:stroke .15s; }
+  .node.x { stroke:var(--bad); filter:drop-shadow(0 0 7px var(--bad)); }
+  .node.grab { cursor:grabbing; fill:#fff; }
+  .mark { fill:none; stroke:#fff; stroke-width:1.5; opacity:.8; pointer-events:none; }
+  .win { position:absolute; inset:0; display:none; place-content:center; text-align:center;
+         background:rgba(8,5,26,.72); backdrop-filter:blur(3px); }
+  body[data-solved=true] .win { display:grid; }
+  .win h2 { margin:0; font-size:56px; letter-spacing:.12em; text-transform:uppercase; color:var(--ok);
+            text-shadow:0 0 24px var(--ok),0 0 60px var(--ok); }
+  .win p { color:var(--dim); font-size:18px; }
+  .win button { pointer-events:auto; }
+</style></head>
+<body>
+<div class="wrap">
+  <h1>Untangle Me</h1>
+  <p class="sub">Drag the nodes until no two lines cross. <i>(Mock-up – drag works, rules are simplified.)</i></p>
+  <div class="layout">
+    <aside class="panel">
+      <div class="stat"><small>Time</small><b><span data-bind="timer">0.0</span><small>&nbsp;s</small></b></div>
+      <div class="stat"><small>Moves</small><b data-bind="moves">0</b></div>
+      <div class="stat cross"><small>Crossings</small><b data-bind="cross">0</b></div>
+      <label>Difficulty</label>
+      <div class="chips"><span class="chip">Easy</span><span class="chip on">Normal</span><span class="chip">Hard</span></div>
+      <label>Nodes · 8</label>
+      <input type="range" min="4" max="30" value="8">
+      <button class="go" id="new">New puzzle</button>
+      <button class="ghost" id="demo">peek at solution (demo)</button>
+    </aside>
+    <div class="stage">
+      <svg id="board" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="win"><div>
+        <h2>Untangled!</h2>
+        <p><span data-bind="timer">0.0</span> s · <span data-bind="moves">0</span> moves · ★★★</p>
+      </div></div>
+    </div>
+  </div>
+</div>
+<script src="mock.js"></script>
+</body></html>

@@ -1,0 +1,9 @@
+{
+  "name": "untangleme",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Untangle Me - a planar graph puzzle for the browser",
+  "scripts": {
+    "test": "node --test \"tests/unit/*.test.js\""
+  }
+}

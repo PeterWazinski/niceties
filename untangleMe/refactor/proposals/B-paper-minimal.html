@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Untangle Me – Proposal B: Paper Minimal</title>
+<style>
+  :root { --bg:#f5f1e8; --card:#fffdf8; --ink:#23201b; --dim:#8b8478; --line:#e4ddcc;
+          --edge:#3b3a36; --ok:#2f7d5b; --bad:#e2552d; --node:#f2b441; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
+         font:16px/1.45 Georgia,"Times New Roman",serif; }
+  .wrap { max-width:1000px; margin:0 auto; padding:32px 16px 48px; }
+  header { display:flex; justify-content:space-between; align-items:end; flex-wrap:wrap; gap:12px;
+           border-bottom:2px solid var(--ink); padding-bottom:12px; margin-bottom:20px; }
+  h1 { margin:0; font-size:40px; font-weight:400; letter-spacing:-.01em; }
+  h1 i { color:var(--bad); }
+  header p { margin:0; color:var(--dim); font-style:italic; }
+  .bar { display:flex; flex-wrap:wrap; gap:10px 28px; align-items:center; margin-bottom:16px;
+         font-family:system-ui,sans-serif; }
+  .kv small { display:block; color:var(--dim); font-size:11px; letter-spacing:.1em; text-transform:uppercase; }
+  .kv b { font:600 26px/1.1 system-ui,sans-serif; font-variant-numeric:tabular-nums; }
+  .kv.cross b { color:var(--bad); }
+  body[data-solved=true] .kv.cross b { color:var(--ok); }
+  .sp { flex:1; }
+  select, button { font:15px system-ui,sans-serif; padding:9px 14px; border-radius:8px;
+                   border:1px solid var(--ink); background:var(--card); color:var(--ink); cursor:pointer; }
+  button.primary { background:var(--ink); color:var(--bg); }
+  button:hover { transform:translateY(-1px); }
+  .board { position:relative; background:var(--card); border:1px solid var(--line); border-radius:6px;
+           box-shadow:0 1px 0 var(--line),0 12px 28px -14px rgba(60,40,0,.35);
+           background-image:radial-gradient(#d9d1bd 1px,transparent 1.2px); background-size:24px 24px; }
+  svg { display:block; width:100%; height:auto; touch-action:none; }
+  .edge { stroke:var(--edge); stroke-width:2; stroke-linecap:round; transition:stroke .15s; }
+  .edge.x { stroke:var(--bad); stroke-width:2.5; stroke-dasharray:7 5; }
+  .node { fill:var(--node); stroke:var(--ink); stroke-width:2; cursor:grab; transition:fill .15s; }
+  .node.x { fill:#f6c3b3; }
+  .node.grab { cursor:grabbing; }
+  .mark { fill:var(--bad); opacity:.85; pointer-events:none; }
+  .toast { position:absolute; left:50%; top:16px; transform:translate(-50%,-80px); transition:transform .35s;
+           background:var(--ok); color:#fff; padding:10px 20px; border-radius:999px;
+           font:600 15px system-ui,sans-serif; box-shadow:0 8px 20px -8px rgba(0,0,0,.4); }
+  body[data-solved=true] .toast { transform:translate(-50%,0); }
+  footer { margin-top:14px; color:var(--dim); font:13px system-ui,sans-serif; display:flex; gap:20px; flex-wrap:wrap; }
+</style></head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Untangle <i>Me</i></h1>
+    <p>Move the vertices until no two lines cross.</p>
+  </header>
+  <div class="bar">
+    <div class="kv"><small>Time</small><b><span data-bind="timer">0.0</span> s</b></div>
+    <div class="kv"><small>Moves</small><b data-bind="moves">0</b></div>
+    <div class="kv cross"><small>Crossings</small><b data-bind="cross">0</b></div>
+    <span class="sp"></span>
+    <select><option>Easy · 6 nodes</option><option selected>Normal · 8 nodes</option>
+            <option>Hard · 14 nodes</option><option>Custom…</option></select>
+    <button id="demo">Peek</button>
+    <button class="primary" id="new">New puzzle</button>
+  </div>
+  <div class="board">
+    <svg id="board" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="toast">Untangled in <span data-bind="timer">0.0</span> s with <span data-bind="moves">0</span> moves</div>
+  </div>
+  <footer><span>Best (8 nodes): 14.2 s</span><span>Puzzle #4821</span><span>Mock-up – drag works, rules simplified</span></footer>
+</div>
+<script src="mock.js"></script>
+</body></html>
