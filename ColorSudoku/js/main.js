@@ -23,7 +23,7 @@
     numbers: false,
     focus: 0,
     anim: 0,
-    speed: "normal",
+    speed: "fast",
     adjust: { saturation: 0, vibrance: 0, tint: 0 },
   };
 
