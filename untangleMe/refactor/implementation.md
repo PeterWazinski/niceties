@@ -150,10 +150,10 @@ Commit trailer for every commit: `Co-Authored-By: Claude Sonnet 5.5 <noreply@ant
 - [x] Commit: "Cross-browser and device test matrix".
 
 ### Phase 9 – Docs & deployment
-- [ ] `untangleMe/README.md`: how to play, run locally (double-click or `npx http-server`), run tests, constants to tweak (`MAX_NODES`, `EDGE_DENSITY`, presets).
-- [ ] Update `refactor.md` status; keep `proposals/`.
+- [x] `untangleMe/README.md`: how to play, run locally (double-click or `npx http-server`), run tests, constants to tweak (`MAX_NODES`, `EDGE_DENSITY`, presets).
+- [x] Update `refactor.md` status; keep `proposals/`.
 - [ ] **Ask you** before pushing; then `git push`; you (or I via `gh`) enable Pages: Settings → Pages → *Deploy from branch → main / (root)*.
-- [ ] Smoke-test the live URL with a Playwright run against `https://peterwazinski.github.io/niceties/untangleMe/` (read-only).
+- [x] Live smoke test written (`npm run test:live`, config `tests/e2e/live.config.js`) - **to be run after the push and enabling Pages**.
 - [ ] Commit: "Docs"; push after your OK.
 
 ---

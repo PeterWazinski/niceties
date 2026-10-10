@@ -6,7 +6,8 @@
   "scripts": {
     "test": "node --test \"tests/unit/*.test.js\"",
     "test:e2e": "playwright test",
-    "test:all": "npm test && npm run test:e2e"
+    "test:all": "npm test && npm run test:e2e",
+    "test:live": "playwright test -c tests/e2e/live.config.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.0"

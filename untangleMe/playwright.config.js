@@ -23,10 +23,10 @@ module.exports = defineConfig({
     env: { PORT: String(PORT) }
   },
   projects: [
-    { name: "chromium", use: { ...devices["Desktop Chrome"] }, testIgnore: /small-screen/ },
-    { name: "firefox", use: { ...devices["Desktop Firefox"] }, testIgnore: /small-screen/ },
-    { name: "webkit", use: { ...devices["Desktop Safari"] }, testIgnore: /small-screen/ },
-    { name: "ipad", use: { ...devices["iPad (gen 7) landscape"] }, testIgnore: /small-screen/ },
+    { name: "chromium", use: { ...devices["Desktop Chrome"] }, testIgnore: /small-screen|live\.spec/ },
+    { name: "firefox", use: { ...devices["Desktop Firefox"] }, testIgnore: /small-screen|live\.spec/ },
+    { name: "webkit", use: { ...devices["Desktop Safari"] }, testIgnore: /small-screen|live\.spec/ },
+    { name: "ipad", use: { ...devices["iPad (gen 7) landscape"] }, testIgnore: /small-screen|live\.spec/ },
     { name: "iphone", use: { ...devices["iPhone 13"] }, testMatch: /small-screen/ }
   ]
 });

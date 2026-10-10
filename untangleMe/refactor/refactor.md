@@ -1,6 +1,6 @@
 # UntangleMe – analysis & refactor plan (for review)
 
-Status: **draft for your review – no game code has been changed yet.**
+Status: **done - implemented as described in [implementation.md](implementation.md). This file is kept as the original analysis. Note: d3 was removed in the end (see implementation.md §1).**
 
 ## 1. What the game is today
 
