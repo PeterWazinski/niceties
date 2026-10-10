@@ -50,3 +50,26 @@ test("new puzzle and reset restore the plain title", async ({ page }) => {
   await expect(page).toHaveTitle("Untangle Me");
   await expect(page.locator("#confetti")).toBeHidden();
 });
+
+test("confetti really draws pixels, at full resolution and over the whole viewport", async ({ page }) => {
+  await openPuzzle(page, "#n=8&seed=42");
+  await solveByDragging(page);
+  await page.waitForTimeout(800);
+  const info = await page.evaluate(() => {
+    const c = document.getElementById("confetti");
+    const r = c.getBoundingClientRect();
+    const data = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    let painted = 0;
+    for (let i = 3; i < data.length; i += 4) if (data[i] > 0) painted++;
+    return { painted, bufW: c.width, bufH: c.height, w: r.width, h: r.height,
+             vw: window.innerWidth, vh: window.innerHeight, top: r.top, left: r.left };
+  });
+  expect(info.painted).toBeGreaterThan(200);
+  expect(Math.round(info.w)).toBe(info.vw);
+  expect(Math.round(info.h)).toBe(info.vh);
+  expect(info.top).toBe(0);
+  expect(info.left).toBe(0);
+  // buffer matches the displayed size (not the 300x150 default of a hidden canvas)
+  expect(info.bufW).toBeGreaterThanOrEqual(info.vw);
+  expect(info.bufH).toBeGreaterThanOrEqual(info.vh);
+});

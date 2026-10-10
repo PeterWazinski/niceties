@@ -77,10 +77,11 @@
       // Returns true if a burst was started.
       fire: function () {
         if (active || reducedMotion()) return false;
+        // Show first: a hidden canvas has no layout size to measure.
+        canvas.hidden = false;
         const dpr = (globalThis.devicePixelRatio || 1);
         canvas.width = Math.round((canvas.clientWidth || canvas.width) * Math.min(dpr, 2));
         canvas.height = Math.round((canvas.clientHeight || canvas.height) * Math.min(dpr, 2));
-        canvas.hidden = false;
         // Particles are laid out in CSS px; scale the context to match.
         const ctx = canvas.getContext("2d");
         if (ctx.setTransform) ctx.setTransform(canvas.width / (width() || 1), 0, 0, canvas.height / (height() || 1), 0, 0);
