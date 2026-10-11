@@ -12,7 +12,7 @@ any static web host (GitHub Pages works).
   slider (6-30 vertices) start a new puzzle.
 - **New puzzle** shuffles a new puzzle of the same size. **Reset** returns to the
   starting scramble of the current puzzle.
-- **Copy link to this puzzle** copies a URL like `index.html#n=8&seed=4821`.
+- **Copy link** copies a URL like `index.html#n=8&seed=4821`.
   Anyone opening it gets exactly the same puzzle.
 - **View**: toggle crossing markers, hide the timer, switch the theme
   (Blueprint / Neon). Your choices are remembered in the browser (localStorage).

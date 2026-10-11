@@ -15,6 +15,7 @@
     timer: $("timer"), moves: $("moves"), crossings: $("crossings"),
     presets: $("presets"), nodes: $("nodes"), nodesValue: $("nodes-value"),
     newPuzzle: $("new-puzzle"), reset: $("reset"),
+    hints: $("hints"), hint: $("hint"), solve: $("solve"),
     copyLink: $("copy-link"), copyStatus: $("copy-status"), linkField: $("link-field"),
     markers: $("toggle-markers"), timerToggle: $("toggle-timer"), theme: $("theme")
   };
@@ -24,6 +25,7 @@
   const confetti = UM.confetti.createConfetti($("confetti"), {
     reducedMotion: () => !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)
   });
+  const assistant = UM.assist.createAssistant();
   const BASE_TITLE = "Untangle Me";
   let game = null;
   let tickId = null;
@@ -37,6 +39,9 @@
   function renderStats(state) {
     els.moves.textContent = state.moves;
     els.crossings.textContent = state.crossings;
+    els.hints.textContent = state.hints;
+    const locked = state.status === "solved" || state.assisting;
+    els.hint.disabled = els.solve.disabled = locked;
     els.timer.textContent = formatTime(state.elapsed);
     root.setAttribute("data-status", state.status);
     document.title = state.status === "solved" ? "✓ " + BASE_TITLE : BASE_TITLE;
@@ -55,11 +60,13 @@
     const puzzle = UM.puzzle.createPuzzle(n, seed);
     game = UM.game.createGame(puzzle);
     if (document.hidden) game.pause();
+    assistant.cancel();
     confetti.stop();
     boardView.show(game);
     game.subscribe((e) => {
       renderStats(e.state);
-      if (e.type === "solved") confetti.fire();
+      // A puzzle solved by the Solve button is not a win: no confetti.
+      if (e.type === "solved" && !e.state.assisted) confetti.fire();
     });
     renderStats(game.getState());
     syncSizeControls(n);
@@ -161,6 +168,8 @@
   // ---- events ----
   els.newPuzzle.addEventListener("click", () => newPuzzle());
   els.reset.addEventListener("click", () => game.reset());
+  els.hint.addEventListener("click", () => assistant.hint(game));
+  els.solve.addEventListener("click", () => assistant.solve(game));
   els.copyLink.addEventListener("click", copyLink);
 
   els.nodes.addEventListener("input", () => { els.nodesValue.textContent = els.nodes.value; });
@@ -206,6 +215,7 @@
   UM.app = {
     getGame: () => game,
     confetti: confetti,
+    assistant: assistant,
     getSettings: () => Object.assign({}, settings),
     newPuzzle: newPuzzle,
     go: go

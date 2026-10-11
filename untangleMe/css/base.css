@@ -87,7 +87,7 @@ body {
   letter-spacing: .2em;
   text-transform: uppercase;
 }
-.row { display: flex; justify-content: space-between; align-items: baseline; padding: 5px 0; }
+.row { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; }
 .row b { font-size: 22px; font-variant-numeric: tabular-nums; }
 .row.cross b { color: var(--bad); }
 html[data-status="solved"] .row.cross b { color: var(--ok); }
@@ -110,7 +110,9 @@ select {
 }
 
 .actions { margin-top: 12px; display: grid; gap: 8px; }
-#copy-status { min-height: 1.2em; color: var(--ok); font-size: 13px; }
+.actions .presets { margin-bottom: 0; }
+#copy-status { color: var(--ok); font-size: 13px; }
+#copy-status:empty { display: none; }
 #link-field { width: 100%; font: inherit; font-size: 12px; padding: 6px; }
 html[data-timer="hidden"] #time-row { display: none; }
 
@@ -133,6 +135,10 @@ button:focus-visible, input:focus-visible { outline: 3px solid var(--bad); outli
 .edge.x { stroke: var(--bad); stroke-width: 2.4; filter: var(--glow-bad, none); }
 .node { fill: var(--node-fill); stroke: var(--edge); stroke-width: 2.4; cursor: grab; filter: var(--glow, none); }
 .node.x { stroke: var(--bad); filter: var(--glow-bad, none); }
+.node.hint { stroke: var(--ok); stroke-width: 4; animation: hint-pulse .7s ease-in-out infinite alternate; }
+@keyframes hint-pulse { to { stroke-width: 7; } }
+@media (prefers-reduced-motion: reduce) { .node.hint { animation: none; } }
+.presets button:disabled, #hint:disabled, #solve:disabled { opacity: .45; cursor: default; }
 .node.grab { cursor: grabbing; fill: var(--edge); }
 .mark { fill: none; stroke: var(--bad); stroke-width: 2; pointer-events: none; }
 html[data-status="solved"] .edge,

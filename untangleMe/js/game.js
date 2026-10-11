@@ -4,6 +4,11 @@
 // status: "idle"    scrambled, untouched
 //         "playing" first real displacement happened, timer running
 //         "solved"  no crossings left; timer and move counter are frozen
+//
+// Help (hints, solve) is animated by the caller through beginAssist /
+// assistMove / endAssist. It never counts as a move and never starts the
+// timer. Hints are counted; using solve sets `assisted` so the UI can tell a
+// solved-by-the-game puzzle from a solved-by-the-player one.
 (function () {
   const UM = (globalThis.UM = globalThis.UM || {});
   if (typeof require === "function") { require("./config.js"); require("./geometry.js"); }
@@ -20,6 +25,7 @@
     let positions, analysis, moves, status;
     let accumulated, runningSince, paused;
     let dragging, dragMoved, dragCounts;
+    let hints, assisted, assisting, assistNodes;
 
     function init() {
       positions = puzzle.start.map((p) => [p[0], p[1]]);
@@ -30,6 +36,10 @@
       dragging = false;
       dragMoved = false;
       dragCounts = false;
+      hints = 0;
+      assisted = false;
+      assisting = false;
+      assistNodes = [];
       analyse();
     }
 
@@ -64,7 +74,11 @@
         nodeFlags: analysis.nodeFlags,
         points: analysis.points,
         elapsed: elapsed(),
-        paused: paused
+        paused: paused,
+        hints: hints,
+        assisted: assisted,
+        assisting: assisting,
+        assistNodes: assistNodes.slice()
       };
     }
 
@@ -92,6 +106,7 @@
 
       // Moves node i (coordinates are clamped to [0,1]). Returns true if it moved.
       moveNode: function (i, x, y) {
+        if (assisting) return false; // the board is locked while help animates
         const p = positions[i],
               nx = clamp01(x), ny = clamp01(y);
         if (Math.abs(nx - p[0]) < MOVE_EPSILON && Math.abs(ny - p[1]) < MOVE_EPSILON) return false;
@@ -112,6 +127,43 @@
         emit("change");
         if (solvedNow) emit("solved");
         return true;
+      },
+
+      // Starts an animated help. kind: "hint" | "solve"; nodes: indices that
+      // will be moved (highlighted by the view).
+      beginAssist: function (kind, nodes) {
+        if (status === "solved" || assisting) return false;
+        assisting = true;
+        assistNodes = nodes.slice();
+        if (kind === "solve") assisted = true; else hints++;
+        emit("change");
+        return true;
+      },
+
+      // One animation step: places node i without counting a move. Detects the
+      // solved state like moveNode does.
+      assistMove: function (i, x, y) {
+        if (!assisting) return false;
+        const p = positions[i];
+        p[0] = clamp01(x);
+        p[1] = clamp01(y);
+        analyse();
+        let solvedNow = false;
+        if (analysis.count === 0 && status !== "solved") {
+          stopClock();
+          status = "solved";
+          solvedNow = true;
+        }
+        emit("change");
+        if (solvedNow) emit("solved");
+        return true;
+      },
+
+      endAssist: function () {
+        if (!assisting) return;
+        assisting = false;
+        assistNodes = [];
+        emit("change");
       },
 
       endDrag: function () {

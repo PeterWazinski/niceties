@@ -27,6 +27,7 @@
         <h2>Measurements</h2>
         <div class="row" id="time-row"><span>Time</span><b><span id="timer">0.0</span> s</b></div>
         <div class="row"><span>Moves</span><b id="moves">0</b></div>
+        <div class="row" id="hints-row"><span>Hints used</span><b id="hints">0</b></div>
         <div class="row cross"><span>Crossings</span><b id="crossings">0</b></div>
 
         <h2>Puzzle</h2>
@@ -35,10 +36,18 @@
         <input type="range" id="nodes" step="1">
         <div class="actions">
           <button id="new-puzzle" class="primary" type="button">New puzzle</button>
-          <button id="reset" type="button">Reset</button>
-          <button id="copy-link" type="button">Copy link to this puzzle</button>
+          <div class="presets">
+            <button id="reset" type="button">Reset</button>
+            <button id="copy-link" type="button" title="Copy a link to this puzzle">Copy link</button>
+          </div>
           <span id="copy-status" role="status" aria-live="polite"></span>
           <input id="link-field" type="text" readonly aria-label="Link to this puzzle" hidden>
+        </div>
+
+        <h2>Help</h2>
+        <div class="presets">
+          <button id="hint" type="button">Hint</button>
+          <button id="solve" type="button">Solve</button>
         </div>
 
         <h2>View</h2>
@@ -68,6 +77,8 @@
   <script src="js/graph.js"></script>
   <script src="js/puzzle.js"></script>
   <script src="js/game.js"></script>
+  <script src="js/hint.js"></script>
+  <script src="js/assist.js"></script>
   <script src="js/urlstate.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/boardcoords.js"></script>

@@ -35,7 +35,8 @@
         const p = coords.unitToBoard(state.positions[i]);
         el.setAttribute("cx", p[0]); el.setAttribute("cy", p[1]);
         el.setAttribute("class", "node" + (state.nodeFlags[i] ? " x" : "") +
-                                 (el.dataset.grab ? " grab" : ""));
+                                 (el.dataset.grab ? " grab" : "") +
+                                 (state.assistNodes.indexOf(i) >= 0 ? " hint" : ""));
       });
       while (gMarks.firstChild) gMarks.removeChild(gMarks.firstChild);
       if (showMarkers) {
@@ -49,7 +50,7 @@
 
     function attachDrag(el, index) {
       el.addEventListener("pointerdown", (ev) => {
-        if (!game || ev.button > 0) return;
+        if (!game || ev.button > 0 || game.getState().assisting) return;
         ev.preventDefault();
         try { el.setPointerCapture(ev.pointerId); } catch (e) { /* pointer already gone */ }
         el.dataset.grab = "1";
