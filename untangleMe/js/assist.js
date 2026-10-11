@@ -4,9 +4,12 @@
   const UM = (globalThis.UM = globalThis.UM || {});
   if (typeof require === "function") { require("./hint.js"); }
 
-  const HINT_MS = 1100, SOLVE_MS = 1900;
+  const HINT_MS = 1100, SOLVE_MS = 4000;
+  const SOLVE_STAGGER = 0.35; // share of the duration over which node starts are spread
 
-  function ease(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  // Sine ease-in-out: peak speed is only about 1.6x the average, so nodes drift
+  // instead of lurching.
+  function ease(t) { return -(Math.cos(Math.PI * t) - 1) / 2; }
 
   // opts: {now: () => ms, raf: (fn) => id, hintNodes: nodes per hint (default 1)}
   function createAssistant(opts) {
@@ -17,7 +20,7 @@
     let token = 0;
 
     // Tweens `nodes` of `game` onto `target`; resolves true if it ran to the end.
-    function animate(game, kind, nodes, target, duration) {
+    function animate(game, kind, nodes, target, duration, stagger) {
       const mine = ++token,
             from = game.getState().positions,
             t0 = now();
@@ -25,9 +28,13 @@
       return new Promise((resolve) => {
         function step() {
           if (mine !== token || !game.getState().assisting) { resolve(false); return; }
-          const t = duration > 0 ? Math.min(1, (now() - t0) / duration) : 1,
-                e = t >= 1 ? 1 : ease(t);
-          nodes.forEach((i) => {
+          const t = duration > 0 ? Math.min(1, (now() - t0) / duration) : 1;
+          nodes.forEach((i, k) => {
+            // Each node starts a little later than the previous one and all
+            // arrive together at t = 1.
+            const delay = stagger * (k / nodes.length),
+                  local = Math.max(0, Math.min(1, (t - delay) / (1 - stagger))),
+                  e = ease(local);
             game.assistMove(i,
               from[i][0] + (target[i][0] - from[i][0]) * e,
               from[i][1] + (target[i][1] - from[i][1]) * e);
@@ -56,7 +63,7 @@
               target = alignedTarget(game),
               nodes = UM.hint.chooseHintNodes(s.positions, s.edges, target, hintCount);
         if (!nodes.length) return Promise.resolve(false);
-        return animate(game, "hint", nodes, target, HINT_MS);
+        return animate(game, "hint", nodes, target, HINT_MS, 0);
       },
 
       // Moves every misplaced node onto the solution.
@@ -68,7 +75,7 @@
                 Math.abs(s.positions[i][0] - target[i][0]) > 1e-6 ||
                 Math.abs(s.positions[i][1] - target[i][1]) > 1e-6);
         if (!nodes.length) return Promise.resolve(false);
-        return animate(game, "solve", nodes, target, SOLVE_MS);
+        return animate(game, "solve", nodes, target, SOLVE_MS, SOLVE_STAGGER);
       },
 
       // Abandons a running animation (the game must be left or reset by the caller).
