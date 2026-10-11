@@ -8,7 +8,7 @@
 
   function defaults() {
     const c = UM.config;
-    return { theme: c.DEFAULT_THEME, nodes: c.DEFAULT_NODES, showMarkers: true, showTimer: true };
+    return { theme: c.DEFAULT_THEME, nodes: c.DEFAULT_NODES, showTimer: true };
   }
 
   function defaultStorage() {
@@ -21,7 +21,6 @@
     if (!raw || typeof raw !== "object") return out;
     if (c.THEMES.indexOf(raw.theme) >= 0) out.theme = raw.theme;
     if (Number.isInteger(raw.nodes)) out.nodes = Math.max(c.MIN_NODES, Math.min(c.MAX_NODES, raw.nodes));
-    if (typeof raw.showMarkers === "boolean") out.showMarkers = raw.showMarkers;
     if (typeof raw.showTimer === "boolean") out.showTimer = raw.showTimer;
     return out;
   }

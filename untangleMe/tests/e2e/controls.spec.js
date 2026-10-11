@@ -70,15 +70,6 @@ test("copy link reports success or offers the link", async ({ page, context, bro
   expect(page.url()).toMatch(/#n=9&seed=123$/);
 });
 
-test("crossing markers toggle", async ({ page }) => {
-  await openPuzzle(page, "#n=8&seed=42");
-  expect(await page.locator("#board .mark").count()).toBeGreaterThan(0);
-  await page.uncheck("#toggle-markers");
-  await expect(page.locator("#board .mark")).toHaveCount(0);
-  await page.check("#toggle-markers");
-  expect(await page.locator("#board .mark").count()).toBeGreaterThan(0);
-});
-
 test("timer toggle hides only the timer", async ({ page }) => {
   await openPuzzle(page, "#n=8&seed=42");
   await expect(page.locator("#time-row")).toBeVisible();
@@ -91,7 +82,6 @@ test("timer toggle hides only the timer", async ({ page }) => {
 test("settings persist across reload; hash overrides the stored node count", async ({ page }) => {
   await openPuzzle(page, "#n=8&seed=1");
   await page.selectOption("#theme", "neon");
-  await page.uncheck("#toggle-markers");
   await page.uncheck("#toggle-timer");
   await page.locator("#presets button", { hasText: "Hard" }).click();
 
@@ -99,9 +89,7 @@ test("settings persist across reload; hash overrides the stored node count", asy
   await page.waitForSelector("#board .node");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "neon");
   await expect(page.locator("#board .node")).toHaveCount(14);
-  await expect(page.locator("#toggle-markers")).not.toBeChecked();
   await expect(page.locator("#toggle-timer")).not.toBeChecked();
-  await expect(page.locator("#board .mark")).toHaveCount(0);
 
   await page.goto("index.html#n=7&seed=3"); // hash wins
   await page.waitForSelector("#board .node");

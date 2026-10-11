@@ -14,7 +14,7 @@ any static web host (GitHub Pages works).
   starting scramble of the current puzzle.
 - **Copy link** copies a URL like `index.html#n=8&seed=4821`.
   Anyone opening it gets exactly the same puzzle.
-- **View**: toggle crossing markers, hide the timer, switch the theme
+- **View**: hide the timer, switch the theme
   (Blueprint / Neon). Your choices are remembered in the browser (localStorage).
 - The timer starts with your first move and pauses while the tab is hidden.
 - Works on laptops and tablets. On phones (screen shorter side < 600 px) a notice

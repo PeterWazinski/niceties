@@ -44,27 +44,49 @@ body {
 
 /* ---- layout ---- */
 .layout {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 230px;
   gap: 16px;
-  align-items: flex-start;
+  align-items: stretch;
 }
 .sheet {
-  flex: 1 1 520px;
   min-width: 0;
   position: relative;
   border: 2px solid var(--frame);
   background: var(--sheet-bg);
 }
+/* The panel never makes the row taller than the board: its content sits in an
+   absolutely positioned box that scrolls if it does not fit. */
 .panel {
-  flex: 1 1 220px;
-  max-width: 100%;
-  padding: 14px;
+  position: relative;
   border: 2px solid var(--frame);
   background: var(--panel-bg);
 }
-@media (min-width: 900px) {
-  .panel { flex: 0 0 250px; }
+.panel-inner {
+  position: absolute;
+  inset: 0;
+  padding: 10px 12px;
+  overflow-y: auto;
+}
+/* Portrait tablets and below: board on top at full width, panel as a compact
+   two-column band underneath. */
+@media (max-width: 899px) {
+  .layout { display: block; }
+  .panel { margin-top: 16px; }
+  .panel-inner {
+    position: static;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: "m p" "v p";
+    gap: 0 24px;
+    align-items: start;
+  }
+  .s-measure { grid-area: m; }
+  .panel-inner .s-puzzle { grid-area: p; margin-top: 0; }
+  .s-view { grid-area: v; }
+}
+@media (max-width: 520px) {
+  .panel-inner { display: block; }
 }
 
 #board {
@@ -78,8 +100,8 @@ body {
 
 /* ---- panel ---- */
 .panel h2 {
-  margin: 0 0 8px;
-  padding-bottom: 6px;
+  margin: 0 0 6px;
+  padding-bottom: 4px;
   border-bottom: 1px dashed var(--dim);
   color: var(--dim);
   font-size: 12px;
@@ -87,15 +109,18 @@ body {
   letter-spacing: .2em;
   text-transform: uppercase;
 }
-.row { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; }
-.row b { font-size: 22px; font-variant-numeric: tabular-nums; }
+.measure { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
+.row { display: flex; flex-direction: column; padding: 2px 0; font-size: 12px; color: var(--dim); }
+.row b { font-size: 16px; line-height: 1.2; color: var(--ink); font-variant-numeric: tabular-nums; }
 .row.cross b { color: var(--bad); }
 html[data-status="solved"] .row.cross b { color: var(--ok); }
 
-.panel h2:not(:first-child) { margin-top: 18px; }
+.panel-inner section + section { margin-top: 12px; }
 
-.presets { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
-.presets button { padding: 8px 6px; font-size: 13px; letter-spacing: .06em; }
+.presets { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; }
+.presets button { padding: 6px 4px; font-size: 13px; letter-spacing: .06em; }
+#presets { grid-template-columns: repeat(4, 1fr); }
+#presets button { padding: 6px 0; font-size: 12px; letter-spacing: 0; }
 .presets button[aria-pressed="true"] { border-color: var(--bad); color: var(--bad); }
 
 .slider { display: flex; justify-content: space-between; margin-top: 4px; }
@@ -109,7 +134,7 @@ select {
   border: 2px solid var(--frame); padding: 6px 8px;
 }
 
-.actions { margin-top: 12px; display: grid; gap: 8px; }
+.actions { margin-top: 8px; display: grid; gap: 6px; }
 .actions .presets { margin-bottom: 0; }
 #copy-status { color: var(--ok); font-size: 13px; }
 #copy-status:empty { display: none; }
@@ -117,7 +142,7 @@ select {
 html[data-timer="hidden"] #time-row { display: none; }
 
 button {
-  padding: 10px 12px;
+  padding: 8px 10px;
   font: inherit;
   color: var(--ink);
   background: transparent;

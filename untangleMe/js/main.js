@@ -17,7 +17,7 @@
     newPuzzle: $("new-puzzle"), reset: $("reset"),
     hints: $("hints"), hint: $("hint"), solve: $("solve"),
     copyLink: $("copy-link"), copyStatus: $("copy-status"), linkField: $("link-field"),
-    markers: $("toggle-markers"), timerToggle: $("toggle-timer"), theme: $("theme")
+    timerToggle: $("toggle-timer"), theme: $("theme")
   };
 
   const settings = UM.settings.load();
@@ -147,10 +147,6 @@
     if (show) root.removeAttribute("data-timer"); else root.setAttribute("data-timer", "hidden");
     els.timerToggle.checked = show;
   }
-  function applyMarkers(show) {
-    els.markers.checked = show;
-    boardView.setMarkers(show);
-  }
 
   // ---- build static controls ----
   els.nodes.min = cfg.MIN_NODES;
@@ -158,7 +154,8 @@
   cfg.PRESETS.forEach((p) => {
     const b = document.createElement("button");
     b.type = "button";
-    b.textContent = p.label + " · " + p.n;
+    b.textContent = p.label;
+    b.title = p.n + " vertices";
     b.dataset.n = p.n;
     b.setAttribute("aria-pressed", "false");
     b.addEventListener("click", () => newPuzzle(p.n));
@@ -175,11 +172,6 @@
   els.nodes.addEventListener("input", () => { els.nodesValue.textContent = els.nodes.value; });
   els.nodes.addEventListener("change", () => newPuzzle(Number(els.nodes.value)));
 
-  els.markers.addEventListener("change", () => {
-    settings.showMarkers = els.markers.checked;
-    saveSettings();
-    applyMarkers(settings.showMarkers);
-  });
   els.timerToggle.addEventListener("change", () => {
     settings.showTimer = els.timerToggle.checked;
     saveSettings();
@@ -204,7 +196,6 @@
   // ---- boot ----
   applyTheme(settings.theme);
   applyTimerVisibility(settings.showTimer);
-  applyMarkers(settings.showMarkers);
   const id = UM.urlstate.parse(location.hash, { defaultN: settings.nodes });
   go(id.n, id.seed);
 

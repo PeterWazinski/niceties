@@ -18,15 +18,15 @@ const throwing = {
   setItem() { throw new Error("quota"); }
 };
 
-test("defaults: Blueprint, 8 nodes, markers and timer visible", () => {
+test("defaults: Blueprint, 8 nodes, timer visible", () => {
   assert.deepEqual(S.load(memoryStorage()), {
-    theme: "blueprint", nodes: 8, showMarkers: true, showTimer: true
+    theme: "blueprint", nodes: 8, showTimer: true
   });
 });
 
 test("save then load round trips", () => {
   const st = memoryStorage();
-  const value = { theme: "neon", nodes: 14, showMarkers: false, showTimer: false };
+  const value = { theme: "neon", nodes: 14, showTimer: false };
   assert.equal(S.save(value, st), true);
   assert.deepEqual(S.load(st), value);
 });
@@ -55,9 +55,9 @@ test("unknown theme falls back to Blueprint", () => {
 
 test("node count is clamped; wrong types are ignored field by field", () => {
   const st = memoryStorage({
-    [S.KEY]: JSON.stringify({ theme: "neon", nodes: 500, showMarkers: "yes", showTimer: false })
+    [S.KEY]: JSON.stringify({ theme: "neon", nodes: 500, showTimer: false })
   });
-  assert.deepEqual(S.load(st), { theme: "neon", nodes: 30, showMarkers: true, showTimer: false });
+  assert.deepEqual(S.load(st), { theme: "neon", nodes: 30, showTimer: false });
   const st2 = memoryStorage({ [S.KEY]: JSON.stringify({ nodes: "12" }) });
   assert.equal(S.load(st2).nodes, 8);
   const st3 = memoryStorage({ [S.KEY]: JSON.stringify({ nodes: 2 }) });
@@ -72,7 +72,7 @@ test("non-object stored values are ignored", () => {
 
 test("save sanitises what it stores", () => {
   const st = memoryStorage();
-  S.save({ theme: "bogus", nodes: 1000, showMarkers: 1, showTimer: false, extra: "x" }, st);
+  S.save({ theme: "bogus", nodes: 1000, showTimer: false, extra: "x" }, st);
   assert.deepEqual(JSON.parse(st.data[S.KEY]),
-    { theme: "blueprint", nodes: 30, showMarkers: true, showTimer: false });
+    { theme: "blueprint", nodes: 30, showTimer: false });
 });

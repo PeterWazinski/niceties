@@ -20,7 +20,7 @@
     svg.appendChild(gMarks);
     svg.appendChild(gNodes);
 
-    let game = null, unsubscribe = null, edgeEls = [], nodeEls = [], showMarkers = true;
+    let game = null, unsubscribe = null, edgeEls = [], nodeEls = [];
 
     function render(state) {
       state.edges.forEach((e, i) => {
@@ -39,13 +39,11 @@
                                  (state.assistNodes.indexOf(i) >= 0 ? " hint" : ""));
       });
       while (gMarks.firstChild) gMarks.removeChild(gMarks.firstChild);
-      if (showMarkers) {
-        state.points.forEach((pt) => {
-          const p = coords.unitToBoard(pt), m = svgEl("circle", "mark");
-          m.setAttribute("cx", p[0]); m.setAttribute("cy", p[1]); m.setAttribute("r", 6);
-          gMarks.appendChild(m);
-        });
-      }
+      state.points.forEach((pt) => {
+        const p = coords.unitToBoard(pt), m = svgEl("circle", "mark");
+        m.setAttribute("cx", p[0]); m.setAttribute("cy", p[1]); m.setAttribute("r", 6);
+        gMarks.appendChild(m);
+      });
     }
 
     function attachDrag(el, index) {
@@ -97,10 +95,6 @@
         });
         unsubscribe = g.subscribe((e) => render(e.state));
         render(state);
-      },
-      setMarkers: function (on) {
-        showMarkers = !!on;
-        if (game) render(game.getState());
       }
     };
   }

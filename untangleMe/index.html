@@ -24,41 +24,46 @@
       </div>
 
       <aside class="panel">
-        <h2>Measurements</h2>
-        <div class="row" id="time-row"><span>Time</span><b><span id="timer">0.0</span> s</b></div>
-        <div class="row"><span>Moves</span><b id="moves">0</b></div>
-        <div class="row" id="hints-row"><span>Hints used</span><b id="hints">0</b></div>
-        <div class="row cross"><span>Crossings</span><b id="crossings">0</b></div>
-
-        <h2>Puzzle</h2>
-        <div class="presets" id="presets"></div>
-        <label class="slider" for="nodes">Vertices <b id="nodes-value">8</b></label>
-        <input type="range" id="nodes" step="1">
-        <div class="actions">
-          <button id="new-puzzle" class="primary" type="button">New puzzle</button>
-          <div class="presets">
-            <button id="reset" type="button">Reset</button>
-            <button id="copy-link" type="button" title="Copy a link to this puzzle">Copy link</button>
+        <div class="panel-inner">
+          <section class="s-measure">
+          <h2>Measurements</h2>
+          <div class="measure">
+          <div class="row" id="time-row"><span>Time</span><b><span id="timer">0.0</span> s</b></div>
+          <div class="row"><span>Moves</span><b id="moves">0</b></div>
+          <div class="row" id="hints-row"><span>Hints used</span><b id="hints">0</b></div>
+          <div class="row cross"><span>Crossings</span><b id="crossings">0</b></div>
           </div>
-          <span id="copy-status" role="status" aria-live="polite"></span>
-          <input id="link-field" type="text" readonly aria-label="Link to this puzzle" hidden>
-        </div>
+          </section>
 
-        <h2>Help</h2>
-        <div class="presets">
-          <button id="hint" type="button">Hint</button>
-          <button id="solve" type="button">Solve</button>
-        </div>
+          <section class="s-puzzle">
+          <h2>Puzzle</h2>
+          <div class="presets" id="presets"></div>
+          <label class="slider" for="nodes">Vertices <b id="nodes-value">8</b></label>
+          <input type="range" id="nodes" step="1">
+          <div class="actions">
+            <button id="new-puzzle" class="primary" type="button">New puzzle</button>
+            <div class="presets">
+              <button id="hint" type="button">Hint</button>
+              <button id="solve" type="button">Solve</button>
+              <button id="reset" type="button">Reset</button>
+              <button id="copy-link" type="button" title="Copy a link to this puzzle">Copy link</button>
+            </div>
+            <span id="copy-status" role="status" aria-live="polite"></span>
+            <input id="link-field" type="text" readonly aria-label="Link to this puzzle" hidden>
+          </div>
+          </section>
 
-        <h2>View</h2>
-        <label class="check"><input type="checkbox" id="toggle-markers"> Crossing markers</label>
-        <label class="check"><input type="checkbox" id="toggle-timer"> Show timer</label>
-        <label class="select">Theme
-          <select id="theme" aria-label="Theme">
-            <option value="blueprint">Blueprint</option>
-            <option value="neon">Neon</option>
-          </select>
-        </label>
+          <section class="s-view">
+          <h2>View</h2>
+          <label class="check"><input type="checkbox" id="toggle-timer"> Show timer</label>
+          <label class="select">Theme
+            <select id="theme" aria-label="Theme">
+              <option value="blueprint">Blueprint</option>
+              <option value="neon">Neon</option>
+            </select>
+          </label>
+          </section>
+        </div>
       </aside>
     </main>
   </div>
