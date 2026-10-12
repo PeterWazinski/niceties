@@ -164,4 +164,37 @@ it is a simple adoption of the famous space invaders game with the namur icon se
 the layout can be left unchanged I assume. Please check the code if there is some big bug to be fixed.
 any suggestions for enhancing fancyness of this game? Is so let me know
 
+--
+ lets come back to the untangle game. Sometimes I get stuck when solving a difficult graph.
+ Is there a way to implement a "hint button" that just moves one or two nodes in a slow animated way?
+ Or even a solve button that animates all the moves until the graph is untangled. 
+ Examine planar layout algorithms and how they could be adapted for this game.
+ what is your opionion.
 
+
+Lets consider improving the untangle-me game.
+
+I really like the aesthetics of the Solve button, when all the nodes are flying miracolously 
+to the right place where no more crossing exists.
+To improve this wonderful experience I ask you to examine rendering algorithms to let the planar graph more beautifully
+eg cf https://arxiv.org/html/2607.23356v1
+.
+Is there a simple way/algorithm to transform a solved crossing-free graph into a neatly aligned graph.
+Are there js libs available? could you just implement one algorithm from the scratch. we only have up to 30 nodes, efficiency likely is not an issue.
+
+Investigate some possiblities and present possible options. then make a recommendation.
+
+
+
+https://library.fridoverweij.com/codelab/voronoi/golden_angle_spirals-svg.html
+https://library.fridoverweij.com/codelab/voronoi/index.html
+https://library.fridoverweij.com/docs/voronoi/index.html
+https://www.raymondhill.net/voronoi/rhill-voronoi.html
+https://threejs.org/examples
+https://tissellator.tisveugen.nl/t_anims.html
+https://tissellator.tisveugen.nl/
+
+https://tiled.art/en/art/Crocodiles/
+https://tiled.art/en/symmetryIntro/
+
+https://appstate-math.github.io/interactivate/activities/Tessellate/
