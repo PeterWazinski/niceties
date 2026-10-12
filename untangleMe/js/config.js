@@ -18,6 +18,8 @@
     SCRAMBLE_MAX_ATTEMPTS: 10000,
     // Board coordinates: nodes live in [0,1]^2, drawn into this viewBox.
     BOARD: { width: 800, height: 560, padding: 34 },
+    // Drawn node radius in board units; the layout keeps nodes clear of edges by this much plus a gap.
+    NODE_RADIUS: 13,
     // Screens whose shorter side is below this (CSS px) get the "too small" notice.
     MIN_SCREEN_SIDE: 600,
     THEMES: ["blueprint", "neon"],

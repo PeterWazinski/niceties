@@ -88,7 +88,7 @@
         edgeEls = state.edges.map(() => gEdges.appendChild(svgEl("line", "edge")));
         nodeEls = state.positions.map((_, i) => {
           const c = svgEl("circle", "node");
-          c.setAttribute("r", 13);
+          c.setAttribute("r", UM.config.NODE_RADIUS);
           c.setAttribute("data-index", i);
           attachDrag(c, i);
           return gNodes.appendChild(c);

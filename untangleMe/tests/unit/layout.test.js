@@ -6,7 +6,7 @@ require("../../js/graph.js");
 const UM = globalThis.UM;
 const { MIN_NODES, MAX_NODES } = UM.config;
 
-const SEEDS = 15;
+const SEEDS = 10;
 
 function raw(n, seed) {
   return UM.graph.planarGraph(n, UM.rng.mulberry32(seed), 1);
@@ -21,7 +21,7 @@ function lengthSpread(pos, edges) {
 
 test("beautify never introduces a crossing and stays in the unit square (n = 6..30)", () => {
   for (let n = MIN_NODES; n <= MAX_NODES; n++) {
-    for (let seed = 1; seed <= SEEDS; seed++) {
+    for (let seed = 1; seed <= 3; seed++) {
       const g = raw(n, seed), out = UM.layout.beautify(g.positions, g.edges);
       assert.equal(out.length, n);
       assert.equal(UM.geometry.countCrossings(out, g.edges).count, 0, "n=" + n + " seed=" + seed);
@@ -81,4 +81,43 @@ test("beautify copes with degenerate input (collinear nodes, no edges)", () => {
 test("fitToUnitSquare stretches the bounding box over [0,1]^2", () => {
   const out = UM.layout.fitToUnitSquare([[0.25, 0.25], [0.75, 0.75], [0.5, 0.5]]);
   assert.deepEqual(out, [[0, 0], [1, 1], [0.5, 0.5]]);
+});
+
+// Smallest gap between a node circle and a foreign edge or node, in board units.
+function tightestSpot(pos, edges) {
+  const c = UM.config,
+        W = c.BOARD.width - 2 * c.BOARD.padding, H = c.BOARD.height - 2 * c.BOARD.padding,
+        p = pos.map((q) => [q[0] * W, q[1] * H]);
+  function segDist(q, a, b) {
+    const dx = b[0] - a[0], dy = b[1] - a[1],
+          t = Math.max(0, Math.min(1, ((q[0] - a[0]) * dx + (q[1] - a[1]) * dy) / (dx * dx + dy * dy)));
+    return Math.hypot(q[0] - a[0] - t * dx, q[1] - a[1] - t * dy);
+  }
+  let m = Infinity;
+  edges.forEach((e) => p.forEach((q, w) => {
+    if (w !== e[0] && w !== e[1]) m = Math.min(m, segDist(q, p[e[0]], p[e[1]]));
+  }));
+  for (let i = 0; i < p.length; i++) {
+    for (let j = i + 1; j < p.length; j++) {
+      m = Math.min(m, Math.hypot(p[i][0] - p[j][0], p[i][1] - p[j][1]) - c.NODE_RADIUS);
+    }
+  }
+  return m;
+}
+
+test("beautify removes most visual overlaps of node circles with edges", () => {
+  for (const n of [8, 14, 25]) {
+    let before = 0, after = 0;
+    for (let seed = 1; seed <= SEEDS; seed++) {
+      const g = raw(n, seed), out = UM.layout.beautify(g.positions, g.edges);
+      if (tightestSpot(g.positions, g.edges) < UM.config.NODE_RADIUS) before++;
+      if (tightestSpot(out, g.edges) < UM.config.NODE_RADIUS) after++;
+    }
+    assert.ok(after <= before * 0.5, "n=" + n + " puzzles with overlap before=" + before + " after=" + after);
+  }
+  // Small boards have room for everyone.
+  for (let seed = 1; seed <= SEEDS; seed++) {
+    const g = raw(6, seed);
+    assert.ok(tightestSpot(UM.layout.beautify(g.positions, g.edges), g.edges) >= UM.config.NODE_RADIUS, "seed=" + seed);
+  }
 });

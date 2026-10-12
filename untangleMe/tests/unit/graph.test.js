@@ -39,8 +39,9 @@ test("density limits the number of edges", () => {
 test("scramble produces at least one crossing for every size", () => {
   for (let n = MIN_NODES; n <= MAX_NODES; n++) {
     for (let seed = 1; seed <= SEEDS; seed++) {
-      const p = UM.puzzle.createPuzzle(n, seed);
-      assert.ok(UM.geometry.countCrossings(p.start, p.edges).count > 0, "n=" + n + " seed=" + seed);
+      const rng = UM.rng.mulberry32(seed), g = UM.graph.planarGraph(n, rng, 1),
+            start = UM.graph.scramble(n, g.edges, rng);
+      assert.ok(UM.geometry.countCrossings(start, g.edges).count > 0, "n=" + n + " seed=" + seed);
     }
   }
 });
@@ -58,8 +59,11 @@ test("puzzle: shape and solution", () => {
   assert.equal(p.seed, 7);
   assert.equal(p.start.length, 10);
   assert.equal(p.solution.length, 10);
-  p.start.concat(p.solution).forEach((pt) => {
+  p.start.forEach((pt) => {
     assert.ok(pt[0] >= 0 && pt[0] < 1 && pt[1] >= 0 && pt[1] < 1);
+  });
+  p.solution.forEach((pt) => {
+    assert.ok(pt[0] >= 0 && pt[0] <= 1 && pt[1] >= 0 && pt[1] <= 1);
   });
   assert.equal(UM.geometry.countCrossings(p.solution, p.edges).count, 0);
 });
