@@ -110,8 +110,8 @@ Gate → commit `Sudoku: phase 3 – all levels, worker and pool`.
 Goal: all game rules of PRD 3.2–3.4 without a UI.
 
 - [ ] `game.js`: `newGame(puzzle)`, state shape of PRD 7.2 (`givens`, `solution`, `entries`, `notes`, `mistakes`, `level`, `selected`, `dialogOpen`, `solved`)
-- [ ] `enterDigit(state, cell, digit)`: correct → locked and notes of that digit removed from row/column/box; wrong → `mistakes++`, digit kept as wrong; same wrong digit again → no-op; locked/given cells and "no selection" → no-op; returns an event (`correct` | `wrong` | `ignored` | `gameOver` | `solved`)
-- [ ] `toggleNote(state, cell, digit)`: only in empty cells
+- [ ] `enterDigit(state, cell, digit)`: correct → locked and that digit's note removed from every cell in its row, column and box (the same applies to a digit revealed by `hint`); a wrong digit removes no notes; wrong → `mistakes++`, digit kept as wrong; same wrong digit again → no-op; locked/given cells and "no selection" → no-op; returns an event (`correct` | `wrong` | `ignored` | `gameOver` | `solved`)
+- [ ] `toggleNote(state, cell, digit)`: only in empty cells; note on → off, off → on; **no validation against peers** – a note is allowed even if the digit already stands in the same row, column or box
 - [ ] `hint(state)`: the three situations of PRD 3.4 (wrong digit → empty it, selected empty cell → reveal, otherwise next logical cell via `techniques.js`); after game over → counter 2/3 and dialog closed; returns what happened (cell, kind) so the view can animate it
 - [ ] Game over at 3 mistakes (`dialogOpen`), win detection
 - [ ] `highlight.js`: for a selection compute `sel`, `same` (identical digits), `peer` (row/column/box), `conflict` (rule duplicates), `wrong` sets (PRD 3.3)
@@ -121,7 +121,9 @@ Goal: all game rules of PRD 3.2–3.4 without a UI.
 Tests (unit):
 - [ ] Correct digit locks; later input to that cell and notes in it are ignored
 - [ ] Wrong digit increments mistakes once, stays red, can be overwritten by right/other wrong digit, same wrong digit twice counts once
-- [ ] Notes: toggle on/off, blocked in filled cells, replaced by an entered digit, auto-removed in peers on a correct digit
+- [ ] Notes: long-press toggle on → off → on; blocked in filled cells (right or wrong); replaced by an entered digit
+- [ ] Notes: a note can be set although the same digit is already in the row, column or box (no peer validation)
+- [ ] Notes: a correct digit (entered or via Hint) removes its note from all cells of the row, column and box, and leaves other digits' notes alone; a wrong digit removes no notes
 - [ ] Third mistake → game over; New Game path (new state) works; Hint after game over → 2/3, wrong cell emptied, next wrong digit → game over again
 - [ ] Hint matrix: wrong digit present / selected empty cell / nothing selected / several wrong digits (selected first, else most recent); hint never changes the mistake counter in normal play
 - [ ] Win detection on the last correct digit
@@ -169,6 +171,7 @@ Tests:
 - [ ] Unit: `numpad.js` timing logic with a fake clock (tap vs. hold, cancel, threshold boundary, no double-fire on release after a hold)
 - [ ] e2e: tap digit in a selected empty cell → digit appears, locked if right; wrong digit → red, counter 1/3, other peers flagged if duplicate; overwrite works
 - [ ] e2e: **long press** (pointer down, wait past threshold, up) creates a note and no digit; second hold removes it; short tap enters a digit instead; tip disappears after the first note
+- [ ] e2e: a note can be turned on for a digit that is already in the same row/column/box; setting the correct digit elsewhere in that row/column/box removes the note, a wrong digit does not
 - [ ] e2e: number tap without selection / on a locked cell does nothing
 - [ ] e2e: three wrong digits → dialog; **Hint** → wrong cell animates empty, counter 2/3, game continues; another wrong digit → dialog again; **New Game** → new puzzle
 - [ ] e2e: Hint without any wrong digit reveals a digit with the pulse; Hint twice (wrong digit → emptied → reveal) matches the PRD flow

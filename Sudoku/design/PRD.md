@@ -91,14 +91,18 @@ The rules are strict, which is what makes Undo and Erase unnecessary:
    with a locked cell selected, does nothing (number row is dimmed).
 3. **Tap a number** (short tap) → the digit is entered in the selected cell:
    - **Correct** (equals the solution): the digit is **locked**. It can no longer
-     be changed, erased or annotated. Notes of that digit in the cell's row,
-     column and box are removed automatically.
+     be changed, erased or annotated. The same digit is removed from the notes of
+     all cells in its row, column and box automatically (also when the digit was
+     placed by Hint). A **wrong** digit never removes any notes.
    - **Wrong**: the mistake counter goes up (3.4) and the digit is shown in red.
      The cell stays editable: tap another digit to overwrite it (free if it is
      right, another mistake if it is wrong again). Tapping the very same wrong digit again does nothing.
 4. **Hold a number** (long press) → the digit is toggled as a **pencil note** in
    the selected empty cell (details in 3.2.1). Cells with a digit – right or wrong –
-   take no notes. Entering a digit replaces the cell's notes.
+   take no notes. Entering a digit replaces the cell's notes. Holding a digit whose
+   note is already on **turns it off**, otherwise it turns it on. **A note may be set
+   even if that digit already stands in the cell's row, column or box** – no
+   validation, so the user sees the situation as it is when annotating.
 5. **Hint** button: always active (3.4).
 6. A digit whose nine copies are all placed is greyed out in the number row.
 7. Filling the last cell ends the game: a short "Solved!" message with **New Game**.
