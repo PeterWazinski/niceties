@@ -1,0 +1,3 @@
+/* Structure and behaviour: layout, board, highlights, responsive rules. */
+html, body { margin: 0; height: 100%; }
+body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--page-bg); color: var(--ink); }

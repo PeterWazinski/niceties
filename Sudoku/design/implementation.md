@@ -26,7 +26,7 @@ Implements [PRD.md](PRD.md). Section numbers (e.g. "PRD 3.4") refer to it.
   - `ipad-portrait` (≈ 810×1080, touch)
   - `ipad-landscape` (≈ 1080×810, touch)
   - `desktop` (Chromium 1280×800)
-  - Browsers: Chromium for all, plus a WebKit run of the `iphone` project when available, as the closest stand-in for Safari.
+  - Browsers: the iOS device descriptors run **WebKit** (closest stand-in for Safari), `desktop` runs Chromium. Android is covered only by Chromium emulation (PRD: expected to work, not officially supported).
 - e2e helpers in `tests/e2e/helpers.js`: open the game with a **fixed seed** (`?seed=` URL parameter, test hook – see phase 7), read a cell's digit/classes, tap/hold a number (pointer down → wait → up).
 
 ---
@@ -35,15 +35,15 @@ Implements [PRD.md](PRD.md). Section numbers (e.g. "PRD 3.4") refer to it.
 
 Goal: an empty but runnable project with the test pipeline working.
 
-- [ ] Folder structure from PRD 7.1 (empty modules only where needed), `.gitignore` (`node_modules`, `test-results`, `playwright-report`)
-- [ ] `package.json` (name `sudoku`, scripts above, devDependency `@playwright/test` – same version as untangleMe), `npm install`, `npx playwright install` for the needed browsers
-- [ ] `playwright.config.js` with the four projects and the static `webServer`
-- [ ] `index.html` shell: viewport meta (`viewport-fit=cover`), title, empty `<main id="app">`, `css/base.css` + `css/themes.css` stubs, `js/main.js` stub
-- [ ] `README.md` stub (how to run, how to test)
+- [x] Folder structure from PRD 7.1 (empty modules only where needed), `.gitignore` (`node_modules`, `test-results`, `playwright-report`)
+- [x] `package.json` (name `sudoku`, scripts above, devDependency `@playwright/test` – same version as untangleMe), `npm install`, `npx playwright install` for the needed browsers
+- [x] `playwright.config.js` with the four projects and the static `webServer`
+- [x] `index.html` shell: viewport meta (`viewport-fit=cover`), title, empty `<main id="app">`, `css/base.css` + `css/themes.css` stubs, `js/main.js` stub
+- [x] `README.md` stub (how to run, how to test)
 
 Tests:
-- [ ] Unit: sanity test that imports `js/config.js` (levels, `MAX_MISTAKES = 3`, long-press threshold constant)
-- [ ] e2e: page loads in all projects, no console errors, title and `#app` present
+- [x] Unit: sanity test that imports `js/config.js` (levels, `MAX_MISTAKES = 3`, long-press threshold constant)
+- [x] e2e: page loads in all projects, no console errors, title and `#app` present
 
 Gate → commit `Sudoku: phase 0 – scaffold and test harness`.
 

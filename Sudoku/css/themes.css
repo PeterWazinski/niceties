@@ -1,0 +1,5 @@
+/* Colour schemes as CSS variable sets, selected by <html data-scheme="...">. */
+:root, :root[data-scheme="bw"] {
+  --page-bg: #ffffff;
+  --ink: #111111;
+}
