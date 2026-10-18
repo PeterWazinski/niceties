@@ -270,3 +270,7 @@ Gate → commit `Sudoku: phase 9 – polish, accessibility and release`.
 - **Long press on iOS Safari** (callout, selection, scroll cancelling the pointer): only a real device settles it; the plan includes it in the phase 9 manual checklist, and a Notes toggle button remains the fallback (PRD 3.2.1).
 - **WebKit in headless tests** differs from iOS Safari in details (viewport units, service-worker timing); the WebKit project is a stand-in, not a replacement for the device check.
 - **Shared origin on GitHub Pages:** storage keys and caches are prefixed (`sudoku.`, `sudoku-`); a test guards against un-prefixed keys.
+
+## After the release
+
+- [x] **Confetti when a game is solved** (like Untangle Me): `js/confetti.js` (canvas burst, ~4.5 s, fades out, above the "Solved!" message, never blocks taps), fired once per solved game, also when the last cell came from a Hint. Stopped by New Game, never shown with reduced motion or after a reload. Tests: unit `confetti.test.js`, e2e `confetti.spec.js`. `sw.js` VERSION raised to 2.

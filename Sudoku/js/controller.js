@@ -4,6 +4,7 @@ import { createView } from "./view.js";
 import { newGame, select, enterDigit, toggleNote, hint } from "./game.js";
 import { createGeneratorClient } from "./generator-client.js";
 import { createPool } from "./pool.js";
+import { createConfetti } from "./confetti.js";
 import { loadSettings, saveScheme, saveLevel } from "./settings.js";
 import { loadGame, saveGame, clearGame } from "./store.js";
 import { safeGet, safeSet } from "./storage.js";
@@ -30,6 +31,7 @@ export function startApp(root) {
   });
 
   let state = null;
+  let celebrated = false;  // confetti already fired for this solved game
   let animating = false;   // a hint animation is running
   let loading = false;     // a new puzzle is being prepared
   let pending = null;      // { run, cancel }: New Game waiting for the "abandon?" answer
@@ -54,8 +56,13 @@ export function startApp(root) {
     onLevel: (level) => requestNewGame(level)
   });
 
+  const confetti = createConfetti(view.el.confetti, { reducedMotion });
+
   function sync() {
     view.render(state);
+    // confetti rain when the game has just been solved (not for a restored game: solved games are never saved)
+    if (state.solved && !celebrated) { celebrated = true; confetti.fire(); }
+    if (!state.solved) celebrated = false;
     view.setTipVisible(!tipShown);
     view.showDialog(pending ? "confirm" : state.solved ? "solved" : state.dialogOpen ? "gameOver" : null);
     if (state.solved) clearGame(); else saveGame(state);
@@ -122,6 +129,7 @@ export function startApp(root) {
   async function startNewGame(level) {
     if (loading) return;
     loading = true;
+    confetti.stop();
     saveLevel(level);
     // Show the "Preparing" note only if it takes a moment.
     const spinner = setTimeout(() => view.setPreparing(true), 150);

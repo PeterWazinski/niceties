@@ -98,11 +98,11 @@ test("the app works from a sub-path like GitHub Pages: service worker scope and 
 test("a new cache version replaces the old caches and leaves foreign caches alone", async ({ page }) => {
   await loadOnline(page, "index.html?seed=12");
   await page.evaluate(async () => { await caches.open("sudoku-v0-ancient"); await caches.open("other-site-cache"); });
-  await page.evaluate(() => navigator.serviceWorker.register("sw.js?v=2"));
+  await page.evaluate(() => navigator.serviceWorker.register("sw.js?v=99"));
   await expect.poll(() => page.evaluate(async () => (await caches.keys()).sort()), { timeout: 15000 })
-    .toEqual(["other-site-cache", "sudoku-v2"]);
+    .toEqual(["other-site-cache", "sudoku-v99"]);
   // the new version has the whole app cached
-  expect(await page.evaluate(async () => (await (await caches.open("sudoku-v2")).keys()).length)).toBeGreaterThanOrEqual(25);
+  expect(await page.evaluate(async () => (await (await caches.open("sudoku-v99")).keys()).length)).toBeGreaterThanOrEqual(25);
 });
 
 test("manifest and icons can be loaded and are valid", async ({ page }) => {

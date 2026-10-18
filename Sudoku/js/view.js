@@ -38,6 +38,7 @@ function template() {
       <div class="numpad" id="numpad" role="group" aria-label="Numbers">${nums}</div>
       <p class="tip" id="tip" hidden>Tip: hold a number to add a note</p>
     </div>
+    <canvas id="confetti" hidden aria-hidden="true"></canvas>
     <div class="sr-only" id="live" role="status" aria-live="polite"></div>
     <div class="overlay" id="overlay" hidden>
       <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-text">
@@ -79,7 +80,7 @@ export function createView(root, handlers = {}) {
   const el = {
     app: $(".app"), board: $("#board"), numpad: $("#numpad"), mistakes: $("#mistakes"),
     level: $("#level"), scheme: $("#scheme"), newGame: $("#new-game"), hint: $("#hint"), tip: $("#tip"),
-    live: $("#live"), overlay: $("#overlay"), dialogTitle: $("#dialog-title"), dialogText: $("#dialog-text"),
+    confetti: $("#confetti"), live: $("#live"), overlay: $("#overlay"), dialogTitle: $("#dialog-title"), dialogText: $("#dialog-text"),
     dialogNew: $("#dialog-new"), dialogHint: $("#dialog-hint"), dialogCancel: $("#dialog-cancel"), preparing: $("#preparing")
   };
   let dialogKind = null, focusBeforeDialog = null, announceFlip = false, lastClicked = null;
