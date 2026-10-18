@@ -1,8 +1,9 @@
 // Renders the game into the page (PRD 3.1, 3.3). The view only reads the game
-// state; all rules live in game.js. Handlers are passed in by main.js.
+// state; all rules live in game.js. Handlers are passed in by the controller.
 import { highlights } from "./highlight.js";
-import { cellValue, isGiven, isWrong, remaining } from "./game.js";
+import { cellValue, isGiven, isWrong, isEditable, remaining } from "./game.js";
 import { MAX_MISTAKES, LEVELS } from "./config.js";
+import { attachNumpad } from "./numpad.js";
 
 export const SCHEMES = [
   { id: "bw", name: "Black & White", themeColor: "#ffffff" },
@@ -40,8 +41,24 @@ function template() {
       <div class="board" id="board" role="group" aria-label="Sudoku board">${cells}</div>
       <button type="button" class="btn tool" id="hint">${BULB}<span>Hint</span></button>
       <div class="numpad" id="numpad" role="group" aria-label="Numbers">${nums}</div>
+      <p class="tip" id="tip" hidden>Tip: hold a number to add a note</p>
+    </div>
+    <div class="overlay" id="overlay" hidden>
+      <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-text">
+        <h2 id="dialog-title"></h2>
+        <p id="dialog-text"></p>
+        <div class="dialog-actions">
+          <button type="button" class="btn primary" id="dialog-new">New Game</button>
+          <button type="button" class="btn" id="dialog-hint">Hint</button>
+        </div>
+      </div>
     </div>`;
 }
+
+const DIALOGS = {
+  gameOver: { title: "Three mistakes.", text: "Start a new game, or take a hint and carry on.", hint: true },
+  solved: { title: "Solved!", text: "Well done.", hint: false }
+};
 
 function cellLabel(state, i) {
   const pos = `row ${Math.floor(i / 9) + 1}, column ${(i % 9) + 1}`;
@@ -58,9 +75,12 @@ export function createView(root, handlers = {}) {
   const cells = [...root.querySelectorAll(".cell")];
   const nums = [...root.querySelectorAll(".num")];
   const el = {
-    board: $("#board"), numpad: $("#numpad"), mistakes: $("#mistakes"),
-    level: $("#level"), scheme: $("#scheme"), newGame: $("#new-game"), hint: $("#hint")
+    app: $(".app"), board: $("#board"), numpad: $("#numpad"), mistakes: $("#mistakes"),
+    level: $("#level"), scheme: $("#scheme"), newGame: $("#new-game"), hint: $("#hint"), tip: $("#tip"),
+    overlay: $("#overlay"), dialogTitle: $("#dialog-title"), dialogText: $("#dialog-text"),
+    dialogNew: $("#dialog-new"), dialogHint: $("#dialog-hint")
   };
+  let dialogKind = null;
 
   el.board.addEventListener("click", (e) => {
     const cell = e.target.closest(".cell");
@@ -70,6 +90,21 @@ export function createView(root, handlers = {}) {
   el.level.addEventListener("change", () => handlers.onLevel && handlers.onLevel(el.level.value));
   el.newGame.addEventListener("click", () => handlers.onNewGame && handlers.onNewGame());
   el.hint.addEventListener("click", () => handlers.onHint && handlers.onHint());
+  el.dialogNew.addEventListener("click", () => handlers.onNewGame && handlers.onNewGame());
+  el.dialogHint.addEventListener("click", () => handlers.onHint && handlers.onHint());
+  attachNumpad(nums, {
+    onTap: (d) => handlers.onDigit && handlers.onDigit(d),
+    onHold: (d) => handlers.onNote && handlers.onNote(d)
+  });
+
+  // Keep Tab inside the dialog while it is open.
+  el.overlay.addEventListener("keydown", (e) => {
+    if (e.key !== "Tab") return;
+    const buttons = [...el.overlay.querySelectorAll("button")].filter((b) => !b.hidden);
+    const first = buttons[0], last = buttons[buttons.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
 
   return {
     cells, nums, el,
@@ -80,6 +115,43 @@ export function createView(root, handlers = {}) {
       el.scheme.value = scheme.id;
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute("content", scheme.themeColor);
+    },
+
+    setTipVisible(visible) { el.tip.hidden = !visible; },
+    setBusy(busy) { el.app.dataset.busy = busy ? "true" : "false"; },
+
+    // kind: "gameOver" | "solved" | null (hide)
+    showDialog(kind) {
+      if (kind === dialogKind) return;
+      dialogKind = kind;
+      const open = kind !== null;
+      el.overlay.hidden = !open;
+      el.app.inert = open;
+      if (!open) return;
+      const d = DIALOGS[kind];
+      el.dialogTitle.textContent = d.title;
+      el.dialogText.textContent = d.text;
+      el.dialogHint.hidden = !d.hint;
+      el.overlay.dataset.kind = kind;
+      (d.hint ? el.dialogHint : el.dialogNew).focus();
+    },
+
+    // The wrong digit fades out slowly while the cell is already empty in the state.
+    animateClear(cell, digit, ms) {
+      const ghost = document.createElement("span");
+      ghost.className = "ghost";
+      ghost.textContent = String(digit);
+      ghost.style.setProperty("--anim", ms + "ms");
+      cells[cell].appendChild(ghost);
+      setTimeout(() => ghost.remove(), ms);
+    },
+
+    // The revealed digit fades in slowly and the cell pulses so the user sees where it landed.
+    animateReveal(cell, ms) {
+      const c = cells[cell];
+      c.style.setProperty("--anim", ms + "ms");
+      c.classList.add("reveal");
+      setTimeout(() => c.classList.remove("reveal"), ms + 600);
     },
 
     render(state) {
@@ -102,6 +174,8 @@ export function createView(root, handlers = {}) {
       el.mistakes.textContent = `${state.mistakes}/${MAX_MISTAKES}`;
       el.level.value = state.level;
       nums.forEach((n) => n.classList.toggle("done", remaining(state, Number(n.dataset.digit)) === 0));
+      // Number buttons only act on an editable selected cell: dim them otherwise.
+      el.numpad.classList.toggle("inactive", !(state.selected >= 0 && isEditable(state, state.selected)));
     }
   };
 }

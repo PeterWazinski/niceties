@@ -4,7 +4,7 @@
 :root {
   --gutter: 12px;
   /* Vertical space taken by everything except the board in the portrait layout. */
-  --chrome: 270px;
+  --chrome: 300px;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -47,7 +47,8 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); ou
     "status status"
     "board board"
     "hint hint"
-    "pad pad";
+    "pad pad"
+    "tip tip";
   gap: 10px;
   align-items: center;
 }
@@ -58,6 +59,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); ou
 .board { grid-area: board; }
 #hint { grid-area: hint; }
 .numpad { grid-area: pad; }
+.tip { grid-area: tip; }
 
 /* ---- controls ---- */
 
@@ -106,6 +108,15 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); ou
   cursor: pointer;
 }
 .num.done { opacity: .3; }
+.num { -webkit-touch-callout: none; touch-action: manipulation; }
+.num.pressing { filter: brightness(.88); transform: scale(.96); }
+.num.held { animation: held .35s ease-out; }
+@keyframes held { 0% { box-shadow: 0 0 0 0 var(--focus); } 100% { box-shadow: 0 0 0 8px transparent; } }
+.numpad.inactive .num:not(.done) { opacity: .55; }
+
+.tip { margin: 0; text-align: center; font-size: 14px; color: var(--muted); }
+.tip[hidden] { display: none; }
+
 
 /* ---- board ---- */
 
@@ -185,8 +196,9 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); ou
       "board status"
       "board hint"
       "board pad"
+      "board tip"
       "board newgame";
-    grid-template-rows: auto auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto auto;
     column-gap: 16px;
   }
   .board { align-self: center; }
@@ -206,4 +218,58 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); ou
 
 @media (prefers-reduced-motion: no-preference) {
   .cell, .num, .btn { transition: background-color .12s; }
+}
+
+/* ---- dialog ---- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, .45);
+  z-index: 10;
+}
+.overlay[hidden] { display: none; }
+.dialog {
+  width: min(360px, 100%);
+  padding: 24px 20px 20px;
+  border: 2px solid var(--line-strong);
+  border-radius: 14px;
+  background: var(--page-bg);
+  color: var(--ink);
+  text-align: center;
+}
+.dialog h2 { margin: 0 0 8px; font-size: 24px; }
+.dialog p { margin: 0 0 18px; color: var(--muted); font-size: 16px; }
+.dialog-actions { display: flex; flex-direction: column; gap: 10px; }
+.dialog-actions .btn { min-height: 52px; }
+.dialog-actions [hidden] { display: none; }
+
+/* ---- hint animation ---- */
+
+.ghost {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--wrong);
+  text-decoration: underline;
+  text-underline-offset: .12em;
+  pointer-events: none;
+  animation: ghost-out var(--anim, 1200ms) ease-in forwards;
+}
+@keyframes ghost-out { from { opacity: 1; } to { opacity: 0; } }
+
+.cell.reveal .digit { animation: digit-in var(--anim, 1200ms) ease-out both; }
+.cell.reveal { outline: 3px solid var(--focus); outline-offset: -3px; animation: pulse .6s ease-in-out 3; }
+@keyframes digit-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse { 50% { outline-offset: -6px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cell.reveal { animation: none; }
 }

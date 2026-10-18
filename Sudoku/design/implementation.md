@@ -158,26 +158,26 @@ Gate → commit `Sudoku: phase 5 – board UI, layouts and colour schemes`.
 
 Goal: playable game according to PRD 3.2 and 3.4.
 
-- [ ] `numpad.js`: pointer events, ~350 ms timer from `config.js`; tap → digit, hold → note applied **at the threshold**, visual press/hold feedback, abort on `pointercancel`/leaving the button; `navigator.vibrate` where available; callout/selection/context-menu suppression
-- [ ] Wire number row/pad to `enterDigit` / `toggleNote`; do nothing (and dim the row) without an editable selected cell; grey out digits with nine placed
-- [ ] Mistake counter display; wrong digit red; conflict cells red (colour is not the only signal: bold/pattern in B/W)
-- [ ] Game-over dialog: modal, **New Game** / **Hint**, focus handling
-- [ ] **Hint** button: slow-motion fade-out of a wrong digit; slow fade-in plus pulsing outline for a revealed digit; `prefers-reduced-motion` shortens animations; input blocked while animating
-- [ ] "Solved!" message with **New Game**
-- [ ] First-run tip "Hold a number to add a note" shown until the first note is made (`sudoku.tipShown`)
-- [ ] Keyboard: arrows move selection, `1–9` digit, `Shift+1–9` note, `H` hint, `Esc` closes nothing destructive
+- [x] `numpad.js`: pointer events, ~350 ms timer from `config.js`; tap → digit, hold → note applied **at the threshold**, visual press/hold feedback, abort on `pointercancel`/leaving the button; `navigator.vibrate` where available; callout/selection/context-menu suppression
+- [x] Wire number row/pad to `enterDigit` / `toggleNote`; do nothing (and dim the row) without an editable selected cell; grey out digits with nine placed
+- [x] Mistake counter display; wrong digit red; conflict cells red (colour is not the only signal: bold/pattern in B/W)
+- [x] Game-over dialog: modal, **New Game** / **Hint**, focus handling
+- [x] **Hint** button: slow-motion fade-out of a wrong digit; slow fade-in plus pulsing outline for a revealed digit; `prefers-reduced-motion` shortens animations; input blocked while animating
+- [x] "Solved!" message with **New Game**
+- [x] First-run tip "Hold a number to add a note" shown until the first note is made (`sudoku.tipShown`)
+- [x] Keyboard: arrows move selection, `1–9` digit, `Shift+1–9` note, `H` hint, `Esc` closes nothing destructive
 
 Tests:
-- [ ] Unit: `numpad.js` timing logic with a fake clock (tap vs. hold, cancel, threshold boundary, no double-fire on release after a hold)
-- [ ] e2e: tap digit in a selected empty cell → digit appears, locked if right; wrong digit → red, counter 1/3, other peers flagged if duplicate; overwrite works
-- [ ] e2e: **long press** (pointer down, wait past threshold, up) creates a note and no digit; second hold removes it; short tap enters a digit instead; tip disappears after the first note
-- [ ] e2e: a note can be turned on for a digit that is already in the same row/column/box; setting the correct digit elsewhere in that row/column/box removes the note, a wrong digit does not
-- [ ] e2e: number tap without selection / on a locked cell does nothing
-- [ ] e2e: three wrong digits → dialog; **Hint** → wrong cell animates empty, counter 2/3, game continues; another wrong digit → dialog again; **New Game** → new puzzle
-- [ ] e2e: Hint without any wrong digit reveals a digit with the pulse; Hint twice (wrong digit → emptied → reveal) matches the PRD flow
-- [ ] e2e: solving a whole fixture puzzle shows "Solved!"
-- [ ] e2e: keyboard play on desktop project (digit, Shift+digit, hint, arrows)
-- [ ] e2e: earlier tests pass
+- [x] Unit: `numpad.js` timing logic with a fake clock (tap vs. hold, cancel, threshold boundary, no double-fire on release after a hold)
+- [x] e2e: tap digit in a selected empty cell → digit appears, locked if right; wrong digit → red, counter 1/3, other peers flagged if duplicate; overwrite works
+- [x] e2e: **long press** (pointer down, wait past threshold, up) creates a note and no digit; second hold removes it; short tap enters a digit instead; tip disappears after the first note
+- [x] e2e: a note can be turned on for a digit that is already in the same row/column/box; setting the correct digit elsewhere in that row/column/box removes the note, a wrong digit does not
+- [x] e2e: number tap without selection / on a locked cell does nothing
+- [x] e2e: three wrong digits → dialog; **Hint** → wrong cell animates empty, counter 2/3, game continues; another wrong digit → dialog again; **New Game** → new puzzle
+- [x] e2e: Hint without any wrong digit reveals a digit with the pulse; Hint twice (wrong digit → emptied → reveal) matches the PRD flow
+- [x] e2e: solving a whole fixture puzzle shows "Solved!"
+- [x] e2e: keyboard play on desktop project (digit, Shift+digit, hint, arrows)
+- [x] e2e: earlier tests pass
 
 Gate → commit `Sudoku: phase 6 – input and gameplay`.
 

@@ -21,3 +21,9 @@ export const SYMMETRY_TYPES = [
 ];
 
 export const CELLS_PER_BOARD = 81;
+
+// Hint animation (PRD 3.4): slow fade of the wrong digit / of the revealed digit.
+export const HINT_ANIM_MS = 1200;
+export const HINT_ANIM_REDUCED_MS = 150;
+
+export const TIP_KEY = "sudoku.tipShown";
