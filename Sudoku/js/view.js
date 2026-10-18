@@ -4,14 +4,9 @@ import { highlights } from "./highlight.js";
 import { cellValue, isGiven, isWrong, isEditable, remaining } from "./game.js";
 import { MAX_MISTAKES, LEVELS } from "./config.js";
 import { attachNumpad } from "./numpad.js";
+import { SCHEMES } from "./schemes.js";
 
-export const SCHEMES = [
-  { id: "bw", name: "Black & White", themeColor: "#ffffff" },
-  { id: "blue", name: "Classic Blue", themeColor: "#ffffff" },
-  { id: "sepia", name: "Sepia", themeColor: "#f4ecd8" },
-  { id: "dark", name: "Dark", themeColor: "#121417" },
-  { id: "forest", name: "Forest", themeColor: "#f3f7f1" }
-];
+export { SCHEMES };
 
 const LEVEL_NAMES = { beginner: "Beginner", expert: "Expert", master: "Master" };
 
@@ -38,7 +33,7 @@ function template() {
         <label class="field"><span class="field-label">Colours</span>
           <select id="scheme" class="select">${options(SCHEMES.map((s) => [s.id, s.name]))}</select></label>
       </div>
-      <div class="board" id="board" role="group" aria-label="Sudoku board">${cells}</div>
+      <div class="board" id="board" role="group" aria-label="Sudoku board">${cells}<div class="preparing" id="preparing" hidden>Preparing puzzle…</div></div>
       <button type="button" class="btn tool" id="hint">${BULB}<span>Hint</span></button>
       <div class="numpad" id="numpad" role="group" aria-label="Numbers">${nums}</div>
       <p class="tip" id="tip" hidden>Tip: hold a number to add a note</p>
@@ -50,6 +45,7 @@ function template() {
         <div class="dialog-actions">
           <button type="button" class="btn primary" id="dialog-new">New Game</button>
           <button type="button" class="btn" id="dialog-hint">Hint</button>
+          <button type="button" class="btn" id="dialog-cancel">Cancel</button>
         </div>
       </div>
     </div>`;
@@ -57,7 +53,8 @@ function template() {
 
 const DIALOGS = {
   gameOver: { title: "Three mistakes.", text: "Start a new game, or take a hint and carry on.", hint: true },
-  solved: { title: "Solved!", text: "Well done.", hint: false }
+  solved: { title: "Solved!", text: "Well done.", hint: false },
+  confirm: { title: "Abandon this game?", text: "Your progress in this game will be lost.", hint: false, cancel: true }
 };
 
 function cellLabel(state, i) {
@@ -78,7 +75,7 @@ export function createView(root, handlers = {}) {
     app: $(".app"), board: $("#board"), numpad: $("#numpad"), mistakes: $("#mistakes"),
     level: $("#level"), scheme: $("#scheme"), newGame: $("#new-game"), hint: $("#hint"), tip: $("#tip"),
     overlay: $("#overlay"), dialogTitle: $("#dialog-title"), dialogText: $("#dialog-text"),
-    dialogNew: $("#dialog-new"), dialogHint: $("#dialog-hint")
+    dialogNew: $("#dialog-new"), dialogHint: $("#dialog-hint"), dialogCancel: $("#dialog-cancel"), preparing: $("#preparing")
   };
   let dialogKind = null;
 
@@ -89,8 +86,9 @@ export function createView(root, handlers = {}) {
   el.scheme.addEventListener("change", () => handlers.onScheme && handlers.onScheme(el.scheme.value));
   el.level.addEventListener("change", () => handlers.onLevel && handlers.onLevel(el.level.value));
   el.newGame.addEventListener("click", () => handlers.onNewGame && handlers.onNewGame());
+  el.dialogCancel.addEventListener("click", () => handlers.onDialogCancel && handlers.onDialogCancel());
   el.hint.addEventListener("click", () => handlers.onHint && handlers.onHint());
-  el.dialogNew.addEventListener("click", () => handlers.onNewGame && handlers.onNewGame());
+  el.dialogNew.addEventListener("click", () => handlers.onDialogNew && handlers.onDialogNew());
   el.dialogHint.addEventListener("click", () => handlers.onHint && handlers.onHint());
   attachNumpad(nums, {
     onTap: (d) => handlers.onDigit && handlers.onDigit(d),
@@ -118,9 +116,10 @@ export function createView(root, handlers = {}) {
     },
 
     setTipVisible(visible) { el.tip.hidden = !visible; },
+    setPreparing(on) { el.preparing.hidden = !on; },
     setBusy(busy) { el.app.dataset.busy = busy ? "true" : "false"; },
 
-    // kind: "gameOver" | "solved" | null (hide)
+    // kind: "gameOver" | "solved" | "confirm" | null (hide)
     showDialog(kind) {
       if (kind === dialogKind) return;
       dialogKind = kind;
@@ -132,6 +131,7 @@ export function createView(root, handlers = {}) {
       el.dialogTitle.textContent = d.title;
       el.dialogText.textContent = d.text;
       el.dialogHint.hidden = !d.hint;
+      el.dialogCancel.hidden = !d.cancel;
       el.overlay.dataset.kind = kind;
       (d.hint ? el.dialogHint : el.dialogNew).focus();
     },

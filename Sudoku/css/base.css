@@ -121,6 +121,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); ou
 /* ---- board ---- */
 
 .board {
+  position: relative;
   width: var(--board);
   height: var(--board);
   display: grid;
@@ -273,3 +274,16 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); ou
 @media (prefers-reduced-motion: reduce) {
   .cell.reveal { animation: none; }
 }
+
+.preparing {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cell-bg);
+  color: var(--muted);
+  font-size: 18px;
+  z-index: 2;
+}
+.preparing[hidden] { display: none; }

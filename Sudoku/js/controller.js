@@ -1,24 +1,43 @@
-// Connects model and view: taps, long presses, keyboard, hint animation, dialogs.
-// Phase 6 starts new games on the main thread; phase 7 adds levels, pool and persistence.
+// Connects model and view: taps, long presses, keyboard, hint animation, dialogs,
+// new games (pool + worker), settings and the saved game.
 import { createView } from "./view.js";
 import { newGame, select, enterDigit, toggleNote, hint } from "./game.js";
-import { generate } from "./generator.js";
-import { createRng } from "./rng.js";
-import { LEVELS, DEFAULT_LEVEL, DEFAULT_SCHEME, HINT_ANIM_MS, HINT_ANIM_REDUCED_MS, TIP_KEY } from "./config.js";
+import { createGeneratorClient } from "./generator-client.js";
+import { createPool } from "./pool.js";
+import { loadSettings, saveScheme, saveLevel } from "./settings.js";
+import { loadGame, saveGame, clearGame } from "./store.js";
 import { safeGet, safeSet } from "./storage.js";
+import { LEVELS, HINT_ANIM_MS, HINT_ANIM_REDUCED_MS, TIP_KEY } from "./config.js";
+
+const safeStorage = { getItem: safeGet, setItem: safeSet };
+
+// Something to lose? An untouched board (or a finished game) needs no confirmation.
+const hasProgress = (s) => !s.solved && (s.mistakes > 0 || s.entries.some(Boolean) || s.notes.some(Boolean));
 
 export function startApp(root) {
   const params = new URLSearchParams(location.search);
-  const level = LEVELS.includes(params.get("level")) ? params.get("level") : DEFAULT_LEVEL;
-  // ?seed=N makes the games reproducible: N, N+1, ... for the following New Games.
-  let seedCounter = params.has("seed") ? Number(params.get("seed")) || 1 : null;
-  const nextSeed = () => (seedCounter !== null ? seedCounter++ : Math.floor(Math.random() * 4294967296));
+  // ?seed=N is a test hook: puzzles are generated from N, N+1, ... (no pool), so games are reproducible.
+  const deterministic = params.has("seed");
+  let seedCounter = deterministic ? Number(params.get("seed")) || 1 : 0;
+  const settings = loadSettings();
+  const paramLevel = LEVELS.includes(params.get("level")) ? params.get("level") : null;
   const reducedMotion = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  let state = null, busy = false, tipShown = safeGet(TIP_KEY) === "1";
+  const client = createGeneratorClient();
+  const pool = createPool({
+    storage: safeStorage,
+    generate: (level) => client.generate(level, { options: { symmetry: "random" } })
+  });
+
+  let state = null;
+  let animating = false;   // a hint animation is running
+  let loading = false;     // a new puzzle is being prepared
+  let pending = null;      // { run, cancel }: New Game waiting for the "abandon?" answer
+  let tipShown = safeGet(TIP_KEY) === "1";
+  const blocked = () => !state || animating || loading;
 
   const view = createView(root, {
-    onCell: (i) => { if (!busy) { select(state, i); sync(); } },
+    onCell: (i) => { if (!blocked() && !pending) { select(state, i); sync(); } },
     onDigit: (d) => act(() => enterDigit(state, state.selected, d)),
     onNote: (d) => act(() => {
       const r = toggleNote(state, state.selected, d);
@@ -26,45 +45,93 @@ export function startApp(root) {
       return r;
     }),
     onHint: () => doHint(),
-    onNewGame: () => startNewGame(),
-    onScheme: (id) => view.setScheme(id),
-    onLevel: () => {}
+    onNewGame: () => requestNewGame(state && state.level),
+    onDialogNew: () => {
+      if (pending) { const p = pending; pending = null; p.run(); } else startNewGame(state.level);
+    },
+    onDialogCancel: () => cancelPending(),
+    onScheme: (id) => { view.setScheme(id); saveScheme(id); },
+    onLevel: (level) => requestNewGame(level)
   });
 
   function sync() {
     view.render(state);
     view.setTipVisible(!tipShown);
-    view.showDialog(state.solved ? "solved" : state.dialogOpen ? "gameOver" : null);
+    view.showDialog(pending ? "confirm" : state.solved ? "solved" : state.dialogOpen ? "gameOver" : null);
+    if (state.solved) clearGame(); else saveGame(state);
   }
 
-  // Runs an input action unless the game is busy animating a hint.
+  // Runs an input action unless the game is busy.
   function act(fn) {
-    if (busy) return;
+    if (blocked() || pending) return;
     fn();
     sync();
   }
 
   function doHint() {
-    if (busy) return;
+    if (blocked() || pending) return;
     const r = hint(state);
     if (r.kind === "ignored") { sync(); return; }
     const ms = reducedMotion() ? HINT_ANIM_REDUCED_MS : HINT_ANIM_MS;
-    busy = true;
+    animating = true;
     view.setBusy(true);
     sync();
     if (r.kind === "cleared") view.animateClear(r.cell, r.digit, ms);
     else view.animateReveal(r.cell, ms);
-    setTimeout(() => { busy = false; view.setBusy(false); }, ms);
+    setTimeout(() => { animating = false; view.setBusy(false); }, ms);
   }
 
-  function startNewGame() {
-    if (busy) return;
-    state = newGame(generate(state ? state.level : level, createRng(nextSeed())));
+  // New game at `level`, asking first if the current game has progress.
+  function requestNewGame(level) {
+    if (blocked() || pending) return;
+    if (state && hasProgress(state)) {
+      pending = { run: () => startNewGame(level), cancel: () => {} };
+      sync();
+    } else {
+      startNewGame(level);
+    }
+  }
+
+  function cancelPending() {
+    if (!pending) return;
+    pending.cancel();
+    pending = null;
+    sync(); // also puts the level dropdown back
+  }
+
+  async function nextPuzzle(level) {
+    if (deterministic) return client.generate(level, { seed: seedCounter++ });
+    return pool.take(level);
+  }
+
+  async function startNewGame(level) {
+    if (loading) return;
+    loading = true;
+    saveLevel(level);
+    // Show the "Preparing" note only if it takes a moment.
+    const spinner = setTimeout(() => view.setPreparing(true), 150);
+    try {
+      state = newGame(await nextPuzzle(level));
+    } finally {
+      clearTimeout(spinner);
+      view.setPreparing(false);
+      loading = false;
+    }
     sync();
+    root.dataset.ready = "true";
+    refillPool(level);
+  }
+
+  // Keeps one puzzle per level ready, current level first, without blocking the UI.
+  function refillPool(level) {
+    if (deterministic) return;
+    const order = [level, ...LEVELS.filter((l) => l !== level)];
+    setTimeout(() => { pool.refill(order).catch(() => {}); }, 300);
   }
 
   document.addEventListener("keydown", (e) => {
-    if (busy || e.ctrlKey || e.metaKey || e.altKey || state.dialogOpen || state.solved) return;
+    if (e.key === "Escape" && pending) { cancelPending(); return; }
+    if (blocked() || pending || e.ctrlKey || e.metaKey || e.altKey || state.dialogOpen || state.solved) return;
     const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code);
     if (m) {
       e.preventDefault();
@@ -85,9 +152,16 @@ export function startApp(root) {
     }
   });
 
-  view.setScheme(DEFAULT_SCHEME);
-  startNewGame();
-  root.dataset.ready = "true";
+  // Start: colour scheme, then the saved game or a new one.
+  view.setScheme(settings.scheme);
+  const saved = loadGame();
+  if (saved) {
+    state = saved;
+    sync();
+    root.dataset.ready = "true";
+    refillPool(state.level);
+  } else {
+    startNewGame(paramLevel || settings.level);
+  }
   return { view, getState: () => state };
 }
-

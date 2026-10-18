@@ -185,22 +185,22 @@ Gate → commit `Sudoku: phase 6 – input and gameplay`.
 
 Goal: real games, settings and resume (PRD 3.5, 3.7).
 
-- [ ] `settings.js`: `sudoku.scheme` and `sudoku.level` with safe (try/catch) localStorage wrappers and defaults (`bw`, `beginner`)
-- [ ] `store.js`: save the complete state after every move (`sudoku.game`), restore on load (including notes, mistakes, open dialog), delete when solved; invalid/corrupt data → start a new game
-- [ ] Level dropdown and **New Game**: confirmation if a game is in progress; new puzzle from `pool.js` (worker), "Preparing puzzle…" state if the pool is empty; background refill after use
-- [ ] Wire the real flow in `main.js`: load settings → restore game or start new → render; remove the phase 5 fixture entry but keep a documented `?seed=<n>&level=<l>` URL parameter for deterministic tests
-- [ ] Colour-scheme dropdown applies live and persists
-- [ ] Storage unavailable (private mode / throws) → game still works without persistence
+- [x] `settings.js`: `sudoku.scheme` and `sudoku.level` with safe (try/catch) localStorage wrappers and defaults (`bw`, `beginner`)
+- [x] `store.js`: save the complete state after every move (`sudoku.game`), restore on load (including notes, mistakes, open dialog), delete when solved; invalid/corrupt data → start a new game
+- [x] Level dropdown and **New Game**: confirmation if a game is in progress; new puzzle from `pool.js` (worker), "Preparing puzzle…" state if the pool is empty; background refill after use
+- [x] Wire the real flow in `main.js`: load settings → restore game or start new → render; remove the phase 5 fixture entry but keep a documented `?seed=<n>&level=<l>` URL parameter for deterministic tests
+- [x] Colour-scheme dropdown applies live and persists
+- [x] Storage unavailable (private mode / throws) → game still works without persistence
 
 Tests:
-- [ ] Unit: settings defaults, invalid stored values fall back to defaults; store save/restore/clear with a storage stub, corrupt JSON handled; storage that throws handled
-- [ ] e2e: select scheme and level → reload → both preserved; B/W default on a clean profile
-- [ ] e2e: play some moves (digits, a note, a mistake) → reload → identical board, notes, mistakes; reload while the game-over dialog is open → dialog still open
-- [ ] e2e: solved game is not restored after reload (new game starts)
-- [ ] e2e: each of Beginner/Expert/Master starts a game with a clue count in the PRD range; New Game asks for confirmation when progress exists and not when the board is untouched
-- [ ] e2e: New Game is fast (< 300 ms) when the pool is filled; works with an empty pool
-- [ ] e2e: with `localStorage` access forced to throw, the game still loads and is playable
-- [ ] e2e: earlier tests pass
+- [x] Unit: settings defaults, invalid stored values fall back to defaults; store save/restore/clear with a storage stub, corrupt JSON handled; storage that throws handled
+- [x] e2e: select scheme and level → reload → both preserved; B/W default on a clean profile
+- [x] e2e: play some moves (digits, a note, a mistake) → reload → identical board, notes, mistakes; reload while the game-over dialog is open → dialog still open
+- [x] e2e: solved game is not restored after reload (new game starts)
+- [x] e2e: each of Beginner/Expert/Master starts a game with a clue count in the PRD range; New Game asks for confirmation when progress exists and not when the board is untouched
+- [x] e2e: New Game is fast (< 300 ms) when the pool is filled; works with an empty pool
+- [x] e2e: with `localStorage` access forced to throw, the game still loads and is playable
+- [x] e2e: earlier tests pass
 
 Gate → commit `Sudoku: phase 7 – levels, new game and persistence`.
 
