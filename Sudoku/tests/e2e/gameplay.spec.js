@@ -198,13 +198,13 @@ test("dialog New Game starts a fresh puzzle with 0/3", async ({ page }) => {
   await expect(dialog(page)).toBeHidden();
   await expect(mistakes(page)).toHaveText("0/3");
   const next = puzzleFor(13);
-  expect(await values(page)).toEqual(next.givens.map((d) => (d ? String(d) : "")));
+  await expect.poll(() => values(page)).toEqual(next.givens.map((d) => (d ? String(d) : "")));
 });
 
 test("header New Game starts a new puzzle too", async ({ page }) => {
   await page.locator("#new-game").click();
   const next = puzzleFor(13);
-  expect(await values(page)).toEqual(next.givens.map((d) => (d ? String(d) : "")));
+  await expect.poll(() => values(page)).toEqual(next.givens.map((d) => (d ? String(d) : "")));
 });
 
 test("Hint with a wrong digit empties it, a second press reveals the right digit", async ({ page }) => {

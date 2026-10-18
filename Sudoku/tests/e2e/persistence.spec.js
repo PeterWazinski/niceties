@@ -121,7 +121,7 @@ test("New Game asks first when the game has progress; Cancel keeps the game", as
   await page.locator("#new-game").click();
   await page.locator("#dialog-new").click();
   await expect(dialog(page)).toBeHidden();
-  expect(await values(page)).toEqual(puzzleFor(13).givens.map((d) => (d ? String(d) : "")));
+  await expect.poll(() => values(page)).toEqual(puzzleFor(13).givens.map((d) => (d ? String(d) : "")));
 });
 
 test("New Game needs no question on an untouched board", async ({ page }) => {

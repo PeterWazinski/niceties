@@ -15,6 +15,8 @@ const TYPES = {
 
 http.createServer((req, res) => {
   let rel = decodeURIComponent(req.url.split("?")[0]);
+  // The app also answers under /niceties/Sudoku/, like on GitHub Pages (sub-path test).
+  if (rel === "/niceties/Sudoku" || rel.startsWith("/niceties/Sudoku/")) rel = rel.slice("/niceties/Sudoku".length) || "/";
   if (rel.endsWith("/")) rel += "index.html";
   const file = path.normalize(path.join(ROOT, rel));
   if (!file.startsWith(ROOT)) { res.writeHead(403); return res.end(); }

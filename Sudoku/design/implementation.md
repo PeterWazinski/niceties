@@ -208,20 +208,20 @@ Gate → commit `Sudoku: phase 7 – levels, new game and persistence`.
 
 Goal: PRD 6 – playable and restartable with no network.
 
-- [ ] `manifest.webmanifest` (name, `start_url: "./"`, `scope: "./"`, standalone, theme/background colour), icons (192, 512, maskable, apple-touch-icon), `apple-mobile-web-app-*` meta tags
-- [ ] `sw.js`: precache every app file at install (explicit list kept in sync by a test), cache-first with background update, versioned cache name `sudoku-v<N>`, old caches deleted on activate, scope limited to the Sudoku folder
-- [ ] Service-worker registration in `main.js` (only on `https` or `localhost`, errors swallowed)
-- [ ] All URLs relative; no external requests anywhere (fonts, CDN, analytics)
-- [ ] Verify the app works when served from a sub-path (e.g. `/niceties/Sudoku/`) and not only from the server root
+- [x] `manifest.webmanifest` (name, `start_url: "./"`, `scope: "./"`, standalone, theme/background colour), icons (192, 512, maskable, apple-touch-icon), `apple-mobile-web-app-*` meta tags
+- [x] `sw.js`: precache every app file at install (explicit list kept in sync by a test), cache-first with background update, versioned cache name `sudoku-v<N>`, old caches deleted on activate, scope limited to the Sudoku folder
+- [x] Service-worker registration in `main.js` (only on `https` or `localhost`, errors swallowed)
+- [x] All URLs relative; no external requests anywhere (fonts, CDN, analytics)
+- [x] Verify the app works when served from a sub-path (e.g. `/niceties/Sudoku/`) and not only from the server root
 
 Tests:
-- [ ] Unit: the precache list in `sw.js` equals the set of files actually referenced by the app (HTML, CSS, JS modules, worker, manifest, icons) – fails if a file is forgotten
-- [ ] e2e: **offline test** – load once online and wait for the service worker to take control, `context.setOffline(true)`, reload, play a few moves, start a new game at each level, solve or hit game over → all work
-- [ ] e2e: network log of a full session contains no request to a foreign origin
-- [ ] e2e: served from a sub-path via the test server, the app and the service worker still work
-- [ ] e2e: a new cache version replaces the old cache after an update (activate cleans up)
-- [ ] e2e: manifest is valid (required fields, icons exist and load)
-- [ ] e2e: earlier tests pass
+- [x] Unit: the precache list in `sw.js` equals the set of files actually referenced by the app (HTML, CSS, JS modules, worker, manifest, icons) – fails if a file is forgotten
+- [x] e2e: **offline test** – load once online and wait for the service worker to take control, `context.setOffline(true)`, reload, play a few moves, start a new game at each level, solve or hit game over → all work
+- [x] e2e: network log of a full session contains no request to a foreign origin
+- [x] e2e: served from a sub-path via the test server, the app and the service worker still work
+- [x] e2e: a new cache version replaces the old cache after an update (activate cleans up)
+- [x] e2e: manifest is valid (required fields, icons exist and load)
+- [x] e2e: earlier tests pass
 
 Gate → commit `Sudoku: phase 8 – offline PWA`.
 
