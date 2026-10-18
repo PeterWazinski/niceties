@@ -7,7 +7,7 @@ import { createPool } from "./pool.js";
 import { loadSettings, saveScheme, saveLevel } from "./settings.js";
 import { loadGame, saveGame, clearGame } from "./store.js";
 import { safeGet, safeSet } from "./storage.js";
-import { LEVELS, HINT_ANIM_MS, HINT_ANIM_REDUCED_MS, TIP_KEY } from "./config.js";
+import { LEVELS, MAX_MISTAKES, HINT_ANIM_REDUCED_MS, HINT_ANIM_MS, TIP_KEY } from "./config.js";
 
 const safeStorage = { getItem: safeGet, setItem: safeSet };
 
@@ -38,11 +38,11 @@ export function startApp(root) {
 
   const view = createView(root, {
     onCell: (i) => { if (!blocked() && !pending) { select(state, i); sync(); } },
-    onDigit: (d) => act(() => enterDigit(state, state.selected, d)),
+    onDigit: (d) => act(() => say(enterDigit(state, state.selected, d))),
     onNote: (d) => act(() => {
       const r = toggleNote(state, state.selected, d);
       if (r === "on" && !tipShown) { tipShown = true; safeSet(TIP_KEY, "1"); }
-      return r;
+      say(r === "on" ? "note" : r === "off" ? "noteOff" : "ignored");
     }),
     onHint: () => doHint(),
     onNewGame: () => requestNewGame(state && state.level),
@@ -61,6 +61,19 @@ export function startApp(root) {
     if (state.solved) clearGame(); else saveGame(state);
   }
 
+  // Screen reader feedback for what just happened.
+  function say(result) {
+    const text = {
+      correct: "Correct.",
+      wrong: () => `Wrong digit. ${state.mistakes} of ${MAX_MISTAKES} mistakes.`,
+      gameOver: "Three mistakes. Start a new game or take a hint.",
+      solved: "Solved!",
+      note: "Note added.",
+      noteOff: "Note removed."
+    }[result];
+    if (text) view.announce(typeof text === "function" ? text() : text);
+  }
+
   // Runs an input action unless the game is busy.
   function act(fn) {
     if (blocked() || pending) return;
@@ -76,6 +89,8 @@ export function startApp(root) {
     animating = true;
     view.setBusy(true);
     sync();
+    const where = `row ${Math.floor(r.cell / 9) + 1}, column ${(r.cell % 9) + 1}`;
+    view.announce(r.kind === "cleared" ? `Hint: the wrong digit in ${where} is removed.` : `Hint: ${r.digit} in ${where}.`);
     if (r.kind === "cleared") view.animateClear(r.cell, r.digit, ms);
     else view.animateReveal(r.cell, ms);
     setTimeout(() => { animating = false; view.setBusy(false); }, ms);
@@ -132,11 +147,16 @@ export function startApp(root) {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && pending) { cancelPending(); return; }
     if (blocked() || pending || e.ctrlKey || e.metaKey || e.altKey || state.dialogOpen || state.solved) return;
+    // typing in a dropdown (type-ahead, arrow keys) must not play the game
+    if (e.target && e.target.tagName === "SELECT") return;
     const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code);
     if (m) {
       e.preventDefault();
       const d = Number(m[1]);
-      act(() => (e.shiftKey ? toggleNote(state, state.selected, d) : enterDigit(state, state.selected, d)));
+      act(() => {
+        if (e.shiftKey) { say(toggleNote(state, state.selected, d) === "on" ? "note" : "noteOff"); }
+        else say(enterDigit(state, state.selected, d));
+      });
       return;
     }
     if (e.key === "h" || e.key === "H") { e.preventDefault(); doHint(); return; }
@@ -144,11 +164,12 @@ export function startApp(root) {
     if (move) {
       e.preventDefault();
       const cur = state.selected;
-      if (cur < 0) { select(state, 40); sync(); return; }
+      if (cur < 0) { select(state, 40); sync(); view.focusCell(40); return; }
       const next = cur + move;
       if (next < 0 || next > 80 || (Math.abs(move) === 1 && Math.floor(next / 9) !== Math.floor(cur / 9))) return;
       select(state, next);
       sync();
+      view.focusCell(next);
     }
   });
 

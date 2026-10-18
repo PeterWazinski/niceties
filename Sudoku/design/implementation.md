@@ -229,40 +229,40 @@ Gate → commit `Sudoku: phase 8 – offline PWA`.
 
 Goal: finish PRD 8–9 and publish.
 
-- [ ] Accessibility: visible focus, ARIA labels (`row 3, column 5, 7, locked`), dialog roles, announcements for mistakes/solved via an `aria-live` region, `prefers-reduced-motion`
-- [ ] Colour is never the only signal for errors in any scheme (verified, see test)
-- [ ] Performance pass: no layout thrash on selection, generation never blocks the UI
-- [ ] `README.md`: playing, rules, Hint behaviour, long-press notes, running locally, tests, **Add to Home Screen** and the iOS cache caveat, GitHub Pages URL
-- [ ] GitHub Pages: enable Pages for the repo (manual step by the owner), check the live URL, add the link to the README
+- [x] Accessibility: visible focus, ARIA labels (`row 3, column 5, 7, locked`), dialog roles, announcements for mistakes/solved via an `aria-live` region, `prefers-reduced-motion`
+- [x] Colour is never the only signal for errors in any scheme (verified, see test)
+- [x] Performance pass: no layout thrash on selection, generation never blocks the UI
+- [x] `README.md`: playing, rules, Hint behaviour, long-press notes, running locally, tests, **Add to Home Screen** and the iOS cache caveat, GitHub Pages URL
+- [ ] GitHub Pages: enable Pages for the repo (manual step by the owner), check the live URL, add the link to the README — **open: owner action** (README explains the steps; the sub-path and offline behaviour are tested against a local sub-path)
 - [ ] Manual device checklist executed on a real iPhone and iPad (Safari and Add to Home Screen): layout fits, long-press feels right (tune the threshold in `config.js`), offline in airplane mode, resume after killing Safari, no zoom or scroll glitches
 
 Tests:
-- [ ] e2e: automated accessibility scan (e.g. axe-core via a dev dependency, or a hand-written check of roles/labels/contrast) passes on the main screen and the dialog in every scheme
-- [ ] e2e: error states distinguishable without colour (computed styles differ beyond colour)
-- [ ] e2e: full regression – every earlier e2e test, in all projects
-- [ ] Unit: full regression, plus a final larger seeded generation batch (e.g. 300 puzzles across levels, unique + symmetric + graded)
-- [ ] PRD acceptance criteria 1–10 (PRD 9) mapped one by one to tests; the mapping table is added at the end of this file
+- [x] e2e: automated accessibility scan (e.g. axe-core via a dev dependency, or a hand-written check of roles/labels/contrast) passes on the main screen and the dialog in every scheme
+- [x] e2e: error states distinguishable without colour (computed styles differ beyond colour)
+- [x] e2e: full regression – every earlier e2e test, in all projects
+- [x] Unit: full regression, plus a final larger seeded generation batch (e.g. 300 puzzles across levels, unique + symmetric + graded)
+- [x] PRD acceptance criteria 1–10 (PRD 9) mapped one by one to tests; the mapping table is added at the end of this file
 
 Gate → commit `Sudoku: phase 9 – polish, accessibility and release`.
 
 ---
 
-## Acceptance traceability (filled in during phase 9)
+## Acceptance traceability
 
 | PRD 9 criterion | Test(s) |
 |---|---|
-| 1 No ads/network/timer/score | _tbd_ |
-| 2 Empty cell highlights | _tbd_ |
-| 3 Filled cell highlights | _tbd_ |
-| 4 Wrong digit, locking, no Undo/Erase | _tbd_ |
-| 5 Game-over dialog, Hint | _tbd_ |
-| 5a Tap vs. long press | _tbd_ |
-| 5b Reload restores game | _tbd_ |
-| 6 Levels, uniqueness, symmetry | _tbd_ |
-| 7 Scheme and level persistence | _tbd_ |
-| 8 Layout iPhone/iPad | _tbd_ |
-| 9 Offline play and new game | _tbd_ |
-| 10 New Game < 300 ms | _tbd_ |
+| 1 No ads/network/timer/score | e2e offline: *a whole session talks only to the own origin*; e2e a11y: *there is no timer, no score, and no Undo / Erase / Notes button*; unit pwa: *no root-absolute or external URLs anywhere in the app files* |
+| 2 Empty cell highlights | e2e highlight: *tap an empty cell*; unit highlight: *empty cell* |
+| 3 Filled cell highlights | e2e highlight: *tap a filled cell*; unit highlight: *filled cell* |
+| 4 Wrong digit, locking, no Undo/Erase | e2e gameplay: *a wrong digit is red, counted once…*, *a locked digit cannot be changed*, *…duplicates a visible digit marks the conflicting cells red*; unit game (locking, mistakes, property test); e2e a11y (no Undo/Erase buttons) |
+| 5 Game-over dialog, Hint | e2e gameplay: *three wrong digits open the dialog…*, *dialog Hint…*, *dialog New Game…*, *Hint with a wrong digit empties it…*; e2e animation (slow motion); unit game (hint matrix) |
+| 5a Tap vs. long press | unit numpad (fake clock, threshold boundary); e2e gameplay: *long press creates a note…*, *a short tap enters a digit…*, *moving the pointer off the button cancels the press* |
+| 5b Reload restores game | e2e persistence: *the game is saved after every move…*, *reloading while the three-mistakes dialog is open…*; unit settings/store round trip |
+| 6 Levels, uniqueness, symmetry | unit levels (50 per level), unit batch (100 per level), unit generator; e2e persistence: *level … starts a game with the clue count of the PRD* |
+| 7 Scheme and level persistence | e2e persistence: *a clean profile starts with Black & White and Beginner*, *scheme and level survive a reload*; e2e themes; unit settings |
+| 8 Layout iPhone/iPad | e2e layout (all four device projects: no scroll, square board, pad layout, touch targets); e2e visual baselines |
+| 9 Offline play and new game | e2e offline: *after one online load the game loads, can be solved and a new game can be started*, *a new game at every level, hints, scheme change*, *works from a sub-path* |
+| 10 New Game < 300 ms | e2e persistence: *New Game is instant when the pool is filled*, *also works with an empty pool* |
 
 ## Risks to watch
 

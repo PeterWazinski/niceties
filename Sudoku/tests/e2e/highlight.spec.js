@@ -1,6 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { openGame, cell, cellsWith, values, peersOf } from "./helpers.js";
 
+// no colour transitions while the computed colours are compared
+test.use({ reducedMotion: "reduce" });
+
 test.beforeEach(async ({ page }) => { await openGame(page); });
 
 test("nothing is highlighted before a cell is tapped", async ({ page }) => {

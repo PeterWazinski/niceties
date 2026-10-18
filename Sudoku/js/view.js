@@ -16,7 +16,7 @@ function template() {
   const options = (list) => list.map(([v, n]) => `<option value="${v}">${n}</option>`).join("");
   const cells = Array.from({ length: 81 }, (_, i) => {
     const notes = Array.from({ length: 9 }, () => "<span></span>").join("");
-    return `<button type="button" class="cell" data-i="${i}" data-r="${Math.floor(i / 9)}" data-c="${i % 9}">` +
+    return `<button type="button" class="cell" tabindex="-1" data-i="${i}" data-r="${Math.floor(i / 9)}" data-c="${i % 9}">` +
       `<span class="digit"></span><span class="notes" aria-hidden="true">${notes}</span></button>`;
   }).join("");
   const nums = Array.from({ length: 9 }, (_, k) =>
@@ -38,6 +38,7 @@ function template() {
       <div class="numpad" id="numpad" role="group" aria-label="Numbers">${nums}</div>
       <p class="tip" id="tip" hidden>Tip: hold a number to add a note</p>
     </div>
+    <div class="sr-only" id="live" role="status" aria-live="polite"></div>
     <div class="overlay" id="overlay" hidden>
       <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-text">
         <h2 id="dialog-title"></h2>
@@ -70,14 +71,20 @@ export function createView(root, handlers = {}) {
   root.innerHTML = template();
   const $ = (sel) => root.querySelector(sel);
   const cells = [...root.querySelectorAll(".cell")];
+  const parts = cells.map((c) => ({ digit: c.querySelector(".digit"), marks: [...c.querySelectorAll(".notes span")] }));
   const nums = [...root.querySelectorAll(".num")];
+  // Writes to the DOM only when a value really changes (cheap renders).
+  const setText = (node, text) => { if (node.textContent !== text) node.textContent = text; };
+  const setAttr = (node, name, value) => { if (node.getAttribute(name) !== value) node.setAttribute(name, value); };
   const el = {
     app: $(".app"), board: $("#board"), numpad: $("#numpad"), mistakes: $("#mistakes"),
     level: $("#level"), scheme: $("#scheme"), newGame: $("#new-game"), hint: $("#hint"), tip: $("#tip"),
-    overlay: $("#overlay"), dialogTitle: $("#dialog-title"), dialogText: $("#dialog-text"),
+    live: $("#live"), overlay: $("#overlay"), dialogTitle: $("#dialog-title"), dialogText: $("#dialog-text"),
     dialogNew: $("#dialog-new"), dialogHint: $("#dialog-hint"), dialogCancel: $("#dialog-cancel"), preparing: $("#preparing")
   };
-  let dialogKind = null;
+  let dialogKind = null, focusBeforeDialog = null, announceFlip = false, lastClicked = null;
+  // Safari does not focus a button when it is clicked: remember the last clicked control as a fallback.
+  el.app.addEventListener("click", (e) => { lastClicked = e.target.closest("button, select"); }, true);
 
   el.board.addEventListener("click", (e) => {
     const cell = e.target.closest(".cell");
@@ -119,14 +126,34 @@ export function createView(root, handlers = {}) {
     setPreparing(on) { el.preparing.hidden = !on; },
     setBusy(busy) { el.app.dataset.busy = busy ? "true" : "false"; },
 
+    // Spoken by screen readers (polite live region); the zero-width flip repeats identical messages.
+    announce(text) {
+      announceFlip = !announceFlip;
+      el.live.textContent = text + (announceFlip ? "​" : "");
+    },
+
+    // Moves the keyboard focus to a cell (arrow-key navigation).
+    focusCell(i) { cells[i].focus(); },
+
     // kind: "gameOver" | "solved" | "confirm" | null (hide)
     showDialog(kind) {
       if (kind === dialogKind) return;
+      const wasOpen = dialogKind !== null;
       dialogKind = kind;
       const open = kind !== null;
+      // remember the focus before the page behind the dialog becomes inert (inert drops the focus)
+      if (open && !wasOpen) {
+        const a = document.activeElement;
+        focusBeforeDialog = a && a !== document.body ? a : lastClicked;
+      }
       el.overlay.hidden = !open;
       el.app.inert = open;
-      if (!open) return;
+      if (!open) {
+        // give the focus back to where it was
+        if (wasOpen && focusBeforeDialog && document.contains(focusBeforeDialog)) focusBeforeDialog.focus();
+        focusBeforeDialog = null;
+        return;
+      }
       const d = DIALOGS[kind];
       el.dialogTitle.textContent = d.title;
       el.dialogText.textContent = d.text;
@@ -161,21 +188,28 @@ export function createView(root, handlers = {}) {
         const kind = isGiven(state, i) ? "given" : v ? (isWrong(state, i) ? "wrong" : "locked") : "empty";
         cell.dataset.state = kind;
         cell.dataset.value = v ? String(v) : "";
-        cell.querySelector(".digit").textContent = v ? String(v) : "";
+        setText(parts[i].digit, v ? String(v) : "");
         cell.classList.toggle("sel", h.sel.has(i));
         cell.classList.toggle("peer", h.peer.has(i));
         cell.classList.toggle("same", h.same.has(i));
         cell.classList.toggle("conflict", h.conflict.has(i));
-        cell.setAttribute("aria-label", cellLabel(state, i));
-        cell.setAttribute("aria-pressed", h.sel.has(i) ? "true" : "false");
-        const marks = cell.querySelectorAll(".notes span");
-        marks.forEach((m, k) => { m.textContent = !v && (state.notes[i] & (1 << k)) ? String(k + 1) : ""; });
+        setAttr(cell, "aria-label", cellLabel(state, i));
+        setAttr(cell, "aria-pressed", h.sel.has(i) ? "true" : "false");
+        // roving tab stop: one cell is reachable by Tab, the arrow keys move inside the board
+        setAttr(cell, "tabindex", i === (state.selected >= 0 ? state.selected : 0) ? "0" : "-1");
+        parts[i].marks.forEach((m, k) => { setText(m, !v && (state.notes[i] & (1 << k)) ? String(k + 1) : ""); });
       });
-      el.mistakes.textContent = `${state.mistakes}/${MAX_MISTAKES}`;
+      setText(el.mistakes, `${state.mistakes}/${MAX_MISTAKES}`);
       el.level.value = state.level;
-      nums.forEach((n) => n.classList.toggle("done", remaining(state, Number(n.dataset.digit)) === 0));
-      // Number buttons only act on an editable selected cell: dim them otherwise.
-      el.numpad.classList.toggle("inactive", !(state.selected >= 0 && isEditable(state, state.selected)));
+      // Number buttons only act on an editable selected cell (shown by a flat look, text contrast
+      // stays); digits that are completely placed are dimmed and marked disabled.
+      const active = state.selected >= 0 && isEditable(state, state.selected);
+      nums.forEach((n) => {
+        const done = remaining(state, Number(n.dataset.digit)) === 0;
+        n.classList.toggle("done", done);
+        setAttr(n, "aria-disabled", done ? "true" : "false");
+      });
+      el.numpad.classList.toggle("inactive", !active);
     }
   };
 }
