@@ -1,5 +1,104 @@
-/* Colour schemes as CSS variable sets, selected by <html data-scheme="...">. */
+/* Colour schemes as CSS variable sets, selected by <html data-scheme="...">.
+   Variables: page/ink = page and given digits, player = digits entered by the
+   player, wrong = wrong digits, *-bg = cell backgrounds per highlight layer,
+   line / line-strong = thin and box borders, btn* = buttons, muted = labels. */
+
 :root, :root[data-scheme="bw"] {
   --page-bg: #ffffff;
-  --ink: #111111;
+  --ink: #000000;
+  --player: #333333;
+  --wrong: #a00018;
+  --muted: #595959;
+  --cell-bg: #ffffff;
+  --peer-bg: #efefef;
+  --same-bg: #dadada;
+  --sel-bg: #c6c6c6;
+  --conflict-bg: #f3c4c4;
+  --line: #b5b5b5;
+  --line-strong: #000000;
+  --btn-bg: #ececec;
+  --btn-ink: #000000;
+  --primary-bg: #000000;
+  --primary-ink: #ffffff;
+  --focus: #000000;
+}
+
+:root[data-scheme="blue"] {
+  --page-bg: #ffffff;
+  --ink: #344861;
+  --player: #2a4fa6;
+  --wrong: #a81c28;
+  --muted: #5d6b82;
+  --cell-bg: #ffffff;
+  --peer-bg: #e4ebf3;
+  --same-bg: #c9daed;
+  --sel-bg: #b9d6f5;
+  --conflict-bg: #f7cdd3;
+  --line: #bfc6d4;
+  --line-strong: #344861;
+  --btn-bg: #e9edf5;
+  --btn-ink: #2a4fa6;
+  --primary-bg: #4a66a9;
+  --primary-ink: #ffffff;
+  --focus: #2a4fa6;
+}
+
+:root[data-scheme="sepia"] {
+  --page-bg: #f4ecd8;
+  --ink: #3b2f20;
+  --player: #6e3509;
+  --wrong: #8c1515;
+  --muted: #6b5a42;
+  --cell-bg: #f8f1e0;
+  --peer-bg: #eee3c8;
+  --same-bg: #e3d3aa;
+  --sel-bg: #e6c27a;
+  --conflict-bg: #efc1a6;
+  --line: #cdbf9f;
+  --line-strong: #5c4a2f;
+  --btn-bg: #e7dcc0;
+  --btn-ink: #3b2f20;
+  --primary-bg: #5c4a2f;
+  --primary-ink: #f8f1e0;
+  --focus: #5c4a2f;
+}
+
+:root[data-scheme="dark"] {
+  --page-bg: #121417;
+  --ink: #e8eaed;
+  --player: #8ab4f8;
+  --wrong: #ffa199;
+  --muted: #a3a9b0;
+  --cell-bg: #181b1f;
+  --peer-bg: #23282e;
+  --same-bg: #2f3b4d;
+  --sel-bg: #324560;
+  --conflict-bg: #5a2a2e;
+  --line: #3a3f45;
+  --line-strong: #9aa0a6;
+  --btn-bg: #23282e;
+  --btn-ink: #8ab4f8;
+  --primary-bg: #8ab4f8;
+  --primary-ink: #0b1220;
+  --focus: #8ab4f8;
+}
+
+:root[data-scheme="forest"] {
+  --page-bg: #f3f7f1;
+  --ink: #1f3a2b;
+  --player: #155a31;
+  --wrong: #a3261f;
+  --muted: #55705f;
+  --cell-bg: #fafdf8;
+  --peer-bg: #e3eddf;
+  --same-bg: #cfe3cb;
+  --sel-bg: #b4d9bd;
+  --conflict-bg: #f3c9c4;
+  --line: #b9ccb8;
+  --line-strong: #1f3a2b;
+  --btn-bg: #e3eddf;
+  --btn-ink: #155a31;
+  --primary-bg: #2f6f4a;
+  --primary-ink: #ffffff;
+  --focus: #155a31;
 }

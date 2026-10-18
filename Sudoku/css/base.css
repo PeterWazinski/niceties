@@ -1,3 +1,209 @@
-/* Structure and behaviour: layout, board, highlights, responsive rules. */
-html, body { margin: 0; height: 100%; }
-body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--page-bg); color: var(--ink); }
+/* Structure and behaviour: layout, board, highlights, responsive rules.
+   Colours come from themes.css (variables only). */
+
+:root {
+  --gutter: 12px;
+  /* Vertical space taken by everything except the board in the portrait layout. */
+  --chrome: 270px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+body { min-height: 100dvh; }
+
+button, select {
+  font: inherit;
+  color: inherit;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+/* ---- layout (portrait: one column, board as wide as fits) ---- */
+
+.app {
+  --board: min(100vw - 2 * var(--gutter) - env(safe-area-inset-left) - env(safe-area-inset-right),
+               100dvh - var(--chrome) - env(safe-area-inset-top) - env(safe-area-inset-bottom),
+               700px);
+  width: var(--board);
+  margin: 0 auto;
+  padding: calc(env(safe-area-inset-top) + 8px) 0 calc(env(safe-area-inset-bottom) + 8px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title newgame"
+    "status status"
+    "board board"
+    "hint hint"
+    "pad pad";
+  gap: 10px;
+  align-items: center;
+}
+
+.title { grid-area: title; margin: 0; font-size: 26px; font-weight: 700; letter-spacing: .2px; }
+#new-game { grid-area: newgame; }
+.status { grid-area: status; }
+.board { grid-area: board; }
+#hint { grid-area: hint; }
+.numpad { grid-area: pad; }
+
+/* ---- controls ---- */
+
+.status { display: grid; grid-template-columns: 1.3fr .7fr 1.3fr; gap: 8px; align-items: end; }
+.field { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.field-label { font-size: 12px; color: var(--muted); }
+.mistakes { align-items: center; text-align: center; }
+.mistakes-value { font-size: 20px; font-weight: 700; min-height: 44px; line-height: 44px; }
+
+.select {
+  min-height: 44px;
+  width: 100%;
+  padding: 0 4px;
+  font-size: 16px; /* 16px stops iOS from zooming into the field */
+  background: var(--btn-bg);
+  color: var(--btn-ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.btn {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--btn-bg);
+  color: var(--btn-ink);
+}
+.btn.primary { background: var(--primary-bg); color: var(--primary-ink); }
+.btn.tool { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.icon { width: 24px; height: 24px; }
+
+.numpad { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; }
+.num {
+  min-height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: var(--btn-bg);
+  color: var(--btn-ink);
+  font-size: 28px;
+  font-weight: 400;
+  cursor: pointer;
+}
+.num.done { opacity: .3; }
+
+/* ---- board ---- */
+
+.board {
+  width: var(--board);
+  height: var(--board);
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  border: 2px solid var(--line-strong);
+  background: var(--cell-bg);
+  font-size: calc(var(--board) / 15);
+}
+
+.cell {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--cell-bg);
+  color: var(--ink);
+  cursor: pointer;
+}
+/* box borders */
+.cell[data-c="2"], .cell[data-c="5"] { border-right: 2px solid var(--line-strong); }
+.cell[data-r="2"], .cell[data-r="5"] { border-bottom: 2px solid var(--line-strong); }
+.cell[data-c="8"] { border-right: 0; }
+.cell[data-r="8"] { border-bottom: 0; }
+
+/* highlight layers: later rules win, so selection is the strongest */
+.cell.peer { background: var(--peer-bg); }
+.cell.same { background: var(--same-bg); }
+.cell.conflict { background: var(--conflict-bg); }
+.cell.sel { background: var(--sel-bg); }
+
+.cell:focus-visible { outline-offset: -3px; }
+
+.digit { line-height: 1; }
+.cell[data-state="given"] .digit { font-weight: 700; color: var(--ink); }
+.cell[data-state="locked"] .digit { font-weight: 400; color: var(--player); }
+/* wrong digits: red, and not by colour alone (bold + underline) */
+.cell[data-state="wrong"] .digit { font-weight: 700; color: var(--wrong); text-decoration: underline; text-underline-offset: .12em; }
+
+.notes {
+  position: absolute;
+  inset: 6%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  font-size: calc(var(--board) / 42);
+  line-height: 1;
+  color: var(--muted);
+  pointer-events: none;
+}
+.notes span { display: flex; align-items: center; justify-content: center; }
+.cell:not([data-state="empty"]) .notes { display: none; }
+
+/* ---- landscape (iPad, desktop): board left, panel right ---- */
+
+@media (orientation: landscape) and (min-width: 700px) {
+  .app {
+    --board: min(100dvh - 2 * 12px - env(safe-area-inset-top) - env(safe-area-inset-bottom),
+                 100vw - 2 * var(--gutter) - 300px - 16px - env(safe-area-inset-left) - env(safe-area-inset-right),
+                 760px);
+    width: auto;
+    min-height: 100dvh;
+    padding: calc(env(safe-area-inset-top) + 12px) calc(env(safe-area-inset-right) + var(--gutter)) calc(env(safe-area-inset-bottom) + 12px) calc(env(safe-area-inset-left) + var(--gutter));
+    justify-content: center;
+    align-content: center;
+    grid-template-columns: var(--board) minmax(260px, 340px);
+    grid-template-areas:
+      "board title"
+      "board status"
+      "board hint"
+      "board pad"
+      "board newgame";
+    grid-template-rows: auto auto auto auto auto;
+    column-gap: 16px;
+  }
+  .board { align-self: center; }
+  .title { align-self: end; }
+  #new-game { width: 100%; align-self: start; min-height: 52px; }
+  .status { grid-template-columns: 1fr 1fr; }
+  .mistakes { grid-column: 1 / -1; order: -1; }
+  .numpad { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .num { min-height: 72px; font-size: 34px; }
+}
+
+/* short landscape screens (phones): number row instead of the 3x3 pad */
+@media (orientation: landscape) and (min-width: 700px) and (max-height: 699px) {
+  .numpad { grid-template-columns: repeat(9, 1fr); gap: 4px; }
+  .num { min-height: 44px; font-size: 22px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cell, .num, .btn { transition: background-color .12s; }
+}

@@ -138,19 +138,19 @@ Gate → commit `Sudoku: phase 4 – game model and highlighting`.
 
 Goal: the static look from PRD 3.1, 3.3, 3.6 with selection and highlighting wired to the model.
 
-- [ ] `view.js`: render header (title, **New Game**), status row (Level ▾, Mistakes n/3, Colours ▾), board (81 cells, thick box borders, ARIA roles/labels), Hint button, number row (portrait) / 3×3 pad (landscape)
-- [ ] `base.css`: portrait layout from `portrait-layout-6inch.jpg`; landscape side-panel layout; board sized by `min(width, dvh − chrome)`; safe-area insets; `touch-action: manipulation`, no text selection; touch targets ≥ 44 pt
-- [ ] `themes.css`: Black & White (default), Classic Blue, Sepia, Dark, Forest as CSS variable sets, including the highlight layers, locked digit, wrong digit and conflict red; `theme-color` meta follows the scheme
-- [ ] Tap on a cell selects it; highlight classes from `highlight.js` applied; given/locked/wrong/note rendering (notes as a 3×3 mini grid inside the cell)
-- [ ] Temporary dev entry in `main.js`: starts a game from a fixed fixture puzzle (replaced by the real flow in phase 7)
+- [x] `view.js`: render header (title, **New Game**), status row (Level ▾, Mistakes n/3, Colours ▾), board (81 cells, thick box borders, ARIA roles/labels), Hint button, number row (portrait) / 3×3 pad (landscape)
+- [x] `base.css`: portrait layout from `portrait-layout-6inch.jpg`; landscape side-panel layout; board sized by `min(width, dvh − chrome)`; safe-area insets; `touch-action: manipulation`, no text selection; touch targets ≥ 44 pt
+- [x] `themes.css`: Black & White (default), Classic Blue, Sepia, Dark, Forest as CSS variable sets, including the highlight layers, locked digit, wrong digit and conflict red; `theme-color` meta follows the scheme
+- [x] Tap on a cell selects it; highlight classes from `highlight.js` applied; given/locked/wrong/note rendering (notes as a 3×3 mini grid inside the cell)
+- [x] Temporary dev entry in `main.js`: starts a game from a fixed fixture puzzle (replaced by the real flow in phase 7)
 
 Tests:
-- [ ] Unit: view-model helpers (e.g. mapping state → per-cell class list/aria label) if split out of the DOM code
-- [ ] e2e (all four projects): no horizontal or vertical page scroll; board is square and fits the viewport; number row visible on iPhone, 3×3 pad on iPad landscape; all touch targets ≥ 44 px
-- [ ] e2e: tap an empty cell → its row, column and box have the highlight class and nothing else does; tap a filled cell → identical digits + peers highlighted
-- [ ] e2e: switching colour scheme (via dropdown) changes computed background/colours; B/W is the default; contrast check of digit vs. background ≥ 4.5:1 for every scheme (computed in the page)
-- [ ] e2e: visual regression screenshots of iPhone portrait and iPad landscape for the B/W scheme (stored baselines, compared with a small tolerance)
-- [ ] e2e: earlier tests pass
+- [x] Unit: view-model helpers (e.g. mapping state → per-cell class list/aria label) if split out of the DOM code
+- [x] e2e (all four projects): no horizontal or vertical page scroll; board is square and fits the viewport; number row visible on iPhone, 3×3 pad on iPad landscape; all touch targets ≥ 44 px  (delivered: buttons and selects ≥ 44 px; number buttons ≥ 44 px high and ≥ 36 px wide, as in PRD 3.1; board cells are not touch-target checked)
+- [x] e2e: tap an empty cell → its row, column and box have the highlight class and nothing else does; tap a filled cell → identical digits + peers highlighted
+- [x] e2e: switching colour scheme (via dropdown) changes computed background/colours; B/W is the default; contrast check of digit vs. background ≥ 4.5:1 for every scheme (computed in the page)
+- [x] e2e: visual regression screenshots of the B/W layout, one baseline per device project (iPhone, iPad portrait, iPad landscape, desktop), compared with a 2 % tolerance (baselines are Windows-rendered: `*-win32.png`)
+- [x] e2e: earlier tests pass
 
 Gate → commit `Sudoku: phase 5 – board UI, layouts and colour schemes`.
 
