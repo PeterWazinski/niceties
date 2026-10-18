@@ -109,28 +109,28 @@ Gate → commit `Sudoku: phase 3 – all levels, worker and pool`.
 
 Goal: all game rules of PRD 3.2–3.4 without a UI.
 
-- [ ] `game.js`: `newGame(puzzle)`, state shape of PRD 7.2 (`givens`, `solution`, `entries`, `notes`, `mistakes`, `level`, `selected`, `dialogOpen`, `solved`)
-- [ ] `enterDigit(state, cell, digit)`: correct → locked and that digit's note removed from every cell in its row, column and box (the same applies to a digit revealed by `hint`); a wrong digit removes no notes; wrong → `mistakes++`, digit kept as wrong; same wrong digit again → no-op; locked/given cells and "no selection" → no-op; returns an event (`correct` | `wrong` | `ignored` | `gameOver` | `solved`)
-- [ ] `toggleNote(state, cell, digit)`: only in empty cells; note on → off, off → on; **no validation against peers** – a note is allowed even if the digit already stands in the same row, column or box
-- [ ] `hint(state)`: the three situations of PRD 3.4 (wrong digit → empty it, selected empty cell → reveal, otherwise next logical cell via `techniques.js`); after game over → counter 2/3 and dialog closed; returns what happened (cell, kind) so the view can animate it
-- [ ] Game over at 3 mistakes (`dialogOpen`), win detection
-- [ ] `highlight.js`: for a selection compute `sel`, `same` (identical digits), `peer` (row/column/box), `conflict` (rule duplicates), `wrong` sets (PRD 3.3)
-- [ ] State is plain JSON: `serialize`/`deserialize` with validation (reject malformed/tampered data)
-- [ ] Digit completion: `remaining(state, digit)` for greying out the number row
+- [x] `game.js`: `newGame(puzzle)`, state shape of PRD 7.2 (`givens`, `solution`, `entries`, `notes`, `mistakes`, `level`, `selected`, `dialogOpen`, `solved`)
+- [x] `enterDigit(state, cell, digit)`: correct → locked and that digit's note removed from every cell in its row, column and box (the same applies to a digit revealed by `hint`); a wrong digit removes no notes; wrong → `mistakes++`, digit kept as wrong; same wrong digit again → no-op; locked/given cells and "no selection" → no-op; returns an event (`correct` | `wrong` | `ignored` | `gameOver` | `solved`)
+- [x] `toggleNote(state, cell, digit)`: only in empty cells; note on → off, off → on; **no validation against peers** – a note is allowed even if the digit already stands in the same row, column or box
+- [x] `hint(state)`: the three situations of PRD 3.4 (wrong digit → empty it, selected empty cell → reveal, otherwise next logical cell via `techniques.js`); after game over → counter 2/3 and dialog closed; returns what happened (cell, kind) so the view can animate it
+- [x] Game over at 3 mistakes (`dialogOpen`), win detection
+- [x] `highlight.js`: for a selection compute `sel`, `same` (identical digits), `peer` (row/column/box), `conflict` (rule duplicates), `wrong` sets (PRD 3.3)
+- [x] State is plain JSON: `serialize`/`deserialize` with validation (reject malformed/tampered data)
+- [x] Digit completion: `remaining(state, digit)` for greying out the number row
 
 Tests (unit):
-- [ ] Correct digit locks; later input to that cell and notes in it are ignored
-- [ ] Wrong digit increments mistakes once, stays red, can be overwritten by right/other wrong digit, same wrong digit twice counts once
-- [ ] Notes: long-press toggle on → off → on; blocked in filled cells (right or wrong); replaced by an entered digit
-- [ ] Notes: a note can be set although the same digit is already in the row, column or box (no peer validation)
-- [ ] Notes: a correct digit (entered or via Hint) removes its note from all cells of the row, column and box, and leaves other digits' notes alone; a wrong digit removes no notes
-- [ ] Third mistake → game over; New Game path (new state) works; Hint after game over → 2/3, wrong cell emptied, next wrong digit → game over again
-- [ ] Hint matrix: wrong digit present / selected empty cell / nothing selected / several wrong digits (selected first, else most recent); hint never changes the mistake counter in normal play
-- [ ] Win detection on the last correct digit
-- [ ] Highlight sets for empty cell, filled cell, conflicts (visible duplicates) and wrong-but-not-conflicting digits
-- [ ] Serialize → deserialize round trip is identical; garbage input is rejected
-- [ ] Property test: random legal play sequences never violate the invariants (locked cells never change, mistakes ≤ 3 until reset)
-- [ ] e2e: earlier tests pass
+- [x] Correct digit locks; later input to that cell and notes in it are ignored
+- [x] Wrong digit increments mistakes once, stays red, can be overwritten by right/other wrong digit, same wrong digit twice counts once
+- [x] Notes: long-press toggle on → off → on; blocked in filled cells (right or wrong); replaced by an entered digit
+- [x] Notes: a note can be set although the same digit is already in the row, column or box (no peer validation)
+- [x] Notes: a correct digit (entered or via Hint) removes its note from all cells of the row, column and box, and leaves other digits' notes alone; a wrong digit removes no notes
+- [x] Third mistake → game over; New Game path (new state) works; Hint after game over → 2/3, wrong cell emptied, next wrong digit → game over again
+- [x] Hint matrix: wrong digit present / selected empty cell / nothing selected / several wrong digits (selected first, else most recent); hint never changes the mistake counter in normal play
+- [x] Win detection on the last correct digit
+- [x] Highlight sets for empty cell, filled cell, conflicts (visible duplicates) and wrong-but-not-conflicting digits
+- [x] Serialize → deserialize round trip is identical; garbage input is rejected
+- [x] Property test: random legal play sequences never violate the invariants (locked cells never change, mistakes ≤ 3 until reset)
+- [x] e2e: earlier tests pass
 
 Gate → commit `Sudoku: phase 4 – game model and highlighting`.
 
