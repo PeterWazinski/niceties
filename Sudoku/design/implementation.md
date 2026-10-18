@@ -51,18 +51,18 @@ Gate → commit `Sudoku: phase 0 – scaffold and test harness`.
 
 Goal: the algorithmic foundation of PRD 5.
 
-- [ ] `rng.js`: seeded generator (mulberry32), `int(n)`, `shuffle(array)`
-- [ ] `solver.js`: bitmask backtracking, "fewest candidates first"; `solve(grid)`, `countSolutions(grid, limit)` (stops at 2), `isValidGrid`
-- [ ] `symmetry.js`: the symmetry types of PRD 5.3 (180°, 90°, h/v mirror, diagonal, anti-diagonal, both diagonals, both axes) → `orbits(type)` as lists of cell indices; each orbit set partitions the 81 cells
-- [ ] `config.js`: symmetry list, board constants (peers, rows/cols/boxes lookup tables, shared helper module e.g. `grid.js`)
+- [x] `rng.js`: seeded generator (mulberry32), `int(n)`, `shuffle(array)`
+- [x] `solver.js`: bitmask backtracking, "fewest candidates first"; `solve(grid)`, `countSolutions(grid, limit)` (stops at 2), `isValidGrid`
+- [x] `symmetry.js`: the symmetry types of PRD 5.3 (180°, 90°, h/v mirror, diagonal, anti-diagonal, both diagonals, both axes) → `orbits(type)` as lists of cell indices; each orbit set partitions the 81 cells
+- [x] `config.js`: symmetry list, board constants (peers, rows/cols/boxes lookup tables, shared helper module e.g. `grid.js`)
 
 Tests (unit):
-- [ ] Solver solves known easy/hard/“hardest” sample puzzles correctly
-- [ ] `countSolutions` returns 0 for contradictory, 1 for unique, 2 (capped) for an empty/ambiguous grid
-- [ ] Solver speed guard: 100 known puzzles solved under a generous total time (catches accidental exponential behaviour)
-- [ ] Symmetry: orbits partition all cells, and applying a symmetry twice returns to the start, for every type
-- [ ] RNG: same seed → same sequence; shuffle is a permutation
-- [ ] e2e: smoke tests of phase 0 still pass
+- [x] Solver solves known easy/hard/“hardest” sample puzzles correctly
+- [x] `countSolutions` returns 0 for contradictory, 1 for unique, 2 (capped) for an empty/ambiguous grid
+- [x] Solver speed guard: 100 known puzzles solved under a generous total time (catches accidental exponential behaviour)
+- [x] Symmetry: orbits partition all cells, and applying a symmetry twice returns to the start, for every type
+- [x] RNG: same seed → same sequence; shuffle is a permutation
+- [x] e2e: smoke tests of phase 0 still pass
 
 Gate → commit `Sudoku: phase 1 – solver, rng, symmetry`.
 

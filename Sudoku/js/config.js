@@ -14,3 +14,8 @@ export const LEVEL_CONFIG = {
   expert: { minClues: 30, maxClues: 34 },
   master: { minClues: 24, maxClues: 28 }
 };
+
+// Symmetry types for the givens (PRD 5.3). Maps live in symmetry.js.
+export const SYMMETRY_TYPES = [
+  "rot180", "rot90", "mirrorH", "mirrorV", "diagonal", "antiDiagonal", "bothDiagonals", "bothAxes"
+];
