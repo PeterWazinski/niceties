@@ -19,3 +19,5 @@ export const LEVEL_CONFIG = {
 export const SYMMETRY_TYPES = [
   "rot180", "rot90", "mirrorH", "mirrorV", "diagonal", "antiDiagonal", "bothDiagonals", "bothAxes"
 ];
+
+export const CELLS_PER_BOARD = 81;

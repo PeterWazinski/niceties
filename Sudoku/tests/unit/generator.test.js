@@ -72,9 +72,8 @@ test("dig removes whole orbits, keeps uniqueness and respects the clue bounds", 
   }
 });
 
-test("generate rejects unknown levels and not yet supported levels", () => {
-  assert.throws(() => generate("nope", createRng(1)));
-  assert.throws(() => generate("master", createRng(1)), /not supported yet/);
+test("generate rejects unknown levels", () => {
+  assert.throws(() => generate("nope", createRng(1)), /unknown level/);
 });
 
 test("grader: the classic easy puzzle is singles-only", () => {

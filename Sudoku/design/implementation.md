@@ -88,20 +88,20 @@ Gate → commit `Sudoku: phase 2 – generator and grading core (Beginner)`.
 
 Goal: all three levels, generation off the main thread, instant New Game (PRD 4, 5.3, 5.4).
 
-- [ ] `techniques.js`, second part: naked/hidden pairs and triples, pointing/claiming pairs (Expert); X-Wing, Swordfish, XY-Wing (Master); each technique reports its name and the cells it touched (reused for hints)
-- [ ] Level config: Expert 30–34 clues (needs ≥ one Expert technique, nothing harder than Expert), Master 24–28 (needs ≥ one Master technique)
-- [ ] Generator: per-level retry strategy (new dig order → new grid), symmetry selection (random among all types for Beginner/Expert; Master falls back to a weaker symmetry after N failed tries), a hard attempt limit with graceful fallback so generation always terminates
-- [ ] `generator.worker.js` (module worker) + main-thread fallback if the worker cannot be created
-- [ ] `pool.js`: one pre-generated puzzle per level, stored under `sudoku.pool` in localStorage, refilled in the background; `take(level)` returns instantly if the pool has one, else generates
+- [x] `techniques.js`, second part: naked/hidden pairs and triples, pointing/claiming pairs (Expert); X-Wing, Swordfish, XY-Wing (Master); each technique reports its name and the cells it touched (reused for hints)
+- [x] Level config: Expert 30–34 clues (needs ≥ one Expert technique, nothing harder than Expert), Master 24–28 (needs ≥ one Master technique)
+- [x] Generator: per-level retry strategy (new dig order → new grid), symmetry selection (random among all types for Beginner/Expert; Master falls back to a weaker symmetry after N failed tries), a hard attempt limit with graceful fallback so generation always terminates
+- [x] `generator.worker.js` (module worker) + main-thread fallback if the worker cannot be created
+- [x] `pool.js`: one pre-generated puzzle per level, stored under `sudoku.pool` in localStorage, refilled in the background; `take(level)` returns instantly if the pool has one, else generates
 
 Tests (unit):
-- [ ] For each level, 50 seeded puzzles: unique, clue range, symmetry holds for the reported symmetry, graded level matches
-- [ ] Each technique has a dedicated fixture puzzle/position proving that it fires and the expected cells are found
-- [ ] All symmetry types produce valid unique puzzles at least for Beginner
-- [ ] Master generation terminates within the attempt limit for 20 seeds
-- [ ] Pool logic (with an in-memory storage stub): `take` empties the slot, refill restores it, corrupt storage is ignored
-- [ ] e2e: a test page/hook loads the worker, generates one puzzle per level, verifies uniqueness in the page and measures that the main thread stays responsive (no long task above a threshold); fallback path works when `Worker` is disabled
-- [ ] e2e: earlier tests pass
+- [x] For each level, 50 seeded puzzles: unique, clue range, symmetry holds for the reported symmetry, graded level matches
+- [x] Each technique has a dedicated fixture puzzle/position proving that it fires and the expected cells are found
+- [x] All symmetry types produce valid unique puzzles at least for Beginner
+- [x] Master generation terminates within the attempt limit for 20 seeds
+- [x] Pool logic (with an in-memory storage stub): `take` empties the slot, refill restores it, corrupt storage is ignored
+- [x] e2e: a test page/hook loads the worker, generates one puzzle per level, verifies uniqueness in the page and measures that the main thread stays responsive (no long task above a threshold); fallback path works when `Worker` is disabled
+- [x] e2e: earlier tests pass
 
 Gate → commit `Sudoku: phase 3 – all levels, worker and pool`.
 

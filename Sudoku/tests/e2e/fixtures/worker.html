@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>worker fixture</title></head>
+<body>
+<script type="module">
+  import { createGeneratorClient } from "../../../js/generator-client.js";
+  import { countSolutions } from "../../../js/solver.js";
+  import { gradePuzzle } from "../../../js/techniques.js";
+
+  const client = createGeneratorClient();
+  window.fixture = {
+    usesWorker: () => client.usesWorker,
+    // Generates puzzles and reports what the page can verify itself.
+    async generate(level, seed) {
+      const p = await client.generate(level, { seed, options: { symmetry: "random" } });
+      return {
+        level: p.level, clues: p.clues, symmetry: p.symmetry, fallback: !!p.fallback,
+        unique: countSolutions(p.givens, 2) === 1,
+        graded: gradePuzzle(p.givens).hardest
+      };
+    },
+    // Longest gap between two 10 ms timer ticks while `count` Master puzzles are generated.
+    async longestGap(count) {
+      let last = performance.now(), worst = 0;
+      const timer = setInterval(() => {
+        const now = performance.now();
+        worst = Math.max(worst, now - last);
+        last = now;
+      }, 10);
+      for (let i = 0; i < count; i++) await client.generate("master", { seed: 100 + i });
+      clearInterval(timer);
+      return worst;
+    }
+  };
+  window.fixtureReady = true;
+</script>
+</body>
+</html>
