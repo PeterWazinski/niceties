@@ -145,7 +145,7 @@ Goal: the static look from PRD 3.1, 3.3, 3.6 with selection and highlighting wir
 - [x] Temporary dev entry in `main.js`: starts a game from a fixed fixture puzzle (replaced by the real flow in phase 7)
 
 Tests:
-- [x] Unit: view-model helpers (e.g. mapping state → per-cell class list/aria label) if split out of the DOM code
+- [x] Unit: view-model helpers – not applicable: nothing was split out of `view.js`; its logic is covered by the browser tests and by the unit tests of `highlight.js` (phase 4)
 - [x] e2e (all four projects): no horizontal or vertical page scroll; board is square and fits the viewport; number row visible on iPhone, 3×3 pad on iPad landscape; all touch targets ≥ 44 px  (delivered: buttons and selects ≥ 44 px; number buttons ≥ 44 px high and ≥ 36 px wide, as in PRD 3.1; board cells are not touch-target checked)
 - [x] e2e: tap an empty cell → its row, column and box have the highlight class and nothing else does; tap a filled cell → identical digits + peers highlighted
 - [x] e2e: switching colour scheme (via dropdown) changes computed background/colours; B/W is the default; contrast check of digit vs. background ≥ 4.5:1 for every scheme (computed in the page)
