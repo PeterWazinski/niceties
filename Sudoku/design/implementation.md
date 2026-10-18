@@ -70,17 +70,17 @@ Gate → commit `Sudoku: phase 1 – solver, rng, symmetry`.
 
 Goal: unique, symmetric puzzles, graded by a human-technique solver (PRD 5.2).
 
-- [ ] `generator.js`: random full grid (randomised backtracking), symmetric dig (remove orbits, keep uniqueness), returns `{ givens, solution, level, symmetry, clues }`
-- [ ] `techniques.js`, first part: naked single, hidden single; `gradePuzzle(givens)` → `{ solved, hardest, steps }` using techniques in ascending order
-- [ ] Level config in `config.js`: Beginner 38–42 clues, hardest = singles (PRD 4)
-- [ ] `generate(level, rng, options)` for Beginner with retry loop; symmetry 180° by default
+- [x] `generator.js`: random full grid (randomised backtracking), symmetric dig (remove orbits, keep uniqueness), returns `{ givens, solution, level, symmetry, clues }`
+- [x] `techniques.js`, first part: naked single, hidden single; `gradePuzzle(givens)` → `{ solved, hardest, steps }` using techniques in ascending order
+- [x] Level config in `config.js`: Beginner 38–42 clues, hardest = singles (PRD 4)
+- [x] `generate(level, rng, options)` for Beginner with retry loop; symmetry 180° by default
 
 Tests (unit):
-- [ ] 100 seeded Beginner puzzles: exactly one solution, clue count 38–42, 180° symmetric, `solution` is valid and consistent with the givens, graded as singles-only
-- [ ] Grader: known puzzles requiring pairs/X-wing are *not* graded as singles-only
-- [ ] Same seed → identical puzzle
-- [ ] Beginner generation time guard (average per puzzle far below the PRD target)
-- [ ] e2e: earlier smoke tests pass
+- [x] 100 seeded Beginner puzzles: exactly one solution, clue count 38–42, 180° symmetric, `solution` is valid and consistent with the givens, graded as singles-only
+- [x] Grader: known puzzles requiring pairs/X-wing are *not* graded as singles-only
+- [x] Same seed → identical puzzle
+- [x] Beginner generation time guard (average per puzzle far below the PRD target)
+- [x] e2e: earlier smoke tests pass
 
 Gate → commit `Sudoku: phase 2 – generator and grading core (Beginner)`.
 
