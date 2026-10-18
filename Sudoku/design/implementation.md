@@ -10,12 +10,13 @@ Implements [PRD.md](PRD.md). Section numbers (e.g. "PRD 3.4") refer to it.
    - [ ] `npm run test:e2e` (headless Playwright, all projects: iPhone, iPad portrait, iPad landscape, desktop) passes: **all** tests.
    - [ ] No skipped, `.only`, or quarantined tests; no retries to hide flakiness (`retries: 0`). A flaky test is fixed, not rerun.
    - [ ] Tests written in the phase cover every work item of the phase; earlier tests still pass (no regression).
+   - [ ] **Update `implementation.md`:** tick every checkbox of this phase that has been delivered (work items and tests, only those really done and passing); an item that was not delivered stays unticked and gets a note why, or is moved to a later phase. The updated file is part of the phase commit.
    - [ ] **Commit all files** of the phase (`git add -A` in `Sudoku/`, check `git status` is clean afterwards) with the message `Sudoku: phase N – <title>`, ending with the attribution line configured for this repo.
    - Only when the gate is green may the next phase start. If a test fails, fix the cause in the same phase; do not commit red.
 3. **Stack** (PRD 7): plain HTML/CSS/ES modules, no framework, no build step. Dev dependency only: `@playwright/test`. Same conventions as `untangleMe` (`tests/unit/*.test.js`, `tests/e2e/`, `playwright.config.js`).
 4. **Pure logic first, DOM later:** everything in `js/` except `view.js`, `numpad.js`, `main.js`, `settings.js`, `store.js`, `pool.js` and the worker runs under node without a DOM.
 5. **Determinism:** all randomness goes through the seeded `rng.js`, so unit tests are reproducible.
-6. **Checkboxes** are ticked in this file as items complete; the file is part of each phase's commit.
+6. **Checkboxes** are ticked in this file at the end of each phase (see the gate); the file is part of each phase's commit, so the plan always shows the true project state.
 
 ## Test infrastructure (set up in phase 0, used by all)
 
