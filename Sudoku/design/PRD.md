@@ -95,8 +95,15 @@ The rules are strict, which is what makes Undo and Erase unnecessary:
      all cells in its row, column and box automatically (also when the digit was
      placed by Hint). A **wrong** digit never removes any notes.
    - **Wrong**: the mistake counter goes up (3.4) and the digit is shown in red.
-     The cell stays editable: tap another digit to overwrite it (free if it is
-     right, another mistake if it is wrong again). Tapping the very same wrong digit again does nothing.
+     **The game then stops until the error is removed:** no digit and no note can
+     be entered in any other cell (the cells can still be selected; a short
+     warning "Fix or clear the red digit first." is shown and the number buttons
+     are inactive). Only the red cell accepts input:
+     - tap the right digit: it is locked, the game goes on (free);
+     - tap another wrong digit: it replaces the red one (another mistake);
+     - tap **the same wrong digit again**, or press **Backspace / Delete**: the
+       cell is **cleared** (no mistake) and the game goes on;
+     - or use **Hint**, which empties it in slow motion (3.4).
 4. **Hold a number** (long press) → the digit is toggled as a **pencil note** in
    the selected empty cell (details in 3.2.1). Cells with a digit – right or wrong –
    take no notes. Entering a digit replaces the cell's notes. Holding a digit whose
@@ -108,10 +115,11 @@ The rules are strict, which is what makes Undo and Erase unnecessary:
 7. Filling the last cell ends the game: a short "Solved!" message with **New Game**.
    No score, no time.
 
-**Why no Undo and no Erase:** Undo would only matter for wrong digits, but a wrong
-digit can simply be overwritten, and the mistake stays counted anyway. Nothing
-correct can be taken back. Notes are toggled off by holding the same digit again.
-Hence neither button earns its place. (Hint can also clear a wrong digit, 3.4.)
+**Why no Undo and no Erase button:** Undo would only matter for wrong digits. A
+wrong digit is overwritten, cleared by tapping it again (or Backspace / Delete), or
+removed by Hint, and the mistake stays counted anyway. Nothing correct can be taken
+back. Notes are toggled off by holding the same digit again. Hence neither button
+earns its place.
 
 Locked digits are shown in the "player" colour, different from the givens
 (blue in the colour schemes, dark grey vs. black in B/W). Wrong digits are red.
@@ -172,7 +180,7 @@ highlight as well.
 
 | Situation | What Hint does |
 |---|---|
-| Board has a **wrong digit** | The wrong digit is **emptied in slow motion** (fades out over ~1.2 s). That cell is selected afterwards. If there are several wrong digits, the selected one goes first, else the most recent. |
+| Board has a **wrong digit** | The wrong digit is **emptied in slow motion** (fades out over ~1.2 s). That cell is selected afterwards. (There is at most one wrong digit, because it blocks all other input.) |
 | No wrong digit, a cell is **selected and empty** | The correct digit is **slowly faded in** there and locked. The cell is selected and gets a brief pulsing outline so the user notices where the hint landed. |
 | No wrong digit, **nothing useful selected** | The cell the logical solver would fill next is selected and filled the same way. |
 
@@ -440,7 +448,7 @@ Sudoku/
 1. No ads, no network requests after the first load, no timer, no score anywhere.
 2. Tap an empty cell → its row, column and box are highlighted.
 3. Tap a filled cell → all identical digits are highlighted.
-4. A wrong digit (≠ solution) is red and increments the mistake counter; a correct digit is locked and cannot be changed or noted; there are no Undo/Erase buttons.
+4. A wrong digit (≠ solution) is red and increments the mistake counter and **stops the game until it is changed, cleared (same digit again, Backspace / Delete) or removed by Hint**; a correct digit is locked and cannot be changed or noted; there are no Undo/Erase buttons.
 5. At 3 mistakes the dialog offers **New Game** or **Hint**; Hint empties the wrong cell in slow motion and continues at 2/3. The Hint button works at any time.
 5a. Tap enters a digit, long press toggles a note; both only in an editable cell that is selected.
 5b. Reloading the page restores the complete game, including notes, mistakes and an open game-over dialog.
@@ -464,6 +472,7 @@ in untangleMe), auto-notes, more symmetries picker, German UI, printing.
 | Hosting | GitHub Pages (6.1) |
 | What is a mistake | Any digit that differs from the final solution, even if not visibly wrong yet (3.4) |
 | Correct digits | Locked at once: cannot be changed, erased or annotated (3.2) |
+| Wrong digit (change request) | Blocks every other cell until it is changed or cleared; clear = tap the same digit again / Backspace / Delete / Hint; no Clear button (3.2) |
 | Undo / Erase buttons | Dropped – not needed (3.2) |
 | Notes | No mode button; **long press** on a number toggles a note (3.2.1) |
 | Hint | Button always active, unlimited; empties a wrong digit in slow motion, then reveals on the next press (3.4) |

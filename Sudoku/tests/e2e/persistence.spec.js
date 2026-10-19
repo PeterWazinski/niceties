@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { openGame, cell, values } from "./helpers.js";
-import { num, enter, hold, mistakes, dialog, puzzleFor, emptyIndices, wrongFor, useHint } from "./play-helpers.js";
+import { num, enter, hold, mistakes, dialog, puzzleFor, emptyIndices, wrongFor, useHint, threeMistakes } from "./play-helpers.js";
 
 test.use({ reducedMotion: "reduce" });
 
@@ -57,10 +57,10 @@ test("the game is saved after every move: reload shows the identical board, note
   await openGame(page);
   const empties = emptyIndices(await values(page));
   await enter(page, empties[0], P.solution[empties[0]]);
-  await enter(page, empties[1], wrongFor(P, empties[1]));
   await cell(page, empties[2]).click();
   await hold(page, 3);
   await hold(page, 7);
+  await enter(page, empties[1], wrongFor(P, empties[1])); // from now on only the wrong cell can be changed
   await expect(mistakes(page)).toHaveText("1/3");
   const before = await snapshot(page);
   await page.reload();
@@ -68,16 +68,17 @@ test("the game is saved after every move: reload shows the identical board, note
   expect(await snapshot(page)).toEqual(before);
   await expect(mistakes(page)).toHaveText("1/3");
   await expect(cell(page, empties[2])).toHaveAttribute("aria-label", /notes 3 7/);
-  await expect(cell(page, empties[2])).toHaveClass(/sel/);
-  // and the game goes on from there
-  await num(page, P.solution[empties[2]]).click();
-  await expect(cell(page, empties[2])).toHaveAttribute("data-state", "locked");
+  await expect(cell(page, empties[1])).toHaveClass(/sel/);
+  await expect(cell(page, empties[1])).toHaveAttribute("data-state", "wrong");
+  // and the game goes on from there: fix the wrong digit
+  await num(page, P.solution[empties[1]]).click();
+  await expect(cell(page, empties[1])).toHaveAttribute("data-state", "locked");
 });
 
 test("reloading while the three-mistakes dialog is open shows the dialog again", async ({ page }) => {
   await openGame(page);
   const empties = emptyIndices(await values(page));
-  for (let k = 0; k < 3; k++) await enter(page, empties[k], wrongFor(P, empties[k]));
+  await threeMistakes(page, P, await values(page));
   await expect(dialog(page)).toBeVisible();
   await page.reload();
   await expect(dialog(page)).toBeVisible();

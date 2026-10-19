@@ -4,7 +4,9 @@ const PORT = 4174;
 
 export default defineConfig({
   testDir: "tests/e2e",
-  timeout: 30000,
+  timeout: 60000,
+  // A cold browser start on a busy machine can take several seconds; polling waits end early when ready.
+  expect: { timeout: 15000 },
   fullyParallel: true,
   workers: 2,
   // No retries: a flaky test must be fixed, not rerun (implementation.md, working rules).

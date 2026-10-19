@@ -10,8 +10,10 @@ Specification: [design/PRD.md](design/PRD.md) · plan: [design/implementation.md
 ## Playing
 
 - **Select a cell**, then tap a number. A correct digit is locked and can no
-  longer be changed. A wrong digit turns red and counts as a mistake (`n/3`);
-  it stays editable, so you can overwrite it.
+  longer be changed. A wrong digit turns red and counts as a mistake (`n/3`),
+  and **the game stops until you have dealt with it**: tap the right digit, tap
+  another digit, or **clear** it by tapping the same digit again (or Backspace /
+  Delete on a keyboard). No other cell accepts a digit or a note meanwhile.
 - **Highlighting:** an empty cell lights up its row, column and box. A filled
   cell also lights up every identical digit. Digits that break a rule are red.
 - **Notes:** *hold* a number (about 0.35 s) to add or remove a pencil note in

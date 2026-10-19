@@ -1,7 +1,7 @@
 // Connects model and view: taps, long presses, keyboard, hint animation, dialogs,
 // new games (pool + worker), settings and the saved game.
 import { createView } from "./view.js";
-import { newGame, select, enterDigit, toggleNote, hint } from "./game.js";
+import { newGame, select, enterDigit, toggleNote, clearCell, hint, hasWrong, isWrong } from "./game.js";
 import { createGeneratorClient } from "./generator-client.js";
 import { createPool } from "./pool.js";
 import { createConfetti } from "./confetti.js";
@@ -13,6 +13,8 @@ import { LEVELS, MAX_MISTAKES, HINT_ANIM_REDUCED_MS, HINT_ANIM_MS, TIP_KEY } fro
 const safeStorage = { getItem: safeGet, setItem: safeSet };
 
 // Something to lose? An untouched board (or a finished game) needs no confirmation.
+const BLOCKED_TEXT = "Fix or clear the red digit first.";
+
 const hasProgress = (s) => !s.solved && (s.mistakes > 0 || s.entries.some(Boolean) || s.notes.some(Boolean));
 
 export function startApp(root) {
@@ -44,7 +46,7 @@ export function startApp(root) {
     onNote: (d) => act(() => {
       const r = toggleNote(state, state.selected, d);
       if (r === "on" && !tipShown) { tipShown = true; safeSet(TIP_KEY, "1"); }
-      say(r === "on" ? "note" : r === "off" ? "noteOff" : "ignored");
+      say(r === "on" ? "note" : r === "off" ? "noteOff" : r);
     }),
     onHint: () => doHint(),
     onNewGame: () => requestNewGame(state && state.level),
@@ -60,6 +62,8 @@ export function startApp(root) {
 
   function sync() {
     view.render(state);
+    // a wrong digit stops the game: remind the player while another cell is selected
+    view.setNotice(hasWrong(state) && !isWrong(state, state.selected) && !state.dialogOpen && !state.solved ? BLOCKED_TEXT : null);
     // confetti rain when the game has just been solved (not for a restored game: solved games are never saved)
     if (state.solved && !celebrated) { celebrated = true; confetti.fire(); }
     if (!state.solved) celebrated = false;
@@ -76,7 +80,9 @@ export function startApp(root) {
       gameOver: "Three mistakes. Start a new game or take a hint.",
       solved: "Solved!",
       note: "Note added.",
-      noteOff: "Note removed."
+      noteOff: "Note removed.",
+      cleared: "Digit cleared.",
+      blocked: BLOCKED_TEXT
     }[result];
     if (text) view.announce(typeof text === "function" ? text() : text);
   }
@@ -162,11 +168,12 @@ export function startApp(root) {
       e.preventDefault();
       const d = Number(m[1]);
       act(() => {
-        if (e.shiftKey) { say(toggleNote(state, state.selected, d) === "on" ? "note" : "noteOff"); }
+        if (e.shiftKey) { const r = toggleNote(state, state.selected, d); say(r === "on" ? "note" : r === "off" ? "noteOff" : r); }
         else say(enterDigit(state, state.selected, d));
       });
       return;
     }
+    if (e.key === "Backspace" || e.key === "Delete") { e.preventDefault(); act(() => say(clearCell(state, state.selected))); return; }
     if (e.key === "h" || e.key === "H") { e.preventDefault(); doHint(); return; }
     const move = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -9, ArrowDown: 9 }[e.key];
     if (move) {

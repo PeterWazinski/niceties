@@ -37,6 +37,7 @@ function template() {
       <button type="button" class="btn tool" id="hint">${BULB}<span>Hint</span></button>
       <div class="numpad" id="numpad" role="group" aria-label="Numbers">${nums}</div>
       <p class="tip" id="tip" hidden>Tip: hold a number to add a note</p>
+      <p class="notice" id="notice" hidden></p>
     </div>
     <canvas id="confetti" hidden aria-hidden="true"></canvas>
     <div class="sr-only" id="live" role="status" aria-live="polite"></div>
@@ -79,11 +80,11 @@ export function createView(root, handlers = {}) {
   const setAttr = (node, name, value) => { if (node.getAttribute(name) !== value) node.setAttribute(name, value); };
   const el = {
     app: $(".app"), board: $("#board"), numpad: $("#numpad"), mistakes: $("#mistakes"),
-    level: $("#level"), scheme: $("#scheme"), newGame: $("#new-game"), hint: $("#hint"), tip: $("#tip"),
+    level: $("#level"), scheme: $("#scheme"), newGame: $("#new-game"), hint: $("#hint"), tip: $("#tip"), notice: $("#notice"),
     confetti: $("#confetti"), live: $("#live"), overlay: $("#overlay"), dialogTitle: $("#dialog-title"), dialogText: $("#dialog-text"),
     dialogNew: $("#dialog-new"), dialogHint: $("#dialog-hint"), dialogCancel: $("#dialog-cancel"), preparing: $("#preparing")
   };
-  let dialogKind = null, focusBeforeDialog = null, announceFlip = false, lastClicked = null;
+  let dialogKind = null, focusBeforeDialog = null, announceFlip = false, lastClicked = null, tipWanted = false;
   // Safari does not focus a button when it is clicked: remember the last clicked control as a fallback.
   el.app.addEventListener("click", (e) => { lastClicked = e.target.closest("button, select"); }, true);
 
@@ -123,7 +124,13 @@ export function createView(root, handlers = {}) {
       if (meta) meta.setAttribute("content", scheme.themeColor);
     },
 
-    setTipVisible(visible) { el.tip.hidden = !visible; },
+    // the tip is hidden while the notice (a short warning in the same place) is showing
+    setTipVisible(visible) { tipWanted = visible; el.tip.hidden = !visible || !el.notice.hidden; },
+    setNotice(text) {
+      el.notice.hidden = !text;
+      setText(el.notice, text || "");
+      el.tip.hidden = !tipWanted || !el.notice.hidden;
+    },
     setPreparing(on) { el.preparing.hidden = !on; },
     setBusy(busy) { el.app.dataset.busy = busy ? "true" : "false"; },
 

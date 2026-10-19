@@ -24,6 +24,16 @@ export async function hold(page, d, ms = 600) {
   await page.mouse.up();
 }
 
+// Three different wrong digits in the first empty cell (a wrong digit blocks every other cell).
+export async function threeMistakes(page, p, vals) {
+  const empties = emptyIndices(vals);
+  const cellIndex = empties[0];
+  const wrongs = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((d) => d !== p.solution[cellIndex]).slice(0, 3);
+  await cell(page, cellIndex).click();
+  for (const d of wrongs) await num(page, d).click();
+  return empties;
+}
+
 export const mistakes = (page) => page.locator("#mistakes");
 export const dialog = (page) => page.locator("#overlay");
 // A digit that is wrong for the cell.

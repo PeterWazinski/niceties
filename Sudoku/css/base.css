@@ -116,6 +116,8 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); ou
 
 .tip { margin: 0; text-align: center; font-size: 14px; color: var(--muted); }
 .tip[hidden] { display: none; }
+.notice { grid-area: tip; margin: 0; text-align: center; font-size: 15px; font-weight: 600; color: var(--wrong); }
+.notice[hidden] { display: none; }
 
 
 /* ---- board ---- */

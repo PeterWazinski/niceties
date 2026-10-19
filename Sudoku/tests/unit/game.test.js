@@ -6,7 +6,7 @@ import { generate } from "../../js/generator.js";
 import { MAX_MISTAKES } from "../../js/config.js";
 import {
   newGame, select, enterDigit, toggleNote, hint, remaining, placed, serialize, deserialize,
-  cellValue, isLocked, isWrong, isEditable, hasNote
+  cellValue, isLocked, isWrong, isEditable, isBlocked, hasNote, clearCell
 } from "../../js/game.js";
 
 const puzzle = generate("beginner", createRng(12));
@@ -46,25 +46,78 @@ test("givens cannot be changed or annotated", () => {
   assert.equal(s.mistakes, 0);
 });
 
-test("a wrong digit counts once, stays, can be overwritten; the same wrong digit twice counts once", () => {
+test("a wrong digit counts once and stays; another wrong digit counts again; the right digit is free", () => {
   const s = fresh(), cell = emptyCells(s)[0];
   const w = wrongDigit(s, cell);
   assert.equal(enterDigit(s, cell, w), "wrong");
   assert.equal(s.mistakes, 1);
   assert.equal(isWrong(s, cell), true);
   assert.equal(isEditable(s, cell), true);
-  assert.equal(enterDigit(s, cell, w), "ignored");
-  assert.equal(s.mistakes, 1);
-  // overwrite with another wrong digit: another mistake
   const w2 = [1, 2, 3, 4, 5, 6, 7, 8, 9].find((d) => d !== w && d !== s.solution[cell]);
   assert.equal(enterDigit(s, cell, w2), "wrong");
   assert.equal(s.mistakes, 2);
   assert.deepEqual(s.wrongOrder, [cell]);
-  // overwrite with the right digit: free, and the cell is locked
   assert.equal(enterDigit(s, cell, s.solution[cell]), "correct");
-  assert.equal(s.mistakes, 2);
+  assert.equal(s.mistakes, 2, "the right digit costs nothing");
   assert.equal(isWrong(s, cell), false);
   assert.deepEqual(s.wrongOrder, []);
+});
+
+test("the same wrong digit again clears the cell, without a new mistake; clearCell does the same", () => {
+  const s = fresh(), [a, b] = emptyCells(s);
+  const w = wrongDigit(s, a);
+  enterDigit(s, a, w);
+  assert.equal(enterDigit(s, a, w), "cleared");
+  assert.equal(s.entries[a], 0);
+  assert.equal(s.mistakes, 1);
+  assert.deepEqual(s.wrongOrder, []);
+  // clearCell: explicit clear (Backspace / Delete)
+  enterDigit(s, a, w);
+  assert.equal(s.mistakes, 2);
+  assert.equal(clearCell(s, a), "cleared");
+  assert.equal(s.entries[a], 0);
+  assert.equal(s.mistakes, 2);
+  // only wrong digits can be cleared
+  assert.equal(clearCell(s, a), "ignored");                          // empty
+  assert.equal(clearCell(s, s.givens.findIndex((g) => g)), "ignored"); // given
+  enterDigit(s, b, s.solution[b]);
+  assert.equal(clearCell(s, b), "ignored");                          // locked
+  assert.equal(clearCell(s, -1), "ignored");
+  assert.equal(s.entries[b], s.solution[b]);
+});
+
+test("a wrong digit stops the game: nothing else can be entered or annotated until it is fixed or cleared", () => {
+  const s = fresh(), [a, b, c] = emptyCells(s);
+  enterDigit(s, a, wrongDigit(s, a));
+  assert.equal(enterDigit(s, b, s.solution[b]), "blocked");
+  assert.equal(enterDigit(s, b, wrongDigit(s, b)), "blocked");
+  assert.equal(toggleNote(s, b, 4), "blocked");
+  assert.equal(s.entries[b], 0);
+  assert.equal(s.notes[b], 0);
+  assert.equal(s.mistakes, 1, "a blocked entry is not a mistake");
+  assert.equal(isEditable(s, b), false);
+  assert.equal(isBlocked(s, b), true);
+  assert.equal(isEditable(s, a), true);
+  assert.equal(isBlocked(s, a), false);
+  // given cells are simply fixed, not blocked
+  const g = s.givens.findIndex((x) => x);
+  assert.equal(enterDigit(s, g, 1), "ignored");
+  // selecting other cells is still possible
+  select(s, c);
+  assert.equal(s.selected, c);
+  // fix it by overwriting with the right digit: the game goes on
+  assert.equal(enterDigit(s, a, s.solution[a]), "correct");
+  assert.equal(enterDigit(s, b, s.solution[b]), "correct");
+  assert.equal(toggleNote(s, c, 4), "on");
+});
+
+test("clearing the wrong digit also lets the game go on", () => {
+  const s = fresh(), [a, b] = emptyCells(s);
+  enterDigit(s, a, wrongDigit(s, a));
+  assert.equal(enterDigit(s, b, s.solution[b]), "blocked");
+  clearCell(s, a);
+  assert.equal(enterDigit(s, b, s.solution[b]), "correct");
+  assert.equal(enterDigit(s, a, s.solution[a]), "correct");
 });
 
 test("input without a valid cell or digit is ignored", () => {
@@ -130,46 +183,49 @@ test("a wrong digit removes no notes anywhere", () => {
   assert.equal(hasNote(s, peerCell, w), true);
 });
 
+// three different wrong digits in the same cell
+function threeMistakes(s, cell) {
+  const wrongs = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((d) => d !== s.solution[cell]).slice(0, 3);
+  return wrongs.map((d) => enterDigit(s, cell, d));
+}
+
 test("the third mistake opens the dialog; input is blocked until the hint or a new game", () => {
   const s = fresh(), cells = emptyCells(s);
-  assert.equal(enterDigit(s, cells[0], wrongDigit(s, cells[0])), "wrong");
-  assert.equal(enterDigit(s, cells[1], wrongDigit(s, cells[1])), "wrong");
-  assert.equal(enterDigit(s, cells[2], wrongDigit(s, cells[2])), "gameOver");
+  assert.deepEqual(threeMistakes(s, cells[0]), ["wrong", "wrong", "gameOver"]);
   assert.equal(s.mistakes, MAX_MISTAKES);
   assert.equal(s.dialogOpen, true);
+  assert.equal(enterDigit(s, cells[0], s.solution[cells[0]]), "ignored");
   assert.equal(enterDigit(s, cells[3], s.solution[cells[3]]), "ignored");
   assert.equal(toggleNote(s, cells[3], 1), "ignored");
+  assert.equal(clearCell(s, cells[0]), "ignored");
   assert.equal(isEditable(s, cells[3]), false);
 });
 
-test("hint after game over: counter 2/3, the most recent wrong digit is emptied, the next wrong digit ends the game again", () => {
+test("hint after game over: counter 2/3, the wrong digit is emptied, the next wrong digit ends the game again", () => {
   const s = fresh(), cells = emptyCells(s);
-  for (let k = 0; k < 3; k++) enterDigit(s, cells[k], wrongDigit(s, cells[k]));
+  threeMistakes(s, cells[0]);
+  const shown = s.entries[cells[0]];
   const r = hint(s);
-  assert.deepEqual(r, { kind: "cleared", cell: cells[2], digit: wrongDigit(s, cells[2]), wasGameOver: true });
+  assert.deepEqual(r, { kind: "cleared", cell: cells[0], digit: shown, wasGameOver: true });
   assert.equal(s.mistakes, 2);
   assert.equal(s.dialogOpen, false);
-  assert.equal(s.entries[cells[2]], 0);
-  assert.equal(s.selected, cells[2]);
-  assert.deepEqual(s.wrongOrder, [cells[0], cells[1]]);
-  assert.equal(enterDigit(s, cells[2], wrongDigit(s, cells[2])), "gameOver");
+  assert.equal(s.entries[cells[0]], 0);
+  assert.equal(s.selected, cells[0]);
+  assert.deepEqual(s.wrongOrder, []);
+  assert.equal(enterDigit(s, cells[0], wrongDigit(s, cells[0])), "gameOver");
   assert.equal(s.dialogOpen, true);
 });
 
-test("hint matrix: wrong digit selected first, else most recent; never changes mistakes in normal play", () => {
+test("hint clears the wrong digit whichever cell is selected; it never changes the mistakes in normal play", () => {
   const s = fresh(), cells = emptyCells(s);
   enterDigit(s, cells[0], wrongDigit(s, cells[0]));
-  enterDigit(s, cells[1], wrongDigit(s, cells[1]));
-  select(s, cells[0]);
-  let r = hint(s);
+  select(s, cells[5]);
+  const r = hint(s);
   assert.equal(r.kind, "cleared");
   assert.equal(r.cell, cells[0]);
   assert.equal(r.wasGameOver, false);
-  assert.equal(s.mistakes, 2);
-  select(s, cells[5]);
-  r = hint(s);
-  assert.equal(r.cell, cells[1]); // the remaining wrong cell, although another cell was selected
-  assert.equal(s.mistakes, 2);
+  assert.equal(s.mistakes, 1);
+  assert.equal(s.selected, cells[0], "the cleared cell is selected afterwards");
 });
 
 test("hint without wrong digits reveals the selected empty cell (and locks it)", () => {
@@ -251,7 +307,7 @@ test("serialize / deserialize round trip is identical, including notes, mistakes
   enterDigit(s, cells[0], s.solution[cells[0]]);
   toggleNote(s, cells[1], 3); toggleNote(s, cells[1], 8);
   select(s, cells[1]);
-  for (let k = 2; k < 5; k++) enterDigit(s, cells[k], wrongDigit(s, cells[k]));
+  threeMistakes(s, cells[2]);
   assert.equal(s.dialogOpen, true);
   const back = deserialize(serialize(s));
   assert.deepEqual(back, s);
@@ -291,13 +347,14 @@ test("property: random legal play never breaks the invariants", () => {
     const everCorrect = new Set();
     for (let step = 0; step < 400; step++) {
       const a = rng.int(10), cell = rng.int(CELLS), digit = 1 + rng.int(9);
-      if (a < 4) enterDigit(s, cell, digit);
+      if (a < 4) { if (rng.int(6) === 0) clearCell(s, cell); else enterDigit(s, cell, digit); }
       else if (a < 7) toggleNote(s, cell, digit);
       else if (a < 8) select(s, cell);
       else if (a < 9) { if (rng.int(4) === 0) hint(s); }
       else if (s.dialogOpen && rng.int(2) === 0) hint(s);
 
       assert.ok(s.mistakes >= 0 && s.mistakes <= MAX_MISTAKES);
+      assert.ok(s.wrongOrder.length <= 1, "a wrong digit blocks further entries");
       if (s.dialogOpen) assert.equal(s.mistakes, MAX_MISTAKES);
       for (let i = 0; i < CELLS; i++) {
         if (everCorrect.has(i)) assert.equal(s.entries[i], s.solution[i], "locked cell changed");

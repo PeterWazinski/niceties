@@ -64,6 +64,7 @@ test("confetti really draws pixels, at full resolution and over the whole viewpo
 });
 
 test("New Game stops the confetti at once; the next solved game rains again", async ({ page }) => {
+  test.setTimeout(150000); // two complete games are solved by tapping
   await openGame(page);
   await solve(page, P);
   await expect(confetti(page)).toBeVisible();

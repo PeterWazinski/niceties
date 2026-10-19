@@ -64,7 +64,7 @@ test("store: a saved game is restored exactly, with notes, mistakes and an open 
   const empties = s.givens.map((g, i) => (g ? -1 : i)).filter((i) => i >= 0);
   enterDigit(s, empties[0], s.solution[empties[0]]);
   toggleNote(s, empties[1], 4);
-  for (let k = 2; k < 5; k++) enterDigit(s, empties[k], (s.solution[empties[k]] % 9) + 1);
+  for (const d of [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((x) => x !== s.solution[empties[2]]).slice(0, 3)) enterDigit(s, empties[2], d);
   assert.equal(s.dialogOpen, true);
   saveGame(s);
   assert.ok(m.has(GAME_KEY));
