@@ -48,6 +48,7 @@ test("tapping the same wrong digit again clears the cell, and the game can go on
   await expect(cell(page, a)).toHaveAttribute("data-state", "wrong");
   await num(page, wrongFor(P, a)).click();
   await expect(cell(page, a)).toHaveAttribute("data-state", "empty");
+  await expect(page.locator("#notice")).toBeHidden(); // nothing to explain any more
   await expect(mistakes(page)).toHaveText("1/3"); // clearing costs nothing
   await enter(page, b, P.solution[b]);            // the game goes on
   await expect(cell(page, b)).toHaveAttribute("data-state", "locked");
@@ -71,7 +72,9 @@ test("Backspace and Delete clear a wrong digit", async ({ page }) => {
 test("a wrong digit stops the game until it is fixed: no digits, no notes, a warning", async ({ page }) => {
   const [a, b] = emptyIndices(await values(page));
   await enter(page, a, wrongFor(P, a));
-  await expect(page.locator("#notice")).toBeHidden(); // the wrong cell itself is selected
+  // the wrong cell itself is selected: the line says how to go on
+  await expect(page.locator("#notice")).toBeVisible();
+  await expect(page.locator("#notice")).toHaveText("Tap the same digit again to clear it.");
   await cell(page, b).click();
   await expect(page.locator("#notice")).toBeVisible();
   await expect(page.locator("#notice")).toHaveText("Fix or clear the red digit first.");
@@ -85,11 +88,23 @@ test("a wrong digit stops the game until it is fixed: no digits, no notes, a war
   await expect(page.locator("#live")).toContainText("Fix or clear the red digit first.");
   // back to the wrong cell: fix it with the right digit, the warning is gone, the game goes on
   await cell(page, a).click();
-  await expect(page.locator("#notice")).toBeHidden();
+  await expect(page.locator("#notice")).toHaveText("Tap the same digit again to clear it.");
   await num(page, P.solution[a]).click();
+  await expect(page.locator("#notice")).toBeHidden();
   await expect(cell(page, a)).toHaveAttribute("data-state", "locked");
   await enter(page, b, P.solution[b]);
   await expect(cell(page, b)).toHaveAttribute("data-state", "locked");
+});
+
+test("the clearing line replaces the tip while it is shown and the tip comes back afterwards", async ({ page }) => {
+  const [a] = emptyIndices(await values(page));
+  await expect(page.locator("#tip")).toBeVisible();
+  await enter(page, a, wrongFor(P, a));
+  await expect(page.locator("#notice")).toBeVisible();
+  await expect(page.locator("#tip")).toBeHidden();
+  await num(page, wrongFor(P, a)).click(); // clear it
+  await expect(page.locator("#notice")).toBeHidden();
+  await expect(page.locator("#tip")).toBeVisible();
 });
 
 test("changing the wrong digit to another wrong one is a new mistake and still blocks", async ({ page }) => {
@@ -220,7 +235,8 @@ test("moving the pointer off the button cancels the press", async ({ page }) => 
 
 test("the tip about holding a number goes away after the first note and stays away after a reload", async ({ page }) => {
   await expect(page.locator("#tip")).toBeVisible();
-  await enter(page, await firstEmpty(page), 1); // entering a digit does not dismiss it
+  const first = await firstEmpty(page);
+  await enter(page, first, P.solution[first]); // entering a digit does not dismiss it
   await expect(page.locator("#tip")).toBeVisible();
   const i = await firstEmpty(page, 3);
   await cell(page, i).click();

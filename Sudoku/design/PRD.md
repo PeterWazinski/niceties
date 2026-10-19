@@ -102,7 +102,9 @@ The rules are strict, which is what makes Undo and Erase unnecessary:
      - tap the right digit: it is locked, the game goes on (free);
      - tap another wrong digit: it replaces the red one (another mistake);
      - tap **the same wrong digit again**, or press **Backspace / Delete**: the
-       cell is **cleared** (no mistake) and the game goes on;
+       cell is **cleared** (no mistake) and the game goes on. While the red cell
+       is selected a line under the number buttons says "Tap the same digit again
+       to clear it." (no popup);
      - or use **Hint**, which empties it in slow motion (3.4).
 4. **Hold a number** (long press) → the digit is toggled as a **pencil note** in
    the selected empty cell (details in 3.2.1). Cells with a digit – right or wrong –

@@ -14,6 +14,7 @@ const safeStorage = { getItem: safeGet, setItem: safeSet };
 
 // Something to lose? An untouched board (or a finished game) needs no confirmation.
 const BLOCKED_TEXT = "Fix or clear the red digit first.";
+const CLEAR_TEXT = "Tap the same digit again to clear it.";
 
 const hasProgress = (s) => !s.solved && (s.mistakes > 0 || s.entries.some(Boolean) || s.notes.some(Boolean));
 
@@ -62,8 +63,9 @@ export function startApp(root) {
 
   function sync() {
     view.render(state);
-    // a wrong digit stops the game: remind the player while another cell is selected
-    view.setNotice(hasWrong(state) && !isWrong(state, state.selected) && !state.dialogOpen && !state.solved ? BLOCKED_TEXT : null);
+    // a wrong digit stops the game: tell the player how to go on (how to clear it, or why other cells do not react)
+    const stopped = hasWrong(state) && !state.dialogOpen && !state.solved;
+    view.setNotice(!stopped ? null : isWrong(state, state.selected) ? CLEAR_TEXT : BLOCKED_TEXT);
     // confetti rain when the game has just been solved (not for a restored game: solved games are never saved)
     if (state.solved && !celebrated) { celebrated = true; confetti.fire(); }
     if (!state.solved) celebrated = false;
