@@ -1,7 +1,7 @@
 // Service worker: makes the game load and play offline (PRD 6).
 // All app files are cached when the worker installs; afterwards they are served
 // cache-first and refreshed in the background. Bump VERSION with every release.
-const VERSION = "2";
+const VERSION = "3";
 // ?v=... only exists for the update test; a normal registration uses VERSION.
 const CACHE = "sudoku-v" + (new URL(self.location.href).searchParams.get("v") || VERSION);
 

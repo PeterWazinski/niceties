@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { openGame, cell, values, peersOf } from "./helpers.js";
-import { num, enter, hold, mistakes, puzzleFor, emptyIndices, wrongFor, threeMistakes } from "./play-helpers.js";
+import { num, enter, hold, mistakes, puzzleFor, emptyIndices, wrongFor, keepWrong, ackMistake, threeMistakes } from "./play-helpers.js";
 
 test.use({ reducedMotion: "reduce" });
 
@@ -27,7 +27,7 @@ async function busyBoard(page) {
   await enter(page, other, P.solution[other]);
   await cell(page, note).click();
   await hold(page, 4);
-  await enter(page, i, Number(v[peer])); // the wrong digit comes last: it blocks all other input
+  await keepWrong(page, i, Number(v[peer])); // the wrong digit comes last: it blocks all other input
   return { wrong: i, peer };
 }
 
@@ -46,7 +46,7 @@ test("accessibility scan (axe): a busy board in every colour scheme", async ({ p
   }
 });
 
-test("accessibility scan (axe): the three-mistakes dialog", async ({ page }) => {
+test("accessibility scan (axe): the lost-game dialog", async ({ page }) => {
   const empties = emptyIndices(await values(page));
   await page.selectOption("#scheme", "dark");
   await threeMistakes(page, P, await values(page));
@@ -96,8 +96,7 @@ test("screen reader messages: correct, wrong, note", async ({ page }) => {
   await expect(page.locator("#live")).toContainText("Note removed.");
   await enter(page, empties[1], wrongFor(P, empties[1]));
   await expect(page.locator("#live")).toContainText("Wrong digit. 1 of 3 mistakes.");
-  await page.keyboard.press("Backspace");
-  await expect(page.locator("#live")).toContainText("Digit cleared.");
+  await ackMistake(page);
   await expect(page.locator("#live")).toHaveAttribute("aria-live", "polite");
   await expect(mistakes(page)).toHaveAttribute("aria-live", "polite");
 });

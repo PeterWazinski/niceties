@@ -11,21 +11,18 @@ Specification: [design/PRD.md](design/PRD.md) · plan: [design/implementation.md
 
 - **Select a cell**, then tap a number. A correct digit is locked and can no
   longer be changed. A wrong digit turns red and counts as a mistake (`n/3`),
-  and **the game stops until you have dealt with it**: tap the right digit, tap
-  another digit, or **clear** it by tapping the same digit again (or Backspace /
-  Delete on a keyboard); a line under the number buttons reminds you. No other cell accepts a digit or a note meanwhile.
+  and a popup tells you so. After **OK** the wrong digit fades out slowly.
 - **Highlighting:** an empty cell lights up its row, column and box. A filled
   cell also lights up every identical digit. Digits that break a rule are red.
 - **Notes:** *hold* a number (about 0.35 s) to add or remove a pencil note in
   the selected empty cell. A note may be set even if the digit is already in the
   row, column or box. When you place a correct digit, its notes disappear from
   that row, column and box. The first time, a small tip explains this.
-- **Hint** is always available: if a wrong digit is on the board it is emptied
-  (in slow motion); otherwise the selected empty cell (or the next logical cell)
-  slowly shows its digit. After a hint on a wrong digit you may guess again or
-  press Hint once more to see the digit.
-- **Three mistakes:** a dialog offers *New Game* or *Hint*. Hint empties the
-  wrong cell and goes back to 2/3; the next wrong digit asks again.
+- **Hint** (at most four per game, shown as `Hint n/4`): the selected empty cell
+  (or the next logical cell) slowly shows its digit. After the fourth hint the
+  button does nothing.
+- **Three mistakes lose the game:** the board shakes, the screen fades to grey
+  and a popup offers *Play Again*.
 - **New Game** and the **Level** dropdown (Beginner, Expert, Master) ask before
   they abandon a game with progress. **Colours** switches the colour scheme
   (Black & White is the default).

@@ -8,12 +8,13 @@
 //                 or cleared before anything else can be entered
 //   notes[81]     pencil notes as 9-bit masks (bit d-1 = digit d), only in empty cells
 //   mistakes      wrong digits entered so far (never refunded)
+//   hints         hints used so far (at most MAX_HINTS)
 //   wrongOrder    cells that currently hold a wrong digit (at most one in a normal game)
 //   selected      selected cell or -1
-//   dialogOpen    the three-mistakes dialog is showing (game paused)
+//   lost          the third mistake was made: the game is over
 //   solved        every cell is correct
 import { CELLS, PEERS, UNITS } from "./grid.js";
-import { MAX_MISTAKES, LEVELS } from "./config.js";
+import { MAX_MISTAKES, MAX_HINTS, LEVELS } from "./config.js";
 import { candidates, nextStep, applyStep } from "./techniques.js";
 
 const bit = (d) => 1 << (d - 1);
@@ -25,10 +26,11 @@ export function newGame(puzzle) {
     entries: new Array(CELLS).fill(0),
     notes: new Array(CELLS).fill(0),
     mistakes: 0,
+    hints: 0,
     wrongOrder: [],
     level: puzzle.level,
     selected: -1,
-    dialogOpen: false,
+    lost: false,
     solved: false
   };
 }
@@ -44,9 +46,9 @@ export const isLocked = (s, i) => isGiven(s, i) || (s.entries[i] !== 0 && s.entr
 export const hasWrong = (s) => s.wrongOrder.length > 0;
 // The cell may take input: it is not locked, the game is not paused or over, and if a wrong
 // digit is on the board, this cell is that wrong cell.
-export const isEditable = (s, i) => !s.dialogOpen && !s.solved && !isLocked(s, i) && (!hasWrong(s) || isWrong(s, i));
+export const isEditable = (s, i) => !s.lost && !s.solved && !isLocked(s, i) && (!hasWrong(s) || isWrong(s, i));
 // An empty cell that would take input if it were not for a wrong digit elsewhere.
-export const isBlocked = (s, i) => !s.dialogOpen && !s.solved && !isLocked(s, i) && hasWrong(s) && !isWrong(s, i);
+export const isBlocked = (s, i) => !s.lost && !s.solved && !isLocked(s, i) && hasWrong(s) && !isWrong(s, i);
 export const hasNote = (s, i, d) => (s.notes[i] & bit(d)) !== 0;
 
 // How many copies of a digit are correctly placed (givens + locked entries).
@@ -86,7 +88,7 @@ function lock(s, cell, digit) {
 // Empties a cell that holds a wrong digit (no mistake is counted). Returns "cleared" | "ignored".
 export function clearCell(s, cell) {
   if (!Number.isInteger(cell) || cell < 0 || cell >= CELLS) return "ignored";
-  if (s.dialogOpen || s.solved || !isWrong(s, cell)) return "ignored";
+  if (s.lost || s.solved || !isWrong(s, cell)) return "ignored";
   s.entries[cell] = 0;
   dropWrong(s, cell);
   return "cleared";
@@ -110,7 +112,7 @@ export function enterDigit(s, cell, digit) {
   dropWrong(s, cell);
   s.wrongOrder.push(cell);
   s.mistakes++;
-  if (s.mistakes >= MAX_MISTAKES) { s.dialogOpen = true; return "gameOver"; }
+  if (s.mistakes >= MAX_MISTAKES) { s.lost = true; return "gameOver"; }
   return "wrong";
 }
 
@@ -120,7 +122,7 @@ export function enterDigit(s, cell, digit) {
 export function toggleNote(s, cell, digit) {
   if (!Number.isInteger(cell) || cell < 0 || cell >= CELLS) return "ignored";
   if (!Number.isInteger(digit) || digit < 1 || digit > 9) return "ignored";
-  if (s.dialogOpen || s.solved || cellValue(s, cell) !== 0) return "ignored";
+  if (s.lost || s.solved || cellValue(s, cell) !== 0) return "ignored";
   if (hasWrong(s)) return "blocked";
   s.notes[cell] ^= bit(digit);
   return hasNote(s, cell, digit) ? "on" : "off";
@@ -139,15 +141,14 @@ function logicalCell(s) {
   return -1;
 }
 
-// Hint (PRD 3.4). Returns { kind: "cleared" | "revealed" | "ignored", cell, digit, wasGameOver }.
+// Hint (PRD 3.4). Returns { kind: "cleared" | "revealed" | "ignored", cell, digit }.
+// At most MAX_HINTS per game; a lost or solved game takes none.
 //  - a wrong digit on the board: it is emptied (the selected one first, else the most recent)
 //    - there is normally only one, because a wrong digit blocks all other input
 //  - otherwise the selected empty cell, or the next logical cell, gets its correct digit
-// After the three-mistakes dialog the counter goes back to MAX_MISTAKES - 1.
 export function hint(s) {
-  if (s.solved) return { kind: "ignored", cell: -1, digit: 0, wasGameOver: false };
-  const wasGameOver = s.dialogOpen;
-  if (wasGameOver) { s.dialogOpen = false; s.mistakes = MAX_MISTAKES - 1; }
+  const ignored = { kind: "ignored", cell: -1, digit: 0 };
+  if (s.solved || s.lost || s.hints >= MAX_HINTS) return ignored;
 
   if (s.wrongOrder.length) {
     const cell = s.wrongOrder.includes(s.selected) ? s.selected : s.wrongOrder[s.wrongOrder.length - 1];
@@ -155,16 +156,18 @@ export function hint(s) {
     s.entries[cell] = 0;
     dropWrong(s, cell);
     s.selected = cell;
-    return { kind: "cleared", cell, digit, wasGameOver };
+    s.hints++;
+    return { kind: "cleared", cell, digit };
   }
 
   let cell = s.selected >= 0 && cellValue(s, s.selected) === 0 ? s.selected : logicalCell(s);
   if (cell < 0) cell = s.solution.findIndex((_, i) => cellValue(s, i) === 0);
-  if (cell < 0) return { kind: "ignored", cell: -1, digit: 0, wasGameOver };
+  if (cell < 0) return ignored;
   const digit = s.solution[cell];
   lock(s, cell, digit);
   s.selected = cell;
-  return { kind: "revealed", cell, digit, wasGameOver };
+  s.hints++;
+  return { kind: "revealed", cell, digit };
 }
 
 // ---- save / restore -------------------------------------------------------------
@@ -188,23 +191,27 @@ export function deserialize(text) {
   if (!LEVELS.includes(d.level)) return null;
   if (!Number.isInteger(d.mistakes) || d.mistakes < 0 || d.mistakes > MAX_MISTAKES) return null;
   if (!Number.isInteger(d.selected) || d.selected < -1 || d.selected >= CELLS) return null;
-  if (typeof d.dialogOpen !== "boolean" || typeof d.solved !== "boolean") return null;
+  // saves from before hints were limited have no "hints"; their dialogOpen is today's "lost"
+  const lost = d.lost ?? d.dialogOpen ?? false;
+  const hints = d.hints ?? 0;
+  if (typeof lost !== "boolean" || typeof d.solved !== "boolean") return null;
+  if (!Number.isInteger(hints) || hints < 0 || hints > MAX_HINTS) return null;
   for (let i = 0; i < CELLS; i++) {
     if (d.givens[i] && d.entries[i]) return null;               // entries only in non-given cells
     if ((d.givens[i] || d.entries[i]) && d.notes[i]) return null; // notes only in empty cells
   }
   const state = {
     givens: d.givens, solution: d.solution, entries: d.entries, notes: d.notes,
-    mistakes: d.mistakes, wrongOrder: d.wrongOrder, level: d.level,
-    selected: d.selected, dialogOpen: d.dialogOpen, solved: d.solved
+    mistakes: d.mistakes, hints, wrongOrder: d.wrongOrder, level: d.level,
+    selected: d.selected, lost, solved: d.solved
   };
   const wrong = [];
   for (let i = 0; i < CELLS; i++) if (isWrong(state, i)) wrong.push(i);
   const order = state.wrongOrder;
   if (!Array.isArray(order) || order.length !== wrong.length || !order.every((c) => wrong.includes(c)) ||
       new Set(order).size !== order.length) return null;
-  if (state.dialogOpen && state.mistakes !== MAX_MISTAKES) return null;
+  if (state.lost && state.mistakes !== MAX_MISTAKES) return null;
   if (state.solved !== allCorrect(state)) return null;
-  if (state.solved && state.dialogOpen) return null;
+  if (state.solved && state.lost) return null;
   return state;
 }

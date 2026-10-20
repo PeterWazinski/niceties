@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { CELLS, PEERS, ROW, COL, BOX } from "../../js/grid.js";
 import { createRng } from "../../js/rng.js";
 import { generate } from "../../js/generator.js";
-import { MAX_MISTAKES } from "../../js/config.js";
+import { MAX_MISTAKES, MAX_HINTS } from "../../js/config.js";
 import {
   newGame, select, enterDigit, toggleNote, hint, remaining, placed, serialize, deserialize,
   cellValue, isLocked, isWrong, isEditable, isBlocked, hasNote, clearCell
@@ -20,7 +20,7 @@ test("newGame copies the puzzle into a clean state", () => {
   assert.deepEqual(s.givens, puzzle.givens);
   assert.equal(s.mistakes, 0);
   assert.equal(s.selected, -1);
-  assert.equal(s.dialogOpen, false);
+  assert.equal(s.lost, false);
   assert.equal(s.solved, false);
   s.givens[0] = 99;
   assert.notEqual(puzzle.givens[0], 99, "state must not alias the puzzle");
@@ -189,11 +189,11 @@ function threeMistakes(s, cell) {
   return wrongs.map((d) => enterDigit(s, cell, d));
 }
 
-test("the third mistake opens the dialog; input is blocked until the hint or a new game", () => {
+test("the third mistake loses the game; all input and hints are refused", () => {
   const s = fresh(), cells = emptyCells(s);
   assert.deepEqual(threeMistakes(s, cells[0]), ["wrong", "wrong", "gameOver"]);
   assert.equal(s.mistakes, MAX_MISTAKES);
-  assert.equal(s.dialogOpen, true);
+  assert.equal(s.lost, true);
   assert.equal(enterDigit(s, cells[0], s.solution[cells[0]]), "ignored");
   assert.equal(enterDigit(s, cells[3], s.solution[cells[3]]), "ignored");
   assert.equal(toggleNote(s, cells[3], 1), "ignored");
@@ -201,19 +201,43 @@ test("the third mistake opens the dialog; input is blocked until the hint or a n
   assert.equal(isEditable(s, cells[3]), false);
 });
 
-test("hint after game over: counter 2/3, the wrong digit is emptied, the next wrong digit ends the game again", () => {
+test("a lost game takes no hint", () => {
   const s = fresh(), cells = emptyCells(s);
   threeMistakes(s, cells[0]);
-  const shown = s.entries[cells[0]];
-  const r = hint(s);
-  assert.deepEqual(r, { kind: "cleared", cell: cells[0], digit: shown, wasGameOver: true });
+  assert.equal(hint(s).kind, "ignored");
+  assert.equal(s.hints, 0);
+  assert.equal(s.lost, true);
+  assert.equal(s.mistakes, MAX_MISTAKES);
+});
+
+test("mistakes 1 and 2 leave the wrong digit until it is cleared; clearing is free", () => {
+  const s = fresh(), cell = emptyCells(s)[0];
+  assert.equal(enterDigit(s, cell, wrongDigit(s, cell)), "wrong");
+  assert.equal(s.lost, false);
+  assert.deepEqual(s.wrongOrder, [cell]);
+  assert.equal(clearCell(s, cell), "cleared");
+  assert.equal(s.mistakes, 1);
+  assert.equal(enterDigit(s, cell, wrongDigit(s, cell)), "wrong");
   assert.equal(s.mistakes, 2);
-  assert.equal(s.dialogOpen, false);
-  assert.equal(s.entries[cells[0]], 0);
-  assert.equal(s.selected, cells[0]);
-  assert.deepEqual(s.wrongOrder, []);
-  assert.equal(enterDigit(s, cells[0], wrongDigit(s, cells[0])), "gameOver");
-  assert.equal(s.dialogOpen, true);
+});
+
+test("hints are counted and limited to MAX_HINTS; further hints change nothing", () => {
+  const s = fresh();
+  for (let n = 1; n <= MAX_HINTS; n++) {
+    assert.equal(hint(s).kind, "revealed");
+    assert.equal(s.hints, n);
+  }
+  const before = JSON.stringify(s);
+  assert.equal(hint(s).kind, "ignored");
+  assert.equal(JSON.stringify(s), before);
+});
+
+test("a hint that empties a wrong digit also counts", () => {
+  const s = fresh(), cell = emptyCells(s)[0];
+  enterDigit(s, cell, wrongDigit(s, cell));
+  hint(s);
+  assert.equal(s.hints, 1);
+  assert.equal(s.mistakes, 1);
 });
 
 test("hint clears the wrong digit whichever cell is selected; it never changes the mistakes in normal play", () => {
@@ -223,7 +247,6 @@ test("hint clears the wrong digit whichever cell is selected; it never changes t
   const r = hint(s);
   assert.equal(r.kind, "cleared");
   assert.equal(r.cell, cells[0]);
-  assert.equal(r.wasGameOver, false);
   assert.equal(s.mistakes, 1);
   assert.equal(s.selected, cells[0], "the cleared cell is selected afterwards");
 });
@@ -232,7 +255,7 @@ test("hint without wrong digits reveals the selected empty cell (and locks it)",
   const s = fresh(), cell = emptyCells(s)[3];
   select(s, cell);
   const r = hint(s);
-  assert.deepEqual(r, { kind: "revealed", cell, digit: s.solution[cell], wasGameOver: false });
+  assert.deepEqual(r, { kind: "revealed", cell, digit: s.solution[cell] });
   assert.equal(isLocked(s, cell), true);
   assert.equal(s.mistakes, 0);
   assert.equal(s.selected, cell);
@@ -284,7 +307,7 @@ test("filling the last cell correctly solves the game; then input and hint are i
 
 test("hint can solve the game", () => {
   const s = fresh();
-  for (let n = 0; n < CELLS && !s.solved; n++) hint(s);
+  for (let n = 0; n < CELLS && !s.solved; n++) { hint(s); s.hints = 0; }
   assert.equal(s.solved, true);
   assert.equal(s.mistakes, 0);
 });
@@ -308,10 +331,10 @@ test("serialize / deserialize round trip is identical, including notes, mistakes
   toggleNote(s, cells[1], 3); toggleNote(s, cells[1], 8);
   select(s, cells[1]);
   threeMistakes(s, cells[2]);
-  assert.equal(s.dialogOpen, true);
+  assert.equal(s.lost, true);
   const back = deserialize(serialize(s));
   assert.deepEqual(back, s);
-  s.dialogOpen = false; s.mistakes = 1;
+  s.lost = false; s.mistakes = 1; s.hints = 2;
   assert.notEqual(deserialize(serialize(s)), null);
 });
 
@@ -331,7 +354,10 @@ test("deserialize rejects garbage and inconsistent data", () => {
   assert.equal(bad((d) => { d.mistakes = 4; }), null);
   assert.equal(bad((d) => { d.mistakes = -1; }), null);
   assert.equal(bad((d) => { d.selected = 81; }), null);
-  assert.equal(bad((d) => { d.dialogOpen = true; }), null, "dialog needs 3 mistakes");
+  assert.equal(bad((d) => { d.lost = true; }), null, "lost needs 3 mistakes");
+  assert.equal(bad((d) => { d.hints = MAX_HINTS + 1; }), null);
+  assert.equal(bad((d) => { d.hints = -1; }), null);
+  assert.equal(bad((d) => { d.lost = "yes"; }), null);
   assert.equal(bad((d) => { d.solved = true; }), null);
   assert.equal(bad((d) => { d.wrongOrder = []; }), null, "wrong digits must be tracked");
   assert.equal(bad((d) => { const g = d.givens.findIndex((x) => x); d.entries[g] = 3; }), null, "entry on a given");
@@ -351,11 +377,12 @@ test("property: random legal play never breaks the invariants", () => {
       else if (a < 7) toggleNote(s, cell, digit);
       else if (a < 8) select(s, cell);
       else if (a < 9) { if (rng.int(4) === 0) hint(s); }
-      else if (s.dialogOpen && rng.int(2) === 0) hint(s);
+      else if (s.lost) hint(s);
 
       assert.ok(s.mistakes >= 0 && s.mistakes <= MAX_MISTAKES);
       assert.ok(s.wrongOrder.length <= 1, "a wrong digit blocks further entries");
-      if (s.dialogOpen) assert.equal(s.mistakes, MAX_MISTAKES);
+      if (s.lost) assert.equal(s.mistakes, MAX_MISTAKES);
+      assert.ok(s.hints >= 0 && s.hints <= MAX_HINTS);
       for (let i = 0; i < CELLS; i++) {
         if (everCorrect.has(i)) assert.equal(s.entries[i], s.solution[i], "locked cell changed");
         if (s.entries[i] && s.entries[i] === s.solution[i]) everCorrect.add(i);
@@ -371,4 +398,14 @@ test("property: random legal play never breaks the invariants", () => {
 
 test("geometry sanity used by the rules: peers share a row, column or box", () => {
   for (const j of PEERS[40]) assert.ok(ROW[j] === 4 || COL[j] === 4 || BOX[j] === 4);
+});
+
+test("saves from before the hint limit still load (no hints; dialogOpen meant lost)", () => {
+  const s = fresh(), cells = emptyCells(s);
+  threeMistakes(s, cells[0]);
+  const d = JSON.parse(serialize(s));
+  delete d.hints; delete d.lost; d.dialogOpen = true;
+  const back = deserialize(JSON.stringify(d));
+  assert.equal(back.lost, true);
+  assert.equal(back.hints, 0);
 });

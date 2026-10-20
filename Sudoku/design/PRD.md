@@ -94,32 +94,27 @@ The rules are strict, which is what makes Undo and Erase unnecessary:
      be changed, erased or annotated. The same digit is removed from the notes of
      all cells in its row, column and box automatically (also when the digit was
      placed by Hint). A **wrong** digit never removes any notes.
-   - **Wrong**: the mistake counter goes up (3.4) and the digit is shown in red.
-     **The game then stops until the error is removed:** no digit and no note can
-     be entered in any other cell (the cells can still be selected; a short
-     warning "Fix or clear the red digit first." is shown and the number buttons
-     are inactive). Only the red cell accepts input:
-     - tap the right digit: it is locked, the game goes on (free);
-     - tap another wrong digit: it replaces the red one (another mistake);
-     - tap **the same wrong digit again**, or press **Backspace / Delete**: the
-       cell is **cleared** (no mistake) and the game goes on. While the red cell
-       is selected a line under the number buttons says "Tap the same digit again
-       to clear it." (no popup);
-     - or use **Hint**, which empties it in slow motion (3.4).
+   - **Wrong**: the mistake counter goes up and the digit is shown in red. What
+     happens next depends on the mistake number (3.4): for mistake 1 and 2 a modal
+     popup appears and, after **OK**, the wrong digit fades out slowly and the cell
+     is empty again; mistake 3 loses the game. Meanwhile nothing else reacts.
+     (If a wrong digit is on the board after a reload, only that cell accepts
+     input until it is changed or cleared – tap the same digit again, Backspace /
+     Delete, or Hint; a short line says so. This is a safety net, not the normal flow.)
 4. **Hold a number** (long press) → the digit is toggled as a **pencil note** in
    the selected empty cell (details in 3.2.1). Cells with a digit – right or wrong –
    take no notes. Entering a digit replaces the cell's notes. Holding a digit whose
    note is already on **turns it off**, otherwise it turns it on. **A note may be set
    even if that digit already stands in the cell's row, column or box** – no
    validation, so the user sees the situation as it is when annotating.
-5. **Hint** button: always active (3.4).
+5. **Hint** button with a counter `n/4`: at most four hints per game (3.4).
 6. A digit whose nine copies are all placed is greyed out in the number row.
 7. Filling the last cell ends the game: a short "Solved!" message with **New Game**.
    No score, no time.
 
 **Why no Undo and no Erase button:** Undo would only matter for wrong digits. A
-wrong digit is overwritten, cleared by tapping it again (or Backspace / Delete), or
-removed by Hint, and the mistake stays counted anyway. Nothing correct can be taken
+wrong digit is removed automatically after the mistake popup, and the mistake stays
+counted anyway. Nothing correct can be taken
 back. Notes are toggled off by holding the same digit again. Hence neither button
 earns its place.
 
@@ -178,29 +173,40 @@ The counter shows `n/3`. It is never refunded. Wrong digits are red; if they als
 duplicate a visible digit in the row/column/box, those cells get the red conflict
 highlight as well.
 
-**Hint button** (always active, unlimited – there is no score to protect):
+**Mistake 1 and 2.** A modal popup appears (it closes only with **OK**; Escape or a
+tap outside do nothing):
+
+> **Mistake 1/3**
+> You had better consider taking a hint next time.
+> [ OK ]
+
+After OK the wrong digit **fades out slowly** (~1.2 s) and the cell is empty (and
+still selected). Input is blocked while it fades.
+
+**Mistake 3: the game is lost.** The wrong digit is shown, the board **shakes**
+(~0.6 s), then the whole page **fades slowly to grey** (~1.8 s). Only then a modal
+popup appears:
+
+> **You lost the game.**
+> Play again?
+> [ Play Again ]
+
+Play Again starts a new puzzle at the current level (mistakes 0/3, hints 0/4).
+There is no way to carry on a lost game, and no hint can be taken. With reduced
+motion the shake is skipped and the fade is short. A lost game is saved: after a
+reload the grey board and the popup are shown again (3.7).
+
+**Hint button** with a counter (`Hint 0/4`, like the mistake counter). **At most four
+hints per game**; after the fourth the button is greyed and further taps (or `H`)
+are ignored. Hints are not refunded and reset with a new game.
 
 | Situation | What Hint does |
 |---|---|
-| Board has a **wrong digit** | The wrong digit is **emptied in slow motion** (fades out over ~1.2 s). That cell is selected afterwards. (There is at most one wrong digit, because it blocks all other input.) |
+| Board has a **wrong digit** (normally only after a reload, see 3.2) | The wrong digit is **emptied in slow motion**. That cell is selected afterwards. |
 | No wrong digit, a cell is **selected and empty** | The correct digit is **slowly faded in** there and locked. The cell is selected and gets a brief pulsing outline so the user notices where the hint landed. |
 | No wrong digit, **nothing useful selected** | The cell the logical solver would fill next is selected and filled the same way. |
 
-So after a wrong digit has been emptied, the user decides: **guess again** (tap a
-digit) or press **Hint** again, which then reveals the right digit. A hint never
-counts as a mistake.
-
-**Game over at 3/3.** Play stops and a dialog asks (instead of sudoku.com's "game over"):
-
-> **Three mistakes.**
-> [ New Game ]  [ Hint ]
-
-- **New Game** – starts a new puzzle at the current level.
-- **Hint** – the dialog closes, the game goes on: the wrong cell is emptied in
-  slow motion (as above) and the counter goes back to **2/3**, so the user has
-  one more chance. Any further wrong digit shows the dialog again.
-
-The dialog is modal; it is also restored after a reload (3.7).
+A hint never counts as a mistake; every hint that does something counts as a hint.
 
 ### 3.5 New game and levels
 
@@ -236,7 +242,7 @@ The colour scheme switches live, with no reload. The browser's
 |---|---|
 | `sudoku.scheme` | scheme id, default `bw` |
 | `sudoku.level` | `beginner` \| `expert` \| `master`, default `beginner` |
-| `sudoku.game` | the **complete game state**: givens, solution, entries, notes, mistakes, selected cell, level, game-over dialog open or not. Written after every move; restored when the page is opened again, also after an iOS tab eviction. Deleted when the game is solved. |
+| `sudoku.game` | the **complete game state**: givens, solution, entries, notes, mistakes, hints used, selected cell, level, lost or not. Written after every move; restored when the page is opened again, also after an iOS tab eviction. Deleted when the game is solved. |
 | `sudoku.pool` | pre-generated puzzles (5.4) |
 | `sudoku.tipShown` | the long-press tip has been dismissed by a first note |
 
@@ -409,7 +415,7 @@ Sudoku/
 - **Digit entry** validates against the stored solution (for mistakes); conflict
   highlighting uses the rules only, so it works without the solution.
 - **State shape:** `givens[81]`, `solution[81]`, `entries[81]`, `notes[81]` (9-bit
-  masks), `mistakes`, `level`, `selected`, `dialogOpen`. No history stack: nothing
+  masks), `mistakes`, `hints`, `level`, `selected`, `lost`, `solved`. No history stack: nothing
   correct is ever undone. A cell is *locked* when `entries[i] === solution[i]`,
   *editable* when empty or wrong. Plain JSON, so save/restore is trivial.
 - **Number buttons** (`numpad.js`): pointer events; `pointerdown` starts a ~350 ms
@@ -430,7 +436,7 @@ Sudoku/
   level, seeded); mistake / locking / hint / game-over rules; highlight sets;
   save → restore round trip of the game state.
 - **E2E (Playwright):** iPhone and iPad viewports, tap flows (select cell → digit →
-  highlight → error → 3 mistakes → dialog → Hint), **long press** on a number
+  highlight → error → popup → OK → 3 mistakes → lost → Play Again; Hint limit), **long press** on a number
   (pointer down, wait, up) vs. short tap, scheme/level/game persistence after
   reload, **offline test** (load once, `context.setOffline(true)`, reload, play,
   start a new game).
@@ -450,10 +456,10 @@ Sudoku/
 1. No ads, no network requests after the first load, no timer, no score anywhere.
 2. Tap an empty cell → its row, column and box are highlighted.
 3. Tap a filled cell → all identical digits are highlighted.
-4. A wrong digit (≠ solution) is red and increments the mistake counter and **stops the game until it is changed, cleared (same digit again, Backspace / Delete) or removed by Hint**; a correct digit is locked and cannot be changed or noted; there are no Undo/Erase buttons.
-5. At 3 mistakes the dialog offers **New Game** or **Hint**; Hint empties the wrong cell in slow motion and continues at 2/3. The Hint button works at any time.
+4. A wrong digit (≠ solution) is red and increments the mistake counter; a correct digit is locked and cannot be changed or noted; there are no Undo/Erase buttons.
+5. Mistake 1 and 2 show a modal popup "Mistake i/3"; after **OK** the wrong digit fades out slowly. Mistake 3 loses the game: the board shakes, the page fades to grey, then a popup offers **Play Again**. At most **four hints** per game; the Hint button shows `n/4` and ignores taps after the fourth.
 5a. Tap enters a digit, long press toggles a note; both only in an editable cell that is selected.
-5b. Reloading the page restores the complete game, including notes, mistakes and an open game-over dialog.
+5b. Reloading the page restores the complete game, including notes, mistakes, hints used and a lost game.
 6. Levels Beginner/Expert/Master produce puzzles with the clue ranges and techniques of section 4; every puzzle is unique and (by default) 180° symmetric.
 7. A colour-scheme dropdown with B/W as default; the choice and the level survive a reload.
 8. Layout fits an iPhone (6") and an iPad (10") in portrait without scrolling; iPad landscape uses the side panel.
@@ -474,10 +480,10 @@ in untangleMe), auto-notes, more symmetries picker, German UI, printing.
 | Hosting | GitHub Pages (6.1) |
 | What is a mistake | Any digit that differs from the final solution, even if not visibly wrong yet (3.4) |
 | Correct digits | Locked at once: cannot be changed, erased or annotated (3.2) |
-| Wrong digit (change request) | Blocks every other cell until it is changed or cleared; clear = tap the same digit again / Backspace / Delete / Hint; no Clear button (3.2) |
+| Wrong digit | Mistake popup (1, 2) → OK → the digit fades out automatically; mistake 3 loses the game (3.4). After a reload a wrong digit still blocks all other cells until changed or cleared (3.2) |
 | Undo / Erase buttons | Dropped – not needed (3.2) |
 | Notes | No mode button; **long press** on a number toggles a note (3.2.1) |
-| Hint | Button always active, unlimited; empties a wrong digit in slow motion, then reveals on the next press (3.4) |
+| Hint | At most 4 per game, counter `n/4` on the button; reveals a digit (or empties a wrong one) in slow motion (3.4) |
 | Game state | The complete game is saved and resumed (3.7) |
 | Tap on a filled cell | Highlights identical digits **and** row, column, box (3.3) |
 | Entry order | Cell first, then number; a number tap without a selected editable cell does nothing |
@@ -488,6 +494,6 @@ in untangleMe), auto-notes, more symmetries picker, German UI, printing.
 
 | Topic | Decision |
 |---|---|
-| Counter after game-over → Hint | Back to **2/3**. The next wrong digit shows the New Game / Hint dialog again. |
+| Third mistake | The game is lost (shake, fade to grey, "Play Again"). Superseded: the earlier rule "Hint after game over → back to 2/3" is dropped. |
 | Hint reveal | The hint **slowly fades in** the correct digit, with a brief pulsing outline on the cell, so the user sees where it was given. No textual explanation. |
 | Long press | ~350 ms threshold and the first-run tip are accepted; they will be tuned after testing on a real device (the threshold lives in `config.js`). |

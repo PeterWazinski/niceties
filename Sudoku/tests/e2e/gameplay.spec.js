@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { openGame, cell, cellsWith, values, peersOf } from "./helpers.js";
-import { num, enter, hold, mistakes, dialog, puzzleFor, emptyIndices, wrongFor, useHint, threeMistakes as threeMistakesIn } from "./play-helpers.js";
+import { num, enter, hold, mistakes, dialog, puzzleFor, emptyIndices, wrongFor, useHint, ackMistake, keepWrong, waitIdle, threeMistakes as threeMistakesIn } from "./play-helpers.js";
 
 // Animations are covered in animation.spec.js; here they are shortened.
 test.use({ reducedMotion: "reduce" });
@@ -29,7 +29,7 @@ test("a locked digit cannot be changed", async ({ page }) => {
   await expect(mistakes(page)).toHaveText("0/3");
 });
 
-test("a wrong digit is red, counted once, and can be overwritten", async ({ page }) => {
+test("a wrong digit is red and counted once; OK in the popup removes it", async ({ page }) => {
   const i = await firstEmpty(page);
   await enter(page, i, wrongFor(P, i));
   await expect(cell(page, i)).toHaveAttribute("data-state", "wrong");
@@ -37,15 +37,40 @@ test("a wrong digit is red, counted once, and can be overwritten", async ({ page
   const colour = await cell(page, i).locator(".digit").evaluate((e) => getComputedStyle(e).color);
   const wrong = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--wrong").trim());
   expect(colour).toBe(`rgb(${[1, 3, 5].map((k) => parseInt(wrong.slice(k, k + 2), 16)).join(", ")})`);
-  await num(page, P.solution[i]).click(); // overwrite with the right one: free
+  await ackMistake(page);
+  await expect(cell(page, i)).toHaveAttribute("data-state", "empty");
+  await expect(mistakes(page)).toHaveText("1/3"); // removing it is free
+  await num(page, P.solution[i]).click();
   await expect(cell(page, i)).toHaveAttribute("data-state", "locked");
   await expect(mistakes(page)).toHaveText("1/3");
 });
 
-test("tapping the same wrong digit again clears the cell, and the game can go on", async ({ page }) => {
+test("mistake 1 and 2: a modal popup, nothing else reacts until OK, then the digit fades out", async ({ page }) => {
   const [a, b] = emptyIndices(await values(page));
   await enter(page, a, wrongFor(P, a));
-  await expect(cell(page, a)).toHaveAttribute("data-state", "wrong");
+  await expect(dialog(page)).toBeVisible();
+  await expect(page.locator("#dialog-title")).toHaveText("Mistake 1/3");
+  await expect(page.locator("#dialog-text")).toContainText("hint");
+  await expect(page.locator("#dialog-new")).toHaveText("OK");
+  await expect(page.locator("#dialog-cancel")).toBeHidden();
+  await expect(page.locator(".app")).toHaveAttribute("inert", "");
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Digit" + P.solution[a]);
+  await expect(dialog(page)).toBeVisible();
+  await expect(cell(page, a)).toHaveAttribute("data-state", "wrong"); // still there: only OK removes it
+  await ackMistake(page);
+  await expect(cell(page, a)).toHaveAttribute("data-state", "empty");
+  await expect(page.locator("#live")).toContainText("Wrong digit. 1 of 3 mistakes.");
+  await enter(page, b, wrongFor(P, b));
+  await expect(page.locator("#dialog-title")).toHaveText("Mistake 2/3");
+  await ackMistake(page);
+  await expect(cell(page, b)).toHaveAttribute("data-state", "empty");
+  await expect(mistakes(page)).toHaveText("2/3");
+});
+
+test("tapping the same wrong digit again clears the cell, and the game can go on", async ({ page }) => {
+  const [a, b] = emptyIndices(await values(page));
+  await keepWrong(page, a, wrongFor(P, a)); // a reload keeps the wrong digit on the board
   await num(page, wrongFor(P, a)).click();
   await expect(cell(page, a)).toHaveAttribute("data-state", "empty");
   await expect(page.locator("#notice")).toBeHidden(); // nothing to explain any more
@@ -57,8 +82,7 @@ test("tapping the same wrong digit again clears the cell, and the game can go on
 test("Backspace and Delete clear a wrong digit", async ({ page }) => {
   const [a, b] = emptyIndices(await values(page));
   for (const key of ["Backspace", "Delete"]) {
-    await enter(page, a, wrongFor(P, a));
-    await expect(cell(page, a)).toHaveAttribute("data-state", "wrong");
+    await keepWrong(page, a, wrongFor(P, a));
     await page.keyboard.press(key);
     await expect(cell(page, a)).toHaveAttribute("data-state", "empty");
   }
@@ -71,7 +95,8 @@ test("Backspace and Delete clear a wrong digit", async ({ page }) => {
 
 test("a wrong digit stops the game until it is fixed: no digits, no notes, a warning", async ({ page }) => {
   const [a, b] = emptyIndices(await values(page));
-  await enter(page, a, wrongFor(P, a));
+  await keepWrong(page, a, wrongFor(P, a));
+  await cell(page, a).click();
   // the wrong cell itself is selected: the line says how to go on
   await expect(page.locator("#notice")).toBeVisible();
   await expect(page.locator("#notice")).toHaveText("Tap the same digit again to clear it.");
@@ -99,7 +124,7 @@ test("a wrong digit stops the game until it is fixed: no digits, no notes, a war
 test("the clearing line replaces the tip while it is shown and the tip comes back afterwards", async ({ page }) => {
   const [a] = emptyIndices(await values(page));
   await expect(page.locator("#tip")).toBeVisible();
-  await enter(page, a, wrongFor(P, a));
+  await keepWrong(page, a, wrongFor(P, a));
   await expect(page.locator("#notice")).toBeVisible();
   await expect(page.locator("#tip")).toBeHidden();
   await num(page, wrongFor(P, a)).click(); // clear it
@@ -110,18 +135,18 @@ test("the clearing line replaces the tip while it is shown and the tip comes bac
 test("changing the wrong digit to another wrong one is a new mistake and still blocks", async ({ page }) => {
   const [a, b] = emptyIndices(await values(page));
   const wrongs = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((d) => d !== P.solution[a]);
-  await enter(page, a, wrongs[0]);
+  await keepWrong(page, a, wrongs[0]);
   await num(page, wrongs[1]).click();
   await expect(mistakes(page)).toHaveText("2/3");
+  await expect(page.locator("#dialog-title")).toHaveText("Mistake 2/3");
   await expect(cell(page, a)).toHaveAttribute("data-value", String(wrongs[1]));
-  await cell(page, b).click();
-  await num(page, P.solution[b]).click();
-  await expect(cell(page, b)).toHaveAttribute("data-state", "empty");
+  await ackMistake(page);
+  await expect(cell(page, a)).toHaveAttribute("data-state", "empty");
 });
 
 test("Hint clears the wrong digit and unblocks the game", async ({ page }) => {
   const [a, b] = emptyIndices(await values(page));
-  await enter(page, a, wrongFor(P, a));
+  await keepWrong(page, a, wrongFor(P, a));
   await cell(page, b).click();
   await useHint(page);
   await expect(cell(page, a)).toHaveAttribute("data-state", "empty");
@@ -205,6 +230,7 @@ test("a correct digit removes its note from the row, column and box; a wrong dig
   // wrong digit in i: peer keeps its note
   await enter(page, i, wrongFor(P, i));
   await expect(cell(page, peer).locator(".notes")).toContainText(String(d));
+  await ackMistake(page);
   // the right digit: the note disappears
   await cell(page, i).click();
   await num(page, d).click();
@@ -250,37 +276,31 @@ async function threeMistakes(page) {
   return threeMistakesIn(page, P, await values(page));
 }
 
-test("three wrong digits open the dialog; the board is blocked behind it", async ({ page }) => {
+test("the third wrong digit loses the game: popup with Play Again only, the board is blocked behind it", async ({ page }) => {
   await threeMistakes(page);
   await expect(mistakes(page)).toHaveText("3/3");
   await expect(dialog(page)).toBeVisible();
-  await expect(page.locator("#dialog-title")).toHaveText("Three mistakes.");
-  await expect(page.locator("#dialog-new")).toBeVisible();
-  await expect(page.locator("#dialog-hint")).toBeVisible();
+  await expect(page.locator("#dialog-title")).toHaveText("You lost the game.");
+  await expect(page.locator("#dialog-text")).toHaveText("Play again?");
+  await expect(page.locator("#dialog-new")).toHaveText("Play Again");
+  await expect(page.locator("#dialog-cancel")).toBeHidden();
+  await expect(page.locator("#dialog-hint")).toHaveCount(0);
   await expect(page.locator(".app")).toHaveAttribute("inert", "");
+  await expect(page.locator(".app")).toHaveClass(/lost/);
   const before = await values(page);
   await page.keyboard.press("Digit5"); // keyboard input is ignored too
+  await page.keyboard.press("h");
   expect(await values(page)).toEqual(before);
+  await expect(page.locator("#hint-count")).toHaveText("0/4");
 });
 
-test("dialog Hint: wrong cell emptied, counter 2/3, the next wrong digit opens the dialog again", async ({ page }) => {
-  const empties = await threeMistakes(page);
-  await useHint(page, "#dialog-hint");
-  await expect(dialog(page)).toBeHidden();
-  await expect(mistakes(page)).toHaveText("2/3");
-  const last = empties[0];
-  await expect(cell(page, last)).toHaveAttribute("data-state", "empty");
-  await expect(cell(page, last)).toHaveClass(/sel/);
-  await num(page, wrongFor(P, last)).click(); // the cell is selected: guess wrong again
-  await expect(mistakes(page)).toHaveText("3/3");
-  await expect(dialog(page)).toBeVisible();
-});
-
-test("dialog New Game starts a fresh puzzle with 0/3", async ({ page }) => {
+test("Play Again starts a fresh puzzle with 0/3 mistakes and 0/4 hints", async ({ page }) => {
   await threeMistakes(page);
   await page.locator("#dialog-new").click();
   await expect(dialog(page)).toBeHidden();
   await expect(mistakes(page)).toHaveText("0/3");
+  await expect(page.locator("#hint-count")).toHaveText("0/4");
+  await expect(page.locator(".app")).not.toHaveClass(/lost/);
   const next = puzzleFor(13);
   await expect.poll(() => values(page)).toEqual(next.givens.map((d) => (d ? String(d) : "")));
 });
@@ -293,7 +313,7 @@ test("header New Game starts a new puzzle too", async ({ page }) => {
 
 test("Hint with a wrong digit empties it, a second press reveals the right digit", async ({ page }) => {
   const i = await firstEmpty(page);
-  await enter(page, i, wrongFor(P, i));
+  await keepWrong(page, i, wrongFor(P, i));
   await expect(mistakes(page)).toHaveText("1/3");
   await useHint(page);
   await expect(cell(page, i)).toHaveAttribute("data-state", "empty");
@@ -358,4 +378,28 @@ test("arrow keys stop at the edges of the board", async ({ page }) => {
   await cell(page, 8).click();
   await page.keyboard.press("ArrowRight");
   expect(await cellsWith(page, "sel")).toEqual([8]);
+});
+
+test("the Hint button counts its uses; after four hints it is greyed and ignores taps", async ({ page }) => {
+  await expect(page.locator("#hint-count")).toHaveText("0/4");
+  await expect(page.locator("#hint")).toHaveAttribute("aria-disabled", "false");
+  for (let n = 1; n <= 4; n++) {
+    await useHint(page);
+    await expect(page.locator("#hint-count")).toHaveText(`${n}/4`);
+  }
+  await expect(page.locator("#hint")).toHaveAttribute("aria-disabled", "true");
+  const before = await values(page);
+  await page.locator("#hint").click({ force: true }); // aria-disabled: Playwright would wait forever otherwise
+  await page.keyboard.press("h");
+  await waitIdle(page);
+  expect(await values(page)).toEqual(before);
+  await expect(page.locator("#hint-count")).toHaveText("4/4");
+});
+
+test("a hint that removes a wrong digit counts as a hint", async ({ page }) => {
+  const i = await firstEmpty(page);
+  await keepWrong(page, i, wrongFor(P, i));
+  await useHint(page);
+  await expect(page.locator("#hint-count")).toHaveText("1/4");
+  await expect(mistakes(page)).toHaveText("1/3");
 });

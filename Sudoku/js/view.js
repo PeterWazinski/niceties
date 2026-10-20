@@ -2,7 +2,7 @@
 // state; all rules live in game.js. Handlers are passed in by the controller.
 import { highlights } from "./highlight.js";
 import { cellValue, isGiven, isWrong, isEditable, remaining } from "./game.js";
-import { MAX_MISTAKES, LEVELS } from "./config.js";
+import { MAX_MISTAKES, MAX_HINTS, LEVELS } from "./config.js";
 import { attachNumpad } from "./numpad.js";
 import { SCHEMES } from "./schemes.js";
 
@@ -34,7 +34,7 @@ function template() {
           <select id="scheme" class="select">${options(SCHEMES.map((s) => [s.id, s.name]))}</select></label>
       </div>
       <div class="board" id="board" role="group" aria-label="Sudoku board">${cells}<div class="preparing" id="preparing" hidden>Preparing puzzle…</div></div>
-      <button type="button" class="btn tool" id="hint">${BULB}<span>Hint</span></button>
+      <button type="button" class="btn tool" id="hint">${BULB}<span>Hint</span><span class="hint-count" id="hint-count">0/${MAX_HINTS}</span></button>
       <div class="numpad" id="numpad" role="group" aria-label="Numbers">${nums}</div>
       <p class="tip" id="tip" hidden>Tip: hold a number to add a note</p>
       <p class="notice" id="notice" hidden></p>
@@ -47,7 +47,6 @@ function template() {
         <p id="dialog-text"></p>
         <div class="dialog-actions">
           <button type="button" class="btn primary" id="dialog-new">New Game</button>
-          <button type="button" class="btn" id="dialog-hint">Hint</button>
           <button type="button" class="btn" id="dialog-cancel">Cancel</button>
         </div>
       </div>
@@ -55,9 +54,10 @@ function template() {
 }
 
 const DIALOGS = {
-  gameOver: { title: "Three mistakes.", text: "Start a new game, or take a hint and carry on.", hint: true },
-  solved: { title: "Solved!", text: "Well done.", hint: false },
-  confirm: { title: "Abandon this game?", text: "Your progress in this game will be lost.", hint: false, cancel: true }
+  mistake: { title: (n) => `Mistake ${n}/${MAX_MISTAKES}`, text: "You had better consider taking a hint next time.", primary: "OK" },
+  lost: { title: "You lost the game.", text: "Play again?", primary: "Play Again" },
+  solved: { title: "Solved!", text: "Well done.", primary: "New Game" },
+  confirm: { title: "Abandon this game?", text: "Your progress in this game will be lost.", primary: "New Game", cancel: true }
 };
 
 function cellLabel(state, i) {
@@ -79,12 +79,12 @@ export function createView(root, handlers = {}) {
   const setText = (node, text) => { if (node.textContent !== text) node.textContent = text; };
   const setAttr = (node, name, value) => { if (node.getAttribute(name) !== value) node.setAttribute(name, value); };
   const el = {
-    app: $(".app"), board: $("#board"), numpad: $("#numpad"), mistakes: $("#mistakes"),
+    app: $(".app"), board: $("#board"), numpad: $("#numpad"), mistakes: $("#mistakes"), hintCount: $("#hint-count"),
     level: $("#level"), scheme: $("#scheme"), newGame: $("#new-game"), hint: $("#hint"), tip: $("#tip"), notice: $("#notice"),
     confetti: $("#confetti"), live: $("#live"), overlay: $("#overlay"), dialogTitle: $("#dialog-title"), dialogText: $("#dialog-text"),
-    dialogNew: $("#dialog-new"), dialogHint: $("#dialog-hint"), dialogCancel: $("#dialog-cancel"), preparing: $("#preparing")
+    dialogNew: $("#dialog-new"), dialogCancel: $("#dialog-cancel"), preparing: $("#preparing")
   };
-  let dialogKind = null, focusBeforeDialog = null, announceFlip = false, lastClicked = null, tipWanted = false;
+  let playingLoss = false, dialogKind = null, focusBeforeDialog = null, announceFlip = false, lastClicked = null, tipWanted = false;
   // Safari does not focus a button when it is clicked: remember the last clicked control as a fallback.
   el.app.addEventListener("click", (e) => { lastClicked = e.target.closest("button, select"); }, true);
 
@@ -98,7 +98,6 @@ export function createView(root, handlers = {}) {
   el.dialogCancel.addEventListener("click", () => handlers.onDialogCancel && handlers.onDialogCancel());
   el.hint.addEventListener("click", () => handlers.onHint && handlers.onHint());
   el.dialogNew.addEventListener("click", () => handlers.onDialogNew && handlers.onDialogNew());
-  el.dialogHint.addEventListener("click", () => handlers.onHint && handlers.onHint());
   attachNumpad(nums, {
     onTap: (d) => handlers.onDigit && handlers.onDigit(d),
     onHold: (d) => handlers.onNote && handlers.onNote(d)
@@ -143,8 +142,8 @@ export function createView(root, handlers = {}) {
     // Moves the keyboard focus to a cell (arrow-key navigation).
     focusCell(i) { cells[i].focus(); },
 
-    // kind: "gameOver" | "solved" | "confirm" | null (hide)
-    showDialog(kind) {
+    // kind: "mistake" | "lost" | "solved" | "confirm" | null (hide); `n` is the mistake number
+    showDialog(kind, n) {
       if (kind === dialogKind) return;
       const wasOpen = dialogKind !== null;
       dialogKind = kind;
@@ -163,12 +162,12 @@ export function createView(root, handlers = {}) {
         return;
       }
       const d = DIALOGS[kind];
-      el.dialogTitle.textContent = d.title;
+      el.dialogTitle.textContent = typeof d.title === "function" ? d.title(n) : d.title;
       el.dialogText.textContent = d.text;
-      el.dialogHint.hidden = !d.hint;
+      el.dialogNew.textContent = d.primary;
       el.dialogCancel.hidden = !d.cancel;
       el.overlay.dataset.kind = kind;
-      (d.hint ? el.dialogHint : el.dialogNew).focus();
+      el.dialogNew.focus();
     },
 
     // The wrong digit fades out slowly while the cell is already empty in the state.
@@ -179,6 +178,20 @@ export function createView(root, handlers = {}) {
       ghost.style.setProperty("--anim", ms + "ms");
       cells[cell].appendChild(ghost);
       setTimeout(() => ghost.remove(), ms);
+    },
+
+    // The lost game: the board shakes, then the whole page fades slowly to grey; `done` runs afterwards.
+    playLoss(shakeMs, dimMs, done) {
+      playingLoss = true;
+      el.board.style.setProperty("--shake", shakeMs + "ms");
+      el.app.style.setProperty("--dim", dimMs + "ms");
+      el.board.classList.add("shake");
+      setTimeout(() => {
+        el.board.classList.remove("shake");
+        playingLoss = false;
+        el.app.classList.add("lost");
+        setTimeout(done, dimMs);
+      }, shakeMs);
     },
 
     // The revealed digit fades in slowly and the cell pulses so the user sees where it landed.
@@ -208,6 +221,9 @@ export function createView(root, handlers = {}) {
         parts[i].marks.forEach((m, k) => { setText(m, !v && (state.notes[i] & (1 << k)) ? String(k + 1) : ""); });
       });
       setText(el.mistakes, `${state.mistakes}/${MAX_MISTAKES}`);
+      setText(el.hintCount, `${state.hints}/${MAX_HINTS}`);
+      setAttr(el.hint, "aria-disabled", state.hints >= MAX_HINTS || state.lost || state.solved ? "true" : "false");
+      if (!playingLoss) el.app.classList.toggle("lost", state.lost);
       el.level.value = state.level;
       // Number buttons only act on an editable selected cell (shown by a flat look, text contrast
       // stays); digits that are completely placed are dimmed and marked disabled.

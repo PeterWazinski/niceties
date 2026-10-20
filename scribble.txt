@@ -165,6 +165,32 @@ please change:
 - I shall be able either to change the wrong digit in the cell to a correct one
 - or I shall clear the cell. How can I clear a cell? do we need a clear- button? Other Ideas?
 
+Please fix the following layout problem
+- for ipad browser we get the layout in Sudoku\design\browser-landscape.PNG. All digits are small and in a row. The digits shall be displayed in a 3x3 square similar to the landscape view for the homescreen
+- for the homescreen landscape layout we get Sudoku\design\blurred-top-homescreen.PNG .  The top line of the sududoku and the title are slightly blurred. we need more space between the margin and the game. add 15px before the frame and the title starts
+
+Also adjust the logic concerning mistakes and hints
+- a user can have up to 3 mistake then the game is lost.
+-- for mistake #1 and #2 we get a popup such as "mistake i/3. You better consider taking a hint next time". After confirmation the mistaken digit is automatically and slowly removed
+-- when mistake #3 occurs then I want some visual effect for loosing opposite to confetti, e.g. shaking the screen or a flash. any other idea? When the effect is done a popup is displayed such as "You lost the game. Play Again?"
+- a user can have upto 4 hints. after 4 hints tapping the button is ignored. also introduce a counter on the button analogous to the counter for mistakes.
+
+before  check my change request and let me know you implementation plan for review.
+
+	Wrong digit removal: should it be removed only after the OK tap, as you described? Or should I also remove it if the popup is dismissed with Escape or a tap outside?
+	-> only after the ok tap, popup as a modal window
+
+	Hint count when starting a new game: I assume it resets to 0, like mistakes.
+	-> Yes new game implies hints=0, mistakes=0
+
+	Saved games: should hints and mistakes carry over after a reload (as mistakes do now)? I assume yes.
+	-> Yes
+
+	Losing effect: is shake plus red flash plus dimming fine, or would you prefer one of them alone?
+	-> do a shake and then a slowly dimming to grey, no flash
+
+	start implementation, add unit and e2e tests. run full test suite in the end. at last commit and push
+
 
 ##########
 

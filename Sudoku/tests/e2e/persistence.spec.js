@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { openGame, cell, values } from "./helpers.js";
-import { num, enter, hold, mistakes, dialog, puzzleFor, emptyIndices, wrongFor, useHint, threeMistakes } from "./play-helpers.js";
+import { num, enter, hold, mistakes, dialog, puzzleFor, emptyIndices, wrongFor, useHint, ackMistake, threeMistakes } from "./play-helpers.js";
 
 test.use({ reducedMotion: "reduce" });
 
@@ -67,6 +67,7 @@ test("the game is saved after every move: reload shows the identical board, note
   await expect(page.locator("#app")).toHaveAttribute("data-ready", "true");
   expect(await snapshot(page)).toEqual(before);
   await expect(mistakes(page)).toHaveText("1/3");
+  await expect(page.locator("#hint-count")).toHaveText("0/4");
   await expect(cell(page, empties[2])).toHaveAttribute("aria-label", /notes 3 7/);
   await expect(cell(page, empties[1])).toHaveClass(/sel/);
   await expect(cell(page, empties[1])).toHaveAttribute("data-state", "wrong");
@@ -75,17 +76,18 @@ test("the game is saved after every move: reload shows the identical board, note
   await expect(cell(page, empties[1])).toHaveAttribute("data-state", "locked");
 });
 
-test("reloading while the three-mistakes dialog is open shows the dialog again", async ({ page }) => {
+test("reloading a lost game shows the lost popup again; Play Again starts a new game", async ({ page }) => {
   await openGame(page);
   const empties = emptyIndices(await values(page));
   await threeMistakes(page, P, await values(page));
   await expect(dialog(page)).toBeVisible();
   await page.reload();
   await expect(dialog(page)).toBeVisible();
-  await expect(page.locator("#dialog-title")).toHaveText("Three mistakes.");
+  await expect(page.locator("#dialog-title")).toHaveText("You lost the game.");
   await expect(mistakes(page)).toHaveText("3/3");
-  await useHint(page, "#dialog-hint");
-  await expect(mistakes(page)).toHaveText("2/3");
+  await page.locator("#dialog-new").click();
+  await expect(dialog(page)).toBeHidden();
+  await expect(mistakes(page)).toHaveText("0/3");
 });
 
 test("a solved game is not restored: the next load starts a new game", async ({ page }) => {
@@ -141,6 +143,7 @@ test("a note or a mistake counts as progress for the question", async ({ page })
   await expect(page.locator("#dialog-title")).toHaveText("Abandon this game?");
   await page.locator("#dialog-cancel").click();
   await page.keyboard.press("Digit" + wrongFor(P, empties[0]));
+  await ackMistake(page);
   await page.locator("#new-game").click();
   await expect(page.locator("#dialog-title")).toHaveText("Abandon this game?");
 });
@@ -212,4 +215,18 @@ test("every localStorage key of the game starts with sudoku.", async ({ page }) 
   const keys = await page.evaluate(() => Object.keys(localStorage));
   expect(keys.length).toBeGreaterThanOrEqual(4);
   for (const k of keys) expect(k.startsWith("sudoku."), k).toBe(true);
+});
+
+test("used hints survive a reload and a new game resets them", async ({ page }) => {
+  await openGame(page);
+  await useHint(page);
+  await useHint(page);
+  await expect(page.locator("#hint-count")).toHaveText("2/4");
+  await page.reload();
+  await expect(page.locator("#app")).toHaveAttribute("data-ready", "true");
+  await expect(page.locator("#hint-count")).toHaveText("2/4");
+  await page.locator("#new-game").click();
+  await page.locator("#dialog-new").click();
+  await expect(dialog(page)).toBeHidden();
+  await expect(page.locator("#hint-count")).toHaveText("0/4");
 });
