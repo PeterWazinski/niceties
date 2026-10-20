@@ -54,7 +54,7 @@ function template() {
 }
 
 const DIALOGS = {
-  mistake: { title: (n) => `Mistake ${n}/${MAX_MISTAKES}`, text: "You had better consider taking a hint next time.", primary: "OK" },
+  mistake: { title: (n) => `Mistake ${n}/${MAX_MISTAKES}`, text: "You may consider taking a hint next time.", primary: "OK" },
   lost: { title: "You lost the game.", text: "Play again?", primary: "Play Again" },
   solved: { title: "Solved!", text: "Well done.", primary: "New Game" },
   confirm: { title: "Abandon this game?", text: "Your progress in this game will be lost.", primary: "New Game", cancel: true }

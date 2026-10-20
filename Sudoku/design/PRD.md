@@ -177,7 +177,7 @@ highlight as well.
 tap outside do nothing):
 
 > **Mistake 1/3**
-> You had better consider taking a hint next time.
+> You may consider taking a hint next time.
 > [ OK ]
 
 After OK the wrong digit **fades out slowly** (~1.2 s) and the cell is empty (and
