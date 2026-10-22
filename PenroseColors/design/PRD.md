@@ -12,6 +12,9 @@ cone. It is the **exploration tool** (step 1) for a later **Penrose Color Puzzle
 modelled on the colour-sorting puzzle "I Love Hue Too": the player sees the sorted
 colouring, it is shuffled, and the player swaps tiles until the sorted picture is back.
 
+The tool is to be built **quickly**; the puzzle outline in section 9 is a sketch that will
+probably change once the tool has been used (the "inception" phase).
+
 Step 1 has to answer the three questions of the vision:
 
 1. Which tilings (shape, size) make appealing puzzles?
@@ -22,10 +25,10 @@ Step 1 has to answer the three questions of the vision:
 (plus radial / angular variants), shuffle and manual solving by swapping, anchors, and an
 automatic uniqueness check. Step 2 appears only as an outlook (section 9).
 
-**Out of scope (step 1), decided:** on-screen sliders for the colour parameters, a preset
-manager, export as PNG/SVG, other tilings (P2 kite and dart, …), clipping the patch to a
-rectangle or circle, timer, score, ads, accounts. Colour parameters are changed through URL
-parameters (4.3), which is cheap and keeps results reproducible.
+**Out of scope (step 1), decided:** perceptual (ΔE) uniqueness and difficulty, other tilings
+(P2 kite and dart, …), clipping the patch to a rectangle or circle, a preset manager, export as
+PNG/SVG, offline/PWA support (later), timer, score, ads, accounts. **Saving a setting** simply
+means copying the URL (4.3).
 
 ## 2. Principles
 
@@ -33,19 +36,25 @@ parameters (4.3), which is cheap and keeps results reproducible.
   the good ones. Colours are exact and deterministic, never random noise per tile.
 - **Everything reproducible.** One URL = one tiling + one colouring + one shuffle. The same
   URL always gives the same picture (seeded RNG, no `Math.random()` outside the seed).
-- **Touch first.** Designed for iPad and iPhone, works with a mouse on desktop.
-- **No build step, no framework, no network after the first load** – like the other
-  projects in this repository (see the repository `CLAUDE.md`).
+- **Mouse and touch.** The first target is the desktop browser (mouse, drag and drop); the
+  layout and the input also work on iPad and iPhone (touch).
+- **No build step, no framework, no network** – like the other projects in this repository
+  (see the repository `CLAUDE.md`).
 
 ## 3. Platform
 
-- Static web page in `PenroseColors/` (`index.html`, `css/`, `js/` as ES modules), hosted on
-  GitHub Pages next to the other projects.
-- Touch first: layout for iPhone (portrait), iPad (portrait and landscape) and desktop.
-  Tap targets at least 44 px, `viewport-fit=cover`, safe-area insets respected.
-- Installable and offline-capable (web manifest, service worker with a `VERSION` constant that
-  is raised with every release), like Sudoku.
-- Rendering: **SVG** (one `<polygon>` per tile) – up to a few hundred tiles, crisp at any size,
+- **Staging: open `PenroseColors/index.html` directly from the file system** (double-click, `file://`) in
+  a desktop browser – no web server, no build. Consequence for the code: **no ES modules and no
+  `fetch`/service worker**, because browsers block them on `file://`. The scripts are plain
+  classic scripts loaded with `<script src>`; each file is written so that it also works under
+  Node for the unit tests (a small UMD wrapper: it sets a global namespace in the browser and
+  `module.exports` in Node). The project's `package.json` therefore does not use `"type": "module"`.
+- Static pages, plain HTML/CSS/JS, hosted later on GitHub Pages next to the other projects.
+- **Input:** mouse (click, drag and drop) and touch, handled with pointer events; the same code
+  serves both.
+- Layout works on desktop, iPad (portrait/landscape) and iPhone; tap targets at least 44 px,
+  `viewport-fit=cover`, safe-area insets respected. Offline use / installation is a later step.
+- Rendering: **SVG** (one `<polygon>` per tile) – at most a few hundred tiles, crisp at any size,
   easy to test. Switch to canvas only if measurements show a need.
 - Browsers: current Safari (iOS/iPadOS), Chrome, Firefox, Edge.
 
@@ -62,11 +71,13 @@ parameters (4.3), which is cheap and keeps results reproducible.
   - *decagon wheel*: ten Robinson triangles around the centre (5-fold or 10-fold symmetric);
   - *half* variants: a mirror-symmetric half of a seed (one symmetry axis only);
   - further seeds can be added as data without code changes.
-- **Depth** `d` = number of subdivisions (0 … 6). Each step multiplies the tile count by about
-  φ² ≈ 2.6. Target range for the tool: **about 20 to 700 tiles**, with a warning above that.
+- **Depth** `d` = number of subdivisions (0 … 5). Each step multiplies the tile count by about
+  φ² ≈ 2.6. A puzzle must be solvable in a reasonable number of swaps (6), so the useful range is
+  **about 20 to 250 tiles**; the tool warns above 250 and refuses above 700.
 - Result: a list of tiles with `id`, `type` (`thick` | `thin`), the four vertices, the centre,
-  and the neighbour ids (tiles sharing an edge). Tile ids and their order are stable for a
-  given seed and depth.
+  the neighbour ids (tiles sharing an edge) and its **ancestors** (the id of the parent tile at
+  each coarser subdivision level – free by-product of the subdivision, see 13). Tile ids and
+  their order are stable for a given seed and depth.
 - A patch is drawn scaled to fit the screen, centred, with thin dark gaps (or none) between
   tiles – selectable by URL parameter `gap`.
 
@@ -81,7 +92,9 @@ returned as a list of permutations of tile ids. It is needed by the uniqueness c
 
 Every setting can be given in the URL; unknown or invalid values fall back to defaults. The
 URL is updated when the user changes something (without reloading), so any state can be
-bookmarked or shared.
+bookmarked or shared. The on-screen sliders (8) and the URL are two views of the same settings;
+**Copy link** puts the URL on the clipboard and is the way to save a setting. (On `file://` the
+URL is a `file:///…?…` link that works on the same machine.)
 
 | Parameter | Meaning | Default |
 |---|---|---|
@@ -143,20 +156,38 @@ threshold – ΔE – is **not** part of step 1, see open questions.)
 The tool has two states: **sorted** (the colouring as generated, the *target*) and
 **shuffled** (the colours rearranged over the fixed tile shapes).
 
-- **Shuffle** button: permutes the colours over the tiles with a seeded RNG
-  (Fisher–Yates). Anchored tiles keep their colour. A *strength* option (`all`, or only a
-  given percentage of tiles) lets the user judge easy and hard puzzles. The shuffle seed is
-  part of the URL.
-- **Swap by tapping:** tap a tile (it is highlighted), tap a second tile, and the two
-  **colours** swap (the shapes stay where they are; thick and thin tiles may swap colours).
-  Tapping the selected tile again deselects it. Anchored tiles cannot be selected.
+- **Only tiles of the same type swap.** Thick tiles are sorted among thick tiles, thin tiles
+  among thin tiles: the player only sorts colours and never has to worry about the shapes
+  fitting (a thick/thin exchange would change the tiling). The two types are two independent
+  permutations.
+- **Swap by drag and drop:** press a tile, drag its colour onto another tile of the same type,
+  release – the two colours swap. While dragging, the dragged colour follows the pointer and
+  valid targets (same type, not anchored) are highlighted; dropping elsewhere cancels.
+- **Swap by two taps/clicks:** select a tile (highlighted), select a second tile of the same type,
+  the colours swap. Selecting the selected tile again deselects it. Anchored tiles can be
+  neither selected nor dragged. (Both ways work with mouse and touch.)
+- **Shuffle** button: permutes the colours of each type with a seeded RNG. Anchored tiles keep
+  their colour. The shuffle can be requested by **strength**: all tiles, a percentage of the
+  tiles, or a **target number of swaps** (see below). The shuffle seed is part of the URL.
+- **Swap count and difficulty.** The tool always shows the **minimum number of swaps** that
+  solves the current arrangement (for a permutation: tiles − cycles, summed over both types)
+  and the number of swaps made so far. Rough targets for the later game, which the tool must
+  let us try out:
+
+  | Player | Swaps needed (minimum) |
+  |---|---|
+  | beginner | about 30 |
+  | medium | about 80 |
+  | expert | 150 – 200, never more |
+
+  A full shuffle of *n* tiles needs close to *n* swaps, so these numbers roughly set the tile
+  counts (about 40, 100 and 200 tiles) – or fewer misplaced tiles on a bigger patch.
 - **Sorted preview:** a button shows the target while it is pressed, or toggles it.
 - **Solved:** when every tile shows its target colour, the tool says so (a quiet message; the
   celebration effect belongs to the game). A tile that already shows its target colour is not
   marked – the player has to see it.
-- **Move counter** (number of swaps) is shown; **Undo** takes back the last swap (the tool is
-  for exploration, so Undo is allowed here).
-- **Reset** returns to the sorted state, **Reshuffle** makes a new shuffle.
+- **Undo** takes back the last swap (the tool is for exploration, so Undo is allowed here);
+  **Reset** returns to the sorted state, **Reshuffle** makes a new shuffle.
 
 ## 7. Anchors and uniqueness check
 
@@ -165,6 +196,9 @@ dot, like the reference screenshots). The user can toggle anchors by long press 
 on a tile in anchor-edit mode; anchors are saved in the URL.
 
 **Question (vision, 3):** how few anchors are needed so that the solution is unique?
+
+Swaps happen only between tiles of the same type (6), so the two types are separate
+puzzles; symmetries of the patch always map thick tiles to thick and thin to thin.
 
 For the strict, mathematical version, with the colours as defined in 5.4:
 
@@ -193,13 +227,16 @@ perceptual question (open questions, 10).
 
 ## 8. User interface
 
-- **Main view:** the patch fills the screen (square-ish area, scales with the window and
-  orientation); a compact control bar beside it (landscape) or below it (portrait).
-- **Controls:** seed shape, depth, colouring (`plane` / `radial` / `angular`), *Shuffle*,
-  *Reset*, *Sorted preview*, *Undo*, *Anchors* (edit mode and *Suggest*), move counter, and a
-  status line with the uniqueness result and colour statistics.
-- Other colour parameters come from the URL (4.3). A small "Copy link" button shares the
-  current state.
+- **Main view:** the patch fills the window (square-ish area, scales with the window and
+  orientation); the control panel is beside it (landscape) or below it (portrait).
+- **Colour sliders** with live preview (the picture changes while the slider moves): hue start,
+  hue end, saturation, lightness, saturation slope, lightness slope, plane rotation, tile-type
+  lightness shift, gap. Each slider shows its value; the sliders and the URL parameters (4.3)
+  are the same settings. Choosing the colouring mode (`plane` / `radial` / `angular`) shows the
+  sliders that apply.
+- **Other controls:** seed shape, depth, *Shuffle* (with strength), *Reset*, *Sorted preview*,
+  *Undo*, *Anchors* (edit mode and *Suggest*), *Copy link*; a status area with the minimum
+  swaps, the swaps made, the colour statistics and the uniqueness result.
 - Dark neutral background so colours are judged against black, as in the reference screenshots.
 - Accessibility: tiles are reachable by keyboard (arrow keys move between neighbours, Enter
   selects/swaps), the live region announces swaps and "solved"; `prefers-reduced-motion`
@@ -210,12 +247,16 @@ perceptual question (open questions, 10).
 
 ## 9. Outlook: the Penrose Color Puzzle (step 2, rough outline)
 
-Not specified in detail yet; step 1 must deliver the knowledge and the building blocks.
+**Provisional**: a sketch, not a specification. It will probably change after the inception
+phase with the tool, when we have seen many colourings and brainstormed how the game may look.
+Step 1 must deliver the knowledge and the building blocks.
 
-- **Flow:** show the sorted picture briefly → animate the shuffle → the player swaps tiles by
-  tapping two of them until the sorted picture is back. A preview button stays available.
+- **Flow:** show the sorted picture briefly → animate the shuffle → the player swaps tiles of
+  the same shape (drag and drop or two taps) until the sorted picture is back. A preview button
+  stays available.
 - **Levels** differ by tiling (seed and depth, i.e. number of tiles), the smoothness of the
-  gradient (how close neighbouring colours are) and the number of anchors.
+  gradient (how close neighbouring colours are) and the number of anchors. Swap budgets:
+  beginner ≈ 30, medium ≈ 80, expert 150 – 200 minimum swaps (6).
 - **Puzzle definition** = seed, depth, colouring parameters, anchor set, shuffle seed – all of
   this already fits into one URL (4.3), so puzzles can be generated, tested and shared.
 - Ad-free, calm, no timer; a move counter and an optional "par" are options to explore.
@@ -237,48 +278,57 @@ Pure logic first, no DOM (runs under Node):
 | `uniqueness.js` | colour ties, symmetry ambiguity, minimal anchor set (section 7) |
 | `params.js` | URL parameters ↔ settings, with validation and defaults |
 
-DOM: `view.js` (SVG render, selection, animation), `controller.js` (input, controls, URL),
-`main.js`; `sw.js` for offline use.
+DOM: `view.js` (SVG render, selection, drag and drop, animation), `controller.js` (input,
+sliders, controls, URL), `main.js`. All files are classic scripts with the UMD wrapper of
+section 3 (they load from `file://`).
 
 ### 10.2 Tests
 
-Same set-up as Sudoku (see the repository `CLAUDE.md`): Node's test runner for logic, Playwright
-for browser tests on iPhone, iPad portrait, iPad landscape and desktop.
+Same set-up as Sudoku (see the repository `CLAUDE.md`): Node's test runner for logic
+(`require` of the UMD files), Playwright for browser tests on iPhone, iPad portrait, iPad
+landscape and desktop. Because the page works from `file://`, the e2e tests open
+`file:///…/index.html` directly; no web server is needed.
 
 - **Unit:** tile counts for each seed and depth (known sequence of Penrose counts, thick : thin
   → φ), no overlaps and no gaps (areas add up to the patch outline), all edges shared by two
   tiles or on the boundary, symmetry groups of known seeds (D5/D10 sizes), colour conversion
-  against known values, injectivity of the plane colouring on generic parameters, ties found
+  against known values, minimum swaps (tiles − cycles) and shuffle to a target swap count,
+  injectivity of the plane colouring on generic parameters, ties found
   for symmetric colourings, shuffle determinism (same seed = same permutation), anchors never
   move, minimal anchor set really rules out every symmetry (checked by brute force on small
   patches), URL round trip.
 - **e2e:** page loads without console errors; URL parameters change the picture; shuffle +
-  swap + solved message; anchors cannot be selected; uniqueness status changes when anchors are
+  swap (drag and drop and two taps) + solved message; thick and thin tiles do not swap; the minimum
+  swap count is right; sliders change the picture and the URL; anchors cannot be selected; uniqueness status changes when anchors are
   added; layout fits in every project; screenshot baselines for a few colourings.
 - **Quality gate:** the phase gate of the repository `CLAUDE.md` applies (all tests green,
   `implementation.md` ticked, commit).
 
 ### 10.3 Performance
 
-Generating and drawing a 700-tile patch takes well under 100 ms; a swap or a shuffle must
-feel instant on an iPhone. The symmetry group and the minimal-anchor search run on demand
+Generating and drawing a 250-tile patch takes well under 100 ms, and slider movement redraws it
+without visible lag (recolour the existing polygons, do not rebuild the tiling); a swap or a
+shuffle must feel instant on an iPhone. The symmetry group and the minimal-anchor search run on demand
 (button) and may take up to a second for large patches.
 
 ## 11. Acceptance criteria (step 1)
 
-1. The page opens from a URL without parameters and shows a coloured wheel patch (default seed,
-   depth 3, `plane` colouring) as a smooth gradient with no gaps or overlaps.
-2. Seeds sun, star, wheel and the half variants work for depths 0–6; tile counts are as
+1. `index.html` opens from the file system (double-click) and, without parameters, shows a
+   coloured wheel patch (default seed, depth 3, `plane` colouring) as a smooth gradient with no
+   gaps or overlaps.
+2. Seeds sun, star, wheel and the half variants work for depths 0–5; tile counts are as
    expected and the patch is centred and fits the screen in all four test layouts.
-3. Colouring modes `plane`, `radial` and `angular` work; every colour parameter in 4.3
-   changes the picture when given in the URL; the same URL always gives the identical picture.
-4. Shuffle gives a reproducible scrambled picture; two taps swap two tile colours; Undo, Reset
-   and the sorted preview work; the move counter is correct; reaching the target colours
-   shows "solved".
+3. Colouring modes `plane`, `radial` and `angular` work; every colour parameter has a slider
+   that changes the picture live and is reflected in the URL; the same URL always gives the
+   identical picture; *Copy link* copies it.
+4. Shuffle gives a reproducible scrambled picture; drag and drop and two taps swap the colours of
+   two tiles of the same type (and refuse different types); the minimum-swap number and the
+   swap counter are correct; shuffle to a target of 30, 80 and 200 swaps works; Undo, Reset and
+   the sorted preview work; reaching the target colours shows "solved".
 5. Anchors can be set, are kept in the URL, never move in a shuffle and cannot be selected.
 6. The uniqueness check reports colour ties and symmetry ambiguity; *Suggest* proposes anchors
    that make the check report "unique", with the smallest number of anchors the tool finds.
-7. Works offline after the first load; unit and e2e tests pass in all projects.
+7. Unit and e2e tests pass in all projects.
 8. For at least three seed/colouring combinations, a short note in the implementation plan
    records how many anchors made them unique, to answer vision question 3.
 
@@ -288,24 +338,36 @@ feel instant on an iPhone. The symmetry group and the minimal-anchor search run 
 
 | Topic | Decision |
 |---|---|
-| PRD scope | Exploration tool in detail, game as outline |
-| Tiling | P3 only, by subdivision from seeds (sun, star, wheel, half variants); no clipping, no P2 |
-| Colouring | Position → colour on an HSL plane; radial and angular variants; **continuous** (no quantised palette) |
-| Uniqueness | **Strict, mathematical:** exact equal colours (8-bit sRGB) and patch symmetries |
-| Tool features | Shuffle and manual solving; anchors and uniqueness check. Sliders, presets and export are **not** part of step 1; parameters via URL |
-| Platform | Static web page, touch first, offline-capable |
-| Game outline | Show sorted, then shuffle; levels by tiling and anchors |
+| PRD scope | Exploration tool in detail, built quickly; game only as a provisional outline |
+| Tiling | P3 only, generated by **subdivision (deflation)** from seeds (sun, star, wheel, half variants); no clipping, no P2 |
+| Colouring | Position → colour on an HSL plane; radial and angular variants; **continuous** (no quantised palette); every colour plane is allowed, the tool does not judge hue ranges |
+| Uniqueness | **Strict, mathematical:** exact equal 8-bit sRGB colours and patch symmetries. Perceptual (ΔE) uniqueness and difficulty are left to step 2 |
+| Tool features | Shuffle and manual solving; anchors and uniqueness check; **on-screen sliders** for the colour parameters, URL parameters as the same settings; saving = copying the URL; no export |
+| Swaps | **Same-type tiles only** (thick with thick, thin with thin); by drag and drop and by two taps |
+| Puzzle size | Swap budgets: beginner ≈ 30, medium ≈ 80, expert 150 – 200 minimum swaps → patches of about 20 – 250 tiles |
+| Platform | Desktop browser first, **runs from `index.html` on `file://`** (no ES modules, no service worker); mouse and touch; offline/PWA later |
+| Game outline | Provisional: show sorted, then shuffle; levels by tiling and anchors. Timer / score / limits are open for the game design |
 
 ### Open questions
 
-1. **Perceptual uniqueness.** Strict uniqueness says nothing about tiles whose colours differ
-   by 1 in one RGB channel – a player cannot tell them apart. Should step 1 also measure
-   difficulty with a colour-difference formula (CIE ΔE), or is that left to step 2?
-2. **Swap rules in the game.** May a thick tile swap colours with a thin one (as specified in
-   this PRD, because the shapes stay), or should only same-type tiles swap?
-3. **Where do the "fancy" colourings come from without sliders?** The URL parameters are enough
-   to explore, but typing them is clumsy. If it hurts in practice, a small parameter panel
-   becomes the first change request.
-4. **Timer, score, move limit** for the game: left open (the Sudoku spirit says none).
-5. **Hue wrap-around.** The reference screenshots cover about 180° of hue; should full-circle
-   hue ranges (rainbow) be allowed, and is it still a good puzzle (the ends meet)?
+1. **Game design** (timer, score, move limit, what the game looks like) is left for the inception
+   phase with the tool, after we have seen many colourings.
+2. **Do the swap budgets (30 / 80 / 200) hold up in practice?** Real play with the tool should
+   confirm how many swaps a beginner, medium and expert player actually need, and whether
+   a full shuffle or a partial one gives the better puzzle.
+3. **Which tile counts and seeds feel good?** To be explored; the PRD only gives the range.
+
+## 13. Ideas for later releases
+
+- **Hierarchy-based colouring** (exploration option). Subdivision keeps, for every tile, its
+  ancestors (the parent tile at each coarser level, 4.1). A colouring can use this, for
+  example give each family of tiles with the same parent a slightly different saturation or
+  lightness (say ±10 %) per level, so the recursive structure of the tiling becomes visible in
+  the colours. Note that all tiles of a patch are at the same final depth, so "colour by
+  recursion level" means colour by *ancestor*, not by level of the tile itself. Such a
+  variation also breaks colour ties, so it helps the uniqueness question.
+- **Inflation** (merging tiles into larger ones) is *not* used for generation: it is not
+  well defined at the boundary of a finite patch, whereas subdivision always gives a valid
+  patch. It remains useful for analysis, because it gives the same parent/child hierarchy.
+- Perceptual (ΔE) difficulty measure, export as PNG/SVG, offline use and installation,
+  further tilings and clip shapes.
