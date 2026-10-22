@@ -12,20 +12,25 @@ Opening `index.html` directly from the file system does not work (browsers block
 
 ## Using it
 
-- **Tiling:** seed (*Wheel*, *Half wheel*, *Fan*) and depth (1–5). More than 250 tiles are too many for a puzzle.
+- **Panel:** the sections *Tiling*, *Colour*, *Anchors*, *Puzzle* fold with a click on their title (the arrow after it
+  shows the state; the browser remembers it).
+- **Tiling:** seed (*Wheel*, *Half wheel*, *Fan*) and depth (1–5). More than 250 tiles are too many for a puzzle. Half
+  wheel and fan are turned to run from left to right.
 - **Colour:** mapping *Plane* (hue left to right, saturation and lightness top to bottom), *Radial* (hue by angle,
-  saturation and lightness by distance from the centre) or *Angular* (hue by angle). Sliders change the picture
+  saturation and lightness by distance from the centre) with a **bright or dark centre** (*Centre* select). Sliders change the picture
   live: hue start/end, saturation, lightness, their slopes, rotation of the plane, lightness of thin tiles, gap.
   The panel shows how many different colours there are and how many tiles share one.
 - **Puzzle:** *Shuffle* mixes the colours. *Target swaps* sets how many swaps the shuffle needs at least (0 = a
   full shuffle). Swap two tiles of the **same shape** by dragging one onto the other, or click one and then the
-  other. *Undo*, *Reset*, and *Sorted preview* (shows the target) help. The panel shows the swaps made, the minimum
+  other. *Undo*, *Reset*, and *Peek* (shows the sorted target while it is on) help. The panel shows the swaps made, the minimum
   swaps still needed, and "Solved!". Keyboard: arrow keys move between neighbouring tiles, Enter selects and
   swaps, Escape deselects.
-- **Anchors and uniqueness:** *Edit anchors* lets you click tiles to fix them (a dot marks an anchor, anchored tiles
-  never move). The panel tells whether the sorted picture is **unique**: a symmetric patch has other, equally
-  regular pictures (a rotated or mirrored copy), and anchors rule them out. *Suggest anchors* finds the fewest
-  anchors that do.
+- **Anchors and uniqueness:** a puzzle starts with **default anchors**: tiles that stay fixed (a dot marks them) and
+  never move. Wheel and half wheel get one in the middle and four around the edge, the fan its four most distant
+  tiles. The more anchors, the easier the puzzle. *Edit anchors* lets you click tiles to set or remove anchors,
+  default ones included; *Clear anchors* removes all, *Default anchors* puts the defaults back. The panel tells whether
+  the sorted picture is **unique**: a symmetric patch has other, equally regular pictures (a rotated or mirrored
+  copy), and anchors rule them out.
 - **Copy link** copies the address; the address holds every setting.
 
 ## URL parameters
@@ -36,7 +41,8 @@ Only values that differ from the default appear in the address.
 |---|---|---|
 | `seed` | `wheel`, `half`, `fan` | `wheel` |
 | `depth` | subdivisions, 1–5 | `3` |
-| `map` | `plane`, `radial`, `angular` | `plane` |
+| `map` | `plane`, `radial` | `plane` |
+| `ctr` | radial only: `bright` or `dark` centre | `bright` |
 | `h0`, `h1` | hue start / end in degrees (0–360) | `250`, `70` |
 | `s`, `l` | saturation / lightness at the centre (0–100) | `60`, `60` |
 | `ds`, `dl` | saturation / lightness slope (−100…100) | `-20`, `-25` |
@@ -45,7 +51,7 @@ Only values that differ from the default appear in the address.
 | `gap` | width of the lines between tiles in px (0–6) | `1` |
 | `shuffle` | seed of the shuffle (0 = sorted) | `0` |
 | `sw` | minimum swaps the shuffle needs (0 = full shuffle) | `0` |
-| `anchors` | comma separated tile ids | – |
+| `anchors` | not given = the default anchors, `none` = no anchor, else comma separated tile ids | defaults |
 
 Invalid or unknown parameters are ignored and named in a short note.
 

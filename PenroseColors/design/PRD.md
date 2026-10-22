@@ -22,7 +22,7 @@ Step 1 has to answer the three questions of the vision:
 3. How many tiles must stay fixed (anchors) so that the solution is unique?
 
 **In scope (step 1):** P3 generation by subdivision, gradient colouring on an HSL plane
-(plus radial / angular variants), shuffle and manual solving by swapping, anchors, and an
+(plus a radial variant with a bright or dark centre), shuffle and manual solving by swapping, anchors, and an
 automatic uniqueness check. Step 2 appears only as an outlook (section 9).
 
 **Out of scope (step 1), decided:** perceptual (ΔE) uniqueness and difficulty, other tilings
@@ -71,7 +71,9 @@ means copying the URL (4.3).
   triangle labels is guaranteed:
   - *wheel*: all ten Robinson triangles around the centre; the patch has the symmetry of a five-fold
     vertex (10 symmetries) and, from depth 1 on, a centre of five thick rhombs;
-  - *half*: five consecutive triangles of the wheel; *fan*: three; both are asymmetric (identity only);
+  - *half*: five consecutive triangles of the wheel; *fan*: three; both are asymmetric (identity only) and are
+    **turned** so that their long axis runs from left to right with the wheel centre on the left, which fills a
+    landscape screen and centres the picture on the horizontal line;
   - *sun* and *star* (the other classic 5-fold seeds) are **not implemented**: their triangles need the
     arrow matching rules to be labelled correctly. A later addition.
 - **Lone halves.** A half-rhomb whose partner lies outside the patch cannot be a tile. These halves are
@@ -106,14 +108,15 @@ works for everyone.)
 |---|---|---|
 | `seed` | seed shape (`sun`, `star`, `wheel`, `sun-half`, …) | `wheel` |
 | `depth` | number of subdivisions | `3` |
-| `map` | colouring (section 5): `plane`, `radial`, `angular` | `plane` |
+| `map` | colouring (section 5): `plane`, `radial` | `plane` |
+| `ctr` | radial only: `bright` (light centre, dark rim) or `dark` | `bright` |
 | `h0`, `h1` | hue range in degrees | `250`, `70` |
 | `s`, `l` | saturation / lightness at the plane centre (0–100) | `55`, `60` |
 | `ds`, `dl` | saturation / lightness slope across the plane | `0`, `0` |
 | `rot` | rotation of the plane in degrees | `0` |
 | `gap` | gap between tiles in px | `1` |
 | `shuffle` | seed number of the current shuffle (empty = sorted) | – |
-| `anchors` | list of fixed tile ids (comma separated) | – |
+| `anchors` | absent = the default anchors (7); `none` = no anchor; else the fixed tile ids, comma separated | defaults |
 
 (The exact parameter list is finalised in the implementation plan; the principle – *every*
 colour parameter is reachable by URL – is the requirement.)
@@ -137,14 +140,16 @@ The tile centre `p` is normalised to the patch's bounding box (`u`, `v` in −1 
 The mapping is **continuous**: neighbouring tiles get similar colours, and (for generic
 parameters) every tile gets its own distinct colour.
 
-### 5.2 Radial and angular mappings
+### 5.2 Radial mapping
 
-- `radial`: lightness (and optionally saturation) by distance from the patch centre, hue by
-  the angle around the centre – suits the 5-fold symmetric patches.
-- `angular`: hue by angle only, lightness constant or by distance.
-
-These mappings are **symmetric** on symmetric patches, so several tiles can receive exactly the
-same colour. This is intentional: it is the interesting case for the uniqueness check (7).
+- `radial`: hue by the angle around the patch centre, saturation and lightness by the distance from it.
+- **Centre option** `ctr`: *bright* gives a light centre and a dark rim (for the default slopes), *dark* the
+  opposite. The option flips the sign of the saturation and lightness slopes in this mode.
+- On symmetric patches a radial colouring can give several tiles exactly the same colour (for example with zero
+  slopes); this is the interesting case for the uniqueness check (7).
+- With a **partial hue range** the hue jumps from the end value back to the start where the angle wraps around,
+  which shows as a hard seam; with a full range (0–360°) there is no seam.
+- The former `angular` mapping (hue by angle only) was **dropped** as too hard to understand.
 
 ### 5.3 Visibility of the tiling structure
 
@@ -188,7 +193,7 @@ The tool has two states: **sorted** (the colouring as generated, the *target*) a
 
   A full shuffle of *n* tiles needs close to *n* swaps, so these numbers roughly set the tile
   counts (about 40, 100 and 200 tiles) – or fewer misplaced tiles on a bigger patch.
-- **Sorted preview:** a button shows the target while it is pressed, or toggles it.
+- **Peek:** a button (short for the sorted preview) shows the target while it is switched on; the arrangement underneath is untouched.
 - **Solved:** when every tile shows its target colour, the tool says so (a quiet message; the
   celebration effect belongs to the game). A tile that already shows its target colour is not
   marked – the player has to see it.
@@ -197,9 +202,18 @@ The tool has two states: **sorted** (the colouring as generated, the *target*) a
 
 ## 7. Anchors and uniqueness check
 
-**Anchors** are tiles that keep their colour in the shuffle and cannot be moved (drawn with a
-dot, like the reference screenshots). The user can toggle anchors by long press (or Shift+tap)
-on a tile in anchor-edit mode; anchors are saved in the URL.
+**Anchors** are tiles that keep their colour in the shuffle and cannot be moved (drawn with a dot, like the
+reference screenshots). Anchors help the player a great deal: **the more anchors, the easier the game**.
+
+**Default anchors.** Every tiling starts with default anchors, chosen by the tool:
+- wheel and half wheel: one anchor in the middle (the tile nearest the centre of the patch) and four around the
+  perimeter, equally distributed (the extreme tile to the right, bottom, left and top);
+- fan: four anchors, the most distant tiles horizontally and vertically (rightmost, bottommost, leftmost, topmost).
+
+The default anchors are ordinary anchors: the user can **remove** any of them and **add** others (anchor edit
+mode: a click or tap on a tile toggles it). *Clear anchors* removes all, *Default anchors* restores the defaults.
+A new seed or depth brings the defaults of the new tiling. The URL records only the difference from the defaults
+(`anchors=none` for no anchor at all).
 
 **Question (vision, 3):** how few anchors are needed so that the solution is unique?
 
@@ -217,9 +231,10 @@ For the strict, mathematical version, with the colours as defined in 5.4:
    arrangement `colour∘g` is a second, equally regular picture of the same patch. It is ruled
    out by the anchors exactly if at least one anchored tile *t* has `colour(g(t)) ≠ colour(t)`.
    The solution is **unique** with respect to symmetry if every such *g* is ruled out.
-3. **Minimal anchor set.** The tool computes a small set of anchors that rules out every such
-   *g* (a hitting-set problem; greedy first, exact search for small cases) and shows them. The
-   user can accept them, add more by hand, and see how the answer changes.
+3. **Minimal anchor set.** The smallest set of anchors that rules out every such *g* is a hitting-set
+   problem (exact search for up to 20 symmetries, greedy beyond). The module exists for the exploration
+   script and the tests; the tool itself no longer has a *Suggest* button, because the default anchors
+   (below) replaced it.
 4. The result is displayed as: *unique / not unique*, the number of symmetries still not ruled
    out, the number of tied tiles, and the number of anchors used.
 
@@ -233,15 +248,18 @@ perceptual question (open questions, 10).
 
 ## 8. User interface
 
+- **Panel sections.** The panel is divided into the sections **Tiling, Colour, Anchors, Puzzle** (in this order),
+  each folded or unfolded by a click on its title; a small arrow after the title shows the state. The folded state is
+  remembered in the browser (if it allows storing). *Copy link* and the message line stay below the sections.
 - **Main view:** the patch fills the window (square-ish area, scales with the window and
   orientation); the control panel is beside it (landscape) or below it (portrait).
 - **Colour sliders** with live preview (the picture changes while the slider moves): hue start,
   hue end, saturation, lightness, saturation slope, lightness slope, plane rotation, tile-type
   lightness shift, gap. Each slider shows its value; the sliders and the URL parameters (4.3)
-  are the same settings. Choosing the colouring mode (`plane` / `radial` / `angular`) shows the
+  are the same settings. Choosing the colouring mode (`plane` / `radial`) shows the
   sliders that apply.
-- **Other controls:** seed shape, depth, *Shuffle* (with strength), *Reset*, *Sorted preview*,
-  *Undo*, *Anchors* (edit mode and *Suggest*), *Copy link*; a status area with the minimum
+- **Other controls:** seed shape, depth, *Shuffle* (with strength), *Reset*, *Undo*, *Peek* (all four in one row),
+  *Anchors* (edit mode, *Default anchors*, *Clear anchors*), *Copy link*; a status area with the minimum
   swaps, the swaps made, the colour statistics and the uniqueness result.
 - Dark neutral background so colours are judged against black, as in the reference screenshots.
 - Accessibility: tiles are reachable by keyboard (arrow keys move between neighbours, Enter
@@ -258,7 +276,7 @@ phase with the tool, when we have seen many colourings and brainstormed how the 
 Step 1 must deliver the knowledge and the building blocks.
 
 - **Flow:** show the sorted picture briefly → animate the shuffle → the player swaps tiles of
-  the same shape (drag and drop or two taps) until the sorted picture is back. A preview button
+  the same shape (drag and drop or two taps) until the sorted picture is back. A peek button
   stays available.
 - **Levels** differ by tiling (seed and depth, i.e. number of tiles), the smoothness of the
   gradient (how close neighbouring colours are) and the number of anchors. Swap budgets:
@@ -323,16 +341,16 @@ shuffle must feel instant on an iPhone. The symmetry group and the minimal-ancho
    gaps or overlaps.
 2. Seeds sun, star, wheel and the half variants work for depths 0–5; tile counts are as
    expected and the patch is centred and fits the screen in all four test layouts.
-3. Colouring modes `plane`, `radial` and `angular` work; every colour parameter has a slider
+3. Colouring modes `plane` and `radial` (with a bright or dark centre) work; every colour parameter has a slider
    that changes the picture live and is reflected in the URL; the same URL always gives the
    identical picture; *Copy link* copies it.
 4. Shuffle gives a reproducible scrambled picture; drag and drop and two taps swap the colours of
    two tiles of the same type (and refuse different types); the minimum-swap number and the
    swap counter are correct; shuffle to a target of 30, 80 and 200 swaps works; Undo, Reset and
-   the sorted preview work; reaching the target colours shows "solved".
+   the peek works; reaching the target colours shows "solved".
 5. Anchors can be set, are kept in the URL, never move in a shuffle and cannot be selected.
-6. The uniqueness check reports colour ties and symmetry ambiguity; *Suggest* proposes anchors
-   that make the check report "unique", with the smallest number of anchors the tool finds.
+6. The uniqueness check reports colour ties and symmetry ambiguity; the default anchors make a symmetric patch
+   "unique"; anchors can be toggled on any tile and restored with *Default anchors*.
 7. Unit and e2e tests pass in all projects.
 8. For at least three seed/colouring combinations, a short note in the implementation plan
    records how many anchors made them unique, to answer vision question 3.
@@ -345,7 +363,7 @@ shuffle must feel instant on an iPhone. The symmetry group and the minimal-ancho
 |---|---|
 | PRD scope | Exploration tool in detail, built quickly; game only as a provisional outline |
 | Tiling | P3 only, generated by **subdivision (deflation)** from seeds (wheel, half, fan; sun and star later); lone edge halves dropped; no clipping, no P2 |
-| Colouring | Position → colour on an HSL plane; radial and angular variants; **continuous** (no quantised palette); every colour plane is allowed, the tool does not judge hue ranges |
+| Colouring | Position → colour on an HSL plane; a radial variant with a bright or dark centre; **continuous** (no quantised palette); every colour plane is allowed, the tool does not judge hue ranges |
 | Uniqueness | **Strict, mathematical:** exact equal 8-bit sRGB colours and patch symmetries. Perceptual (ΔE) uniqueness and difficulty are left to step 2 |
 | Tool features | Shuffle and manual solving; anchors and uniqueness check; **on-screen sliders** for the colour parameters, URL parameters as the same settings; saving = copying the URL; no export |
 | Swaps | **Same-type tiles only** (thick with thick, thin with thin); by drag and drop and by two taps |
@@ -355,7 +373,7 @@ shuffle must feel instant on an iPhone. The symmetry group and the minimal-ancho
 
 ### Answered by the exploration (see [exploration-results.md](exploration-results.md))
 
-- **Hue wrap-around:** only radial and angular colourings are affected; with a partial hue range they show a hard
+- **Hue wrap-around:** only the radial colouring is affected; with a partial hue range they show a hard
   seam where the angle wraps, with a full range (0–360°) they do not. Plane colourings never have a seam.
 - **Uniqueness (strict):** symmetric patches (the wheel) need one anchor, asymmetric ones none. The real difficulty
   is perceptual (very close colours), which is step 2.

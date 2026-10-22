@@ -141,3 +141,33 @@ test("fit scales and centres the patch inside the box", () => {
   }
   assert.deepEqual(fit([], 100, 100), { scale: 1, dx: 50, dy: 50 });
 });
+
+test("half and fan are turned so that their long axis runs from left to right, the wheel centre on the left", () => {
+  for (const seed of ["half", "fan"]) {
+    for (let d = 2; d <= 5; d++) {
+      const { tiles } = generate(seed, d);
+      const n = tiles.length;
+      const mx = tiles.reduce((s, t) => s + t.cx, 0) / n, my = tiles.reduce((s, t) => s + t.cy, 0) / n;
+      let sxx = 0, syy = 0, sxy = 0;
+      for (const t of tiles) { sxx += (t.cx - mx) ** 2; syy += (t.cy - my) ** 2; sxy += (t.cx - mx) * (t.cy - my); }
+      assert.ok(sxx > syy, `${seed} d${d}: wider than tall`);
+      assert.ok(Math.abs(sxy) < 1e-9 * (sxx + syy), `${seed} d${d}: the principal axis is horizontal`);
+      assert.ok(mx > 0, `${seed} d${d}: the wheel centre (the origin) lies to the left of the middle`);
+    }
+  }
+});
+
+test("turning keeps the tiles intact: same counts, rhombs, area", () => {
+  for (const seed of ["half", "fan"]) {
+    const p = generate(seed, 4);
+    const total = p.tiles.reduce((s, t) => s + area(t.pts), 0) + p.halves.reduce((s, h) => s + area(h), 0);
+    assert.ok(Math.abs(total - p.seedArea) < 1e-9);
+    for (const t of p.tiles) assert.ok(Math.abs(t.cx - t.pts.reduce((s, q) => s + q.x, 0) / 4) < 1e-12);
+  }
+});
+
+test("the wheel is not turned: its centre is the origin and the tiles are symmetric about it", () => {
+  const { tiles } = generate("wheel", 3);
+  const mx = tiles.reduce((s, t) => s + t.cx, 0) / tiles.length, my = tiles.reduce((s, t) => s + t.cy, 0) / tiles.length;
+  assert.ok(Math.hypot(mx, my) < 1e-9);
+});

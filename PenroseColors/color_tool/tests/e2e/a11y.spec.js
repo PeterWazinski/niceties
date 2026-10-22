@@ -13,7 +13,7 @@ async function scan(page, label) {
 test("accessibility scan (axe): main screen, shuffled puzzle, edit mode with anchors", async ({ page }) => {
   await openTool(page);
   await scan(page, "fresh");
-  await openTool(page, "?depth=3&shuffle=4&sw=12&anchors=5,9&map=radial");
+  await openTool(page, "?depth=3&shuffle=4&sw=12&anchors=5,9&map=radial&ctr=dark");
   await scan(page, "shuffled with anchors");
   await page.locator("#edit-anchors").click();
   await scan(page, "edit mode");
@@ -26,7 +26,7 @@ test("controls and the board have accessible names; sliders are labelled", async
   await expect(page.getByRole("slider", { name: /^Hue start/ })).toBeVisible();
   await expect(page.getByRole("slider", { name: /^Lightness slope/ })).toBeVisible();
   await expect(page.getByRole("slider", { name: /^Target swaps/ })).toBeVisible();
-  for (const name of ["Shuffle", "Reset", "Undo", "Sorted preview", "Edit anchors", "Suggest anchors", "Clear anchors", "Copy link"]) {
+  for (const name of ["Shuffle", "Reset", "Undo", "Peek", "Edit anchors", "Default anchors", "Clear anchors", "Copy link"]) {
     await expect(page.getByRole("button", { name })).toBeVisible();
   }
 });
@@ -56,8 +56,8 @@ test("the live region announces swaps, anchors and the solved state", async ({ p
   await expect(page.locator("#live")).toContainText("Swapped");
   await page.locator("#edit-anchors").click();
   await expect(page.locator("#live")).toContainText("Anchor editing on");
-  await page.locator("#suggest").click();
-  await expect(page.locator("#live")).toContainText("anchor");
+  await page.locator("#default-anchors").click();
+  await expect(page.locator("#live")).toContainText("Default anchors restored");
 });
 
 test("Undo and the preview toggle expose their state to assistive technology", async ({ page }) => {
@@ -66,4 +66,16 @@ test("Undo and the preview toggle expose their state to assistive technology", a
   await expect(page.locator("#preview")).toHaveAttribute("aria-pressed", "false");
   await page.locator("#preview").click();
   await expect(page.locator("#preview")).toHaveAttribute("aria-pressed", "true");
+});
+
+test("the section titles are buttons that say whether the section is open", async ({ page }) => {
+  await openTool(page);
+  for (const name of ["Tiling", "Colour", "Anchors", "Puzzle"]) {
+    const toggle = page.getByRole("button", { name, exact: true });
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await toggle.press("Enter");
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  }
 });

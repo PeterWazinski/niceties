@@ -25,12 +25,13 @@ Pure logic, no DOM (runs under Node):
 - `penrose.js` – P3 by subdivision of Robinson triangles; seeds `wheel`, `half`, `fan`; `generate(seed, depth)`
   returns tiles (rhombs: id, type, corners, centre, neighbours, ancestors, boundary) and the lone halves that are
   dropped; `fit()` scales a patch into a box
-- `color.js` – HSL→sRGB, the mappings `plane` / `radial` / `angular`, `colourTiles`, `colourStats` (ties)
+- `color.js` – HSL→sRGB, the mappings `plane` / `radial` (with `ctr` bright or dark centre), `colourTiles`, `colourStats` (ties)
 - `params.js` – settings ↔ URL query (only non-default values are written)
 - `puzzle.js` – colours move over fixed shapes: permutation per tile, same-type swaps, undo, shuffle (full or to
   k minimum swaps), minimum swaps = tiles − cycles, anchored tiles never move
 - `symmetry.js` – symmetries of a patch (rotations/reflections about the origin) as tile permutations; the wheel has 10,
   `half` and `fan` only the identity
+- `anchors.js` – `defaultAnchors(tiles, seed)`
 - `uniqueness.js` – `analyse` (colour ties, symmetric copies not ruled out by the anchors) and `minimalAnchors`
   (exact search over which symmetries a tile rules out, greedy beyond 20 symmetries)
 - `rng.js` – seeded random numbers
@@ -48,5 +49,9 @@ keyboard), `main.js`. Styles: `css/style.css`.
 - e2e tests read `data-id`, `data-type` and the `fill` attribute of `.tile` polygons; `helpers.js` has `drag()`
   (mouse) and `solvingSwaps()` (computes the swaps that sort a shuffled picture from the DOM).
 - `tools/explore.mjs` prints the numbers behind `../design/exploration-results.md` (`node tools/explore.mjs`).
-- Anchors: edit mode in the UI, `?anchors=3,17` in the URL; changing seed or depth clears them; `Suggest anchors` = `minimalAnchors`.
+- Anchors: `anchors.js` gives the default anchors of a tiling (shown at start). `anchors` absent in the URL = defaults, `none` =
+  no anchor, else ids; the controller stores only the difference from the defaults. Changing seed or depth brings the new
+  defaults. `minimalAnchors` is no longer in the UI (kept for the exploration script and tests).
+- `half` and `fan` are turned in `penrose.js` (`orient`) so that they run from left to right; the panel sections fold
+  (`view.js`, state in `localStorage`).
 - Test URLs: `?depth=3&shuffle=7&sw=6` = reproducible shuffle needing exactly 6 swaps.

@@ -1,6 +1,6 @@
 // Renders the tool into the page: SVG board, controls, status. The view holds no rules;
 // the controller passes handlers in and calls the setters.
-import { SLIDERS, MAPS, SEEDS, MAX_DEPTH } from "./config.js";
+import { SLIDERS, MAPS, CENTRES, SEEDS, MAX_DEPTH } from "./config.js";
 import { fit } from "./penrose.js";
 
 /** @typedef {import("./types.js").Tile} Tile */
@@ -9,7 +9,21 @@ import { fit } from "./penrose.js";
 const SVG = "http://www.w3.org/2000/svg";
 const DRAG_START_PX = 6;
 
-const LABELS = { wheel: "Wheel", half: "Half wheel", fan: "Fan", plane: "Plane", radial: "Radial", angular: "Angular" };
+const LABELS = {
+  wheel: "Wheel", half: "Half wheel", fan: "Fan", plane: "Plane", radial: "Radial",
+  bright: "Bright centre", dark: "Dark centre"
+};
+
+const SECTIONS_KEY = "penrose.sections"; // which panel sections are collapsed (a per-viewer convenience)
+
+/** A panel section with a title that folds it. */
+function section(id, title, body) {
+  return `
+        <section class="collapsible" data-section="${id}">
+          <h2><button type="button" class="section-toggle" aria-expanded="true" aria-controls="body-${id}"><span>${title}</span><span class="chevron" aria-hidden="true"></span></button></h2>
+          <div class="section-body" id="body-${id}">${body}</div>
+        </section>`;
+}
 
 function template() {
   const options = (list) => list.map((v) => `<option value="${v}">${LABELS[v] || v}</option>`).join("");
@@ -19,52 +33,47 @@ function template() {
       <span class="slider-head"><span>${s.label}</span><output id="out-${s.key}"></output></span>
       <input type="range" id="in-${s.key}" aria-label="${s.label}" min="${s.min}" max="${s.max}" step="${s.step}">
     </label>`).join("");
+  const tiling = `
+          <div class="row">
+            <label class="field"><span>Seed</span><select id="seed" class="select">${options(SEEDS)}</select></label>
+            <label class="field"><span>Depth</span><select id="depth" class="select">${depths}</select></label>
+          </div>
+          <p class="info" id="tile-info"></p>`;
+  const colour = `
+          <div class="row">
+            <label class="field"><span>Mapping</span><select id="map" class="select">${options(MAPS)}</select></label>
+            <label class="field" id="ctr-field"><span>Centre</span><select id="ctr" class="select">${options(CENTRES)}</select></label>
+          </div>
+          <div class="sliders">${sliders}</div>
+          <p class="info" id="colour-info"></p>`;
+  const anchors = `
+          <div class="buttons">
+            <button type="button" class="btn" id="edit-anchors" aria-pressed="false">Edit anchors</button>
+            <button type="button" class="btn" id="default-anchors">Default anchors</button>
+            <button type="button" class="btn" id="clear-anchors">Clear anchors</button>
+          </div>
+          <p class="info" id="unique-state"></p>
+          <p class="info" id="unique-sym"></p>
+          <p class="info" id="unique-anchors"></p>`;
+  const puzzle = `
+          <label class="slider">
+            <span class="slider-head"><span>Target swaps (0 = full shuffle)</span><output id="out-sw"></output></span>
+            <input type="range" id="in-sw" aria-label="Target swaps (0 = full shuffle)" min="0" max="100" step="1">
+          </label>
+          <div class="buttons one-row">
+            <button type="button" class="btn primary" id="shuffle">Shuffle</button>
+            <button type="button" class="btn" id="reset">Reset</button>
+            <button type="button" class="btn" id="undo">Undo</button>
+            <button type="button" class="btn" id="preview" aria-pressed="false" title="Show the sorted picture while on">Peek</button>
+          </div>
+          <p class="info" id="puzzle-info"></p>`;
   return `
     <div class="app">
       <div class="stage" id="stage">
         <svg id="board" role="group" aria-label="Penrose tiling" tabindex="0"></svg>
       </div>
       <aside class="panel">
-        <h1>Penrose Colors</h1>
-        <section>
-          <h2>Tiling</h2>
-          <div class="row">
-            <label class="field"><span>Seed</span><select id="seed" class="select">${options(SEEDS)}</select></label>
-            <label class="field"><span>Depth</span><select id="depth" class="select">${depths}</select></label>
-          </div>
-          <p class="info" id="tile-info"></p>
-        </section>
-        <section>
-          <h2>Colour</h2>
-          <label class="field"><span>Mapping</span><select id="map" class="select">${options(MAPS)}</select></label>
-          <div class="sliders">${sliders}</div>
-          <p class="info" id="colour-info"></p>
-        </section>
-        <section>
-          <h2>Puzzle</h2>
-          <label class="slider">
-            <span class="slider-head"><span>Target swaps (0 = full shuffle)</span><output id="out-sw"></output></span>
-            <input type="range" id="in-sw" aria-label="Target swaps (0 = full shuffle)" min="0" max="100" step="1">
-          </label>
-          <div class="buttons">
-            <button type="button" class="btn primary" id="shuffle">Shuffle</button>
-            <button type="button" class="btn" id="reset">Reset</button>
-            <button type="button" class="btn" id="undo">Undo</button>
-            <button type="button" class="btn" id="preview" aria-pressed="false">Sorted preview</button>
-          </div>
-          <p class="info" id="puzzle-info"></p>
-        </section>
-        <section>
-          <h2>Anchors and uniqueness</h2>
-          <div class="buttons">
-            <button type="button" class="btn" id="edit-anchors" aria-pressed="false">Edit anchors</button>
-            <button type="button" class="btn" id="suggest">Suggest anchors</button>
-            <button type="button" class="btn" id="clear-anchors">Clear anchors</button>
-          </div>
-          <p class="info" id="unique-state"></p>
-          <p class="info" id="unique-sym"></p>
-          <p class="info" id="unique-anchors"></p>
-        </section>
+        <h1>Penrose Colors</h1>${section("tiling", "Tiling", tiling)}${section("colour", "Colour", colour)}${section("anchors", "Anchors", anchors)}${section("puzzle", "Puzzle", puzzle)}
         <section>
           <button type="button" class="btn" id="copy">Copy link</button>
           <p class="info" id="message" role="status"></p>
@@ -80,7 +89,7 @@ function template() {
  *   onSetting?: (key: string, value: string | number) => void,
  *   onShuffle?: () => void, onReset?: () => void, onUndo?: () => void,
  *   onPreview?: (on: boolean) => void, onCopy?: () => void,
- *   onEditAnchors?: (on: boolean) => void, onSuggest?: () => void, onClearAnchors?: () => void,
+ *   onEditAnchors?: (on: boolean) => void, onDefaultAnchors?: () => void, onClearAnchors?: () => void,
  *   onTap?: (id: number) => void, onSwap?: (a: number, b: number) => void,
  *   onKey?: (key: string) => boolean
  * }} handlers
@@ -114,6 +123,7 @@ export function createView(root, handlers = {}) {
   $("#seed").addEventListener("change", (e) => handlers.onSetting && handlers.onSetting("seed", e.target.value));
   $("#depth").addEventListener("change", (e) => handlers.onSetting && handlers.onSetting("depth", Number(e.target.value)));
   $("#map").addEventListener("change", (e) => handlers.onSetting && handlers.onSetting("map", e.target.value));
+  $("#ctr").addEventListener("change", (e) => handlers.onSetting && handlers.onSetting("ctr", e.target.value));
   for (const s of [...SLIDERS, { key: "sw" }]) {
     $("#in-" + s.key).addEventListener("input", (e) => {
       $("#out-" + s.key).textContent = e.target.value;
@@ -124,7 +134,7 @@ export function createView(root, handlers = {}) {
   $("#reset").addEventListener("click", () => handlers.onReset && handlers.onReset());
   $("#undo").addEventListener("click", () => handlers.onUndo && handlers.onUndo());
   $("#copy").addEventListener("click", () => handlers.onCopy && handlers.onCopy());
-  $("#suggest").addEventListener("click", () => handlers.onSuggest && handlers.onSuggest());
+  $("#default-anchors").addEventListener("click", () => handlers.onDefaultAnchors && handlers.onDefaultAnchors());
   $("#clear-anchors").addEventListener("click", () => handlers.onClearAnchors && handlers.onClearAnchors());
   $("#edit-anchors").addEventListener("click", () => {
     editMode = !editMode;
@@ -137,6 +147,27 @@ export function createView(root, handlers = {}) {
     $("#preview").setAttribute("aria-pressed", String(preview));
     if (handlers.onPreview) handlers.onPreview(preview);
   });
+
+  // ---- collapsible sections; the state is remembered in the browser if it allows ----
+  /** @type {Record<string, boolean>} */
+  let collapsed = {};
+  try { collapsed = JSON.parse(localStorage.getItem(SECTIONS_KEY) || "{}") || {}; } catch (e) { collapsed = {}; }
+  const fold = (name, closed) => {
+    const sec = $(`.collapsible[data-section="${name}"]`);
+    sec.classList.toggle("collapsed", closed);
+    sec.querySelector(".section-toggle").setAttribute("aria-expanded", String(!closed));
+    sec.querySelector(".section-body").hidden = closed;
+  };
+  for (const sec of root.querySelectorAll(".collapsible")) {
+    const name = /** @type {HTMLElement} */ (sec).dataset.section;
+    fold(name, !!collapsed[name]);
+    sec.querySelector(".section-toggle").addEventListener("click", () => {
+      const closed = !sec.classList.contains("collapsed");
+      fold(name, closed);
+      collapsed[name] = closed;
+      try { localStorage.setItem(SECTIONS_KEY, JSON.stringify(collapsed)); } catch (e) { /* not remembered */ }
+    });
+  }
 
   // ---- board: drag and drop, tap ----
   /** @type {{ id: number, x: number, y: number, pointerId: number, dragging: boolean } | null} */
@@ -289,6 +320,8 @@ export function createView(root, handlers = {}) {
       $("#seed").value = st.seed;
       $("#depth").value = String(st.depth);
       $("#map").value = st.map;
+      $("#ctr").value = st.ctr;
+      $("#ctr-field").hidden = st.map !== "radial";
       for (const s of SLIDERS) {
         $("#in-" + s.key).value = String(st[s.key]);
         $("#out-" + s.key).textContent = String(st[s.key]);

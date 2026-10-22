@@ -46,7 +46,7 @@ test("an anchor on a tile that a reflection fixes does not rule that reflection 
 });
 
 test("tied colours are reported", () => {
-  const r = analyse(colourTiles(wheel3, { ...DEFAULTS, map: "angular" }), sym3, []);
+  const r = analyse(colourTiles(wheel3, { ...DEFAULTS, map: "radial", ds: 0, dl: 0 }), sym3, []);
   assert.ok(r.ties.length > 0);
   assert.equal(r.tiedTiles, r.ties.reduce((s, g) => s + g.length, 0));
 });

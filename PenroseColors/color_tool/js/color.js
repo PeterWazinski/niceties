@@ -56,8 +56,8 @@ export function rgbToHsl(r, g, b) {
 /**
  * The colour of every tile (index = tile id) as "#rrggbb".
  *  - plane:   hue changes along u, saturation and lightness change along v (a plane through the HSL cone)
- *  - radial:  hue by the angle around the centre, saturation and lightness by the distance from it
- *  - angular: hue by the angle only
+ *  - radial:  hue by the angle around the centre, saturation and lightness by the distance from it;
+ *             `ctr` "bright" makes the centre light and the rim dark (for the default slopes), "dark" the opposite
  * (u, v) are the tile centre, centred and scaled by the larger half-extent into -1..1, then rotated by `rot`.
  * @param {Tile[]} tiles
  * @param {Settings} st
@@ -81,11 +81,10 @@ export function colourTiles(tiles, st) {
     } else {
       const angle = Math.atan2(v, u);                 // -pi..pi
       hue = st.h0 + (st.h1 - st.h0) * (angle / (2 * Math.PI) + 0.5);
-      if (st.map === "radial") {
-        const r = clamp(Math.hypot(u, v), 0, 1);
-        sat += st.ds * (2 * r - 1);
-        lig += st.dl * (2 * r - 1);
-      }
+      const r = clamp(Math.hypot(u, v), 0, 1);
+      const k = (st.ctr === "dark" ? -1 : 1) * (2 * r - 1);
+      sat += st.ds * k;
+      lig += st.dl * k;
     }
     if (t.type === "thin") lig += st.dt;
     return toHex(hslToRgb(hue, sat, lig));

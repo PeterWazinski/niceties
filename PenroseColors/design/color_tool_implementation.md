@@ -151,6 +151,19 @@ the tool is only fixed if the exploration finds bugs.
 
 ---
 
+## After phase 6 – change request round 1 (2026-10-23)
+
+Requested after the first try-out ("a game editor"): shorter panel, fewer modes, default anchors.
+
+- [x] **Collapsible panel sections** with an arrow after the title; order Tiling, Colour, Anchors, Puzzle; the folded state is remembered (`localStorage`, tolerated when blocked). Tests: `sections.spec.js`, a11y (`aria-expanded`)
+- [x] **Half wheel and fan turned** (`penrose.js` `orient`: principal axis horizontal, wheel centre on the left) so they fill a landscape screen. Tests: unit (axis, centre side, area/rhomb intact), e2e `layout.spec.js` (wider than tall, uses the width, centred on the horizontal line)
+- [x] **Angular mapping dropped** (`map=angular` is now an ignored value); the exploration script no longer uses it
+- [x] **Radial centre option** `ctr=bright|dark` (the sign of the slopes in radial mode); UI select shown for radial only. Tests: unit `color.test.js`, e2e `colour.spec.js`
+- [x] **Default anchors** (`anchors.js`): wheel and half wheel = tile nearest the middle + extreme tiles right, bottom, left, top; fan = the four extreme tiles. They are ordinary anchors (toggle, clear); `anchors` absent = defaults, `none` = no anchor. *Suggest anchors* removed, *Default anchors* button added. Tests: unit `anchors.test.js` (including: the defaults make every wheel colouring tried unique), e2e `anchors.spec.js`
+- [x] **Peek** replaces "Sorted preview" and the four puzzle buttons share one row (`layout.spec.js`)
+- [x] Docs: PRD 4.1, 4.3, 5.2, 6, 7, 8, 11, 12; this plan; READMEs; the exploration results carry a note on the dropped mapping
+- Assumptions to confirm: the fan's "four corners" are read as its four most distant tiles (right, bottom, left, top), not the corners of its bounding box (which can be empty); *Default anchors* is an addition to restore the defaults.
+
 ## Requirements trace
 
 | PRD | Phase | Tests |

@@ -46,8 +46,8 @@ const COLOURINGS = {
   "plane warm (h0=20 h1=200 ds=30 dl=15 dt=6)": { h0: 20, h1: 200, ds: 30, dl: 15, dt: 6 },
   "radial (default)": { map: "radial" },
   "radial rainbow (h0=0 h1=360 ds=0 dl=-30)": { map: "radial", h0: 0, h1: 360, s: 75, ds: 0, dl: -30 },
-  "radial, hue only (ds=dl=0)": { map: "radial", ds: 0, dl: 0 },
-  "angular": { map: "angular", s: 80, l: 55, h0: 30, h1: 330 }
+  "radial dark centre": { map: "radial", ctr: "dark" },
+  "radial, hue only (ds=dl=0)": { map: "radial", ds: 0, dl: 0 }
 };
 console.log("seed d | colouring | tiles | different colours | tied tiles | symmetries | change colouring | anchors needed (exact) | closest pair of tiles (RGB distance)");
 /** @type {[string, number][]} */

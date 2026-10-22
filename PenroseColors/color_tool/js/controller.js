@@ -6,7 +6,8 @@ import { createPuzzle } from "./puzzle.js";
 import { createRng } from "./rng.js";
 import { createView } from "./view.js";
 import { findSymmetries } from "./symmetry.js";
-import { analyse, minimalAnchors } from "./uniqueness.js";
+import { analyse } from "./uniqueness.js";
+import { defaultAnchors } from "./anchors.js";
 import { MAX_TILES, WARN_TILES } from "./config.js";
 
 /** @typedef {import("./types.js").Tile} Tile */
@@ -31,6 +32,8 @@ export function startApp(root) {
   let symmetries = [];
   /** @type {Set<number>} */
   let anchorSet = new Set();
+  /** @type {number[]} default anchors of the current tiling */
+  let defaults = [];
 
   const view = createView(root, {
     onSetting: (key, value) => setSetting(key, value),
@@ -40,7 +43,7 @@ export function startApp(root) {
     onPreview: (on) => { preview = on; refresh(); },
     onCopy: copyLink,
     onEditAnchors: (on) => { editing = on; selected = -1; refresh(); view.announce(on ? "Anchor editing on." : "Anchor editing off."); },
-    onSuggest: suggest,
+    onDefaultAnchors: () => { setAnchors(new Set(defaults)); view.setMessage("Default anchors restored."); view.announce("Default anchors restored."); },
     onClearAnchors: () => setAnchors(new Set()),
     onTap: (id) => tap(id),
     onSwap: (a, b) => swap(a, b),
@@ -66,8 +69,11 @@ export function startApp(root) {
     tooMany = patch.tiles.length > MAX_TILES;
     tiles = tooMany ? [] : patch.tiles;
     symmetries = findSymmetries(tiles);
-    anchorSet = new Set(settings.anchors ? settings.anchors.split(",").map(Number).filter((id) => id < tiles.length) : []);
-    settings.anchors = [...anchorSet].sort((a, b) => a - b).join(",");
+    defaults = defaultAnchors(tiles, settings.seed);
+    anchorSet = settings.anchors === "" ? new Set(defaults)
+      : settings.anchors === "none" ? new Set()
+      : new Set(settings.anchors.split(",").map(Number).filter((id) => id < tiles.length));
+    settings.anchors = anchorsToSetting(anchorSet);
     puzzle = createPuzzle(tiles.map((t) => t.type), anchorSet);
     cursor = -1;
     view.setTiles(tiles);
@@ -123,25 +129,22 @@ export function startApp(root) {
     refresh();
   }
 
+  /** The URL form of an anchor set: "" for the default anchors, "none" for no anchor, else the ids. @param {Set<number>} set */
+  function anchorsToSetting(set) {
+    const list = [...set].sort((a, b) => a - b);
+    if (list.length === defaults.length && list.every((id, i) => id === defaults[i])) return "";
+    return list.length ? list.join(",") : "none";
+  }
+
   /** Replaces the anchors; the shuffle is applied again because anchored tiles must not move. @param {Set<number>} set */
   function setAnchors(set) {
     anchorSet = set;
-    settings.anchors = [...set].sort((a, b) => a - b).join(",");
+    settings.anchors = anchorsToSetting(set);
     puzzle = createPuzzle(tiles.map((t) => t.type), anchorSet);
     applyShuffle();
     syncUrl();
     view.setSettings(settings, Math.max(1, puzzle.capacity()));
     refresh();
-  }
-
-  function suggest() {
-    const r = minimalAnchors(colours, symmetries);
-    setAnchors(new Set(r.anchors));
-    const text = r.anchors.length
-      ? `${r.anchors.length} ${r.anchors.length === 1 ? "anchor" : "anchors"} suggested${r.exact ? " (the fewest possible)" : ""}.`
-      : "No anchor needed: no symmetry changes the colouring.";
-    view.setMessage(text);
-    view.announce(text);
   }
 
   function swap(a, b) {

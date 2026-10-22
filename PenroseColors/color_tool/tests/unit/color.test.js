@@ -76,18 +76,30 @@ test("plane with generic parameters: every tile has its own colour", () => {
   }
 });
 
-test("angular: tiles on the same ray of a symmetric patch share a colour", () => {
-  const st = { ...DEFAULTS, map: "angular" };
-  const stats = colourStats(colourTiles(wheel3, st));
+test("radial with zero slopes: tiles on the same ray of a symmetric patch share a colour", () => {
+  const stats = colourStats(colourTiles(wheel3, { ...DEFAULTS, map: "radial", ds: 0, dl: 0 }));
   assert.ok(stats.ties.length > 0);
   assert.ok(stats.distinct < wheel3.length);
 });
 
-test("radial uses the distance: with zero slopes it equals angular", () => {
-  const radial = colourTiles(wheel3, { ...DEFAULTS, map: "radial", ds: 0, dl: 0 });
-  const angular = colourTiles(wheel3, { ...DEFAULTS, map: "angular", ds: 0, dl: 0 });
-  assert.deepEqual(radial, angular);
-  assert.notDeepEqual(colourTiles(wheel3, { ...DEFAULTS, map: "radial", ds: 0, dl: 40 }), angular);
+test("radial: a bright centre has the lightest tiles in the middle, a dark centre the darkest", () => {
+  const lightness = (hex) => rgbToHsl(parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16))[2];
+  const radius = (t) => Math.hypot(t.cx, t.cy);
+  const order = wheel3.map((_, i) => i).sort((p, q) => radius(wheel3[p]) - radius(wheel3[q]));
+  const inner = order.slice(0, 8), outer = order.slice(-8);
+  const mean = (ids, colours) => ids.reduce((s, i) => s + lightness(colours[i]), 0) / ids.length;
+  const bright = colourTiles(wheel3, { ...DEFAULTS, map: "radial", ctr: "bright", dt: 0 });
+  const dark = colourTiles(wheel3, { ...DEFAULTS, map: "radial", ctr: "dark", dt: 0 });
+  assert.ok(mean(inner, bright) > mean(outer, bright) + 15, "bright centre: light in the middle");
+  assert.ok(mean(inner, dark) < mean(outer, dark) - 15, "dark centre: dark in the middle");
+  assert.deepEqual(colourTiles(wheel3, { ...DEFAULTS, map: "radial" }), bright, "bright is the default");
+  assert.notDeepEqual(bright, dark);
+});
+
+test("the centre option changes nothing without slopes, nor in the plane mapping", () => {
+  const flat = { ...DEFAULTS, map: "radial", ds: 0, dl: 0 };
+  assert.deepEqual(colourTiles(wheel3, { ...flat, ctr: "bright" }), colourTiles(wheel3, { ...flat, ctr: "dark" }));
+  assert.deepEqual(colourTiles(wheel3, { ...DEFAULTS, ctr: "bright" }), colourTiles(wheel3, { ...DEFAULTS, ctr: "dark" }));
 });
 
 test("the thin tile shift changes the lightness of thin tiles only", () => {

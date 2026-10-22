@@ -1,5 +1,5 @@
 // Settings <-> URL query (PRD 4.3). Invalid or unknown values fall back to the defaults.
-import { DEFAULTS, SLIDERS, SEEDS, MAPS, MAX_DEPTH } from "./config.js";
+import { DEFAULTS, SLIDERS, SEEDS, MAPS, CENTRES, MAX_DEPTH } from "./config.js";
 
 /** @typedef {import("./config.js").Settings} Settings */
 
@@ -20,6 +20,8 @@ export function parseParams(search) {
   if (seed && SEEDS.includes(seed)) st.seed = seed;
   const map = q.get("map");
   if (map && MAPS.includes(map)) st.map = map;
+  const ctr = q.get("ctr");
+  if (ctr && CENTRES.includes(ctr)) st.ctr = ctr;
   const depth = num(q.get("depth"), 1, MAX_DEPTH);
   if (depth !== null) st.depth = Math.round(depth);
   for (const sl of SLIDERS) {
@@ -31,7 +33,7 @@ export function parseParams(search) {
   const sw = num(q.get("sw"), 0, 1000);
   if (sw !== null) st.sw = Math.round(sw);
   const anchors = q.get("anchors");
-  if (anchors && /^\d+(,\d+)*$/.test(anchors)) st.anchors = anchors;
+  if (anchors && /^(none|\d+(,\d+)*)$/.test(anchors)) st.anchors = anchors;
   return st;
 }
 

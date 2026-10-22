@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { openTool, tile, idOfType } from "./helpers.js";
 
 test("bad or unknown URL parameters are named in a short note and the defaults are used", async ({ page }) => {
-  await openTool(page, "?depth=99&foo=1&map=nope&anchors=x");
+  await openTool(page, "?depth=99&foo=1&map=angular&anchors=x");
   const note = page.locator("#message");
   await expect(note).toContainText("Ignored or corrected URL parameters");
   for (const name of ["depth", "foo", "map", "anchors"]) await expect(note).toContainText(name);
@@ -10,7 +10,7 @@ test("bad or unknown URL parameters are named in a short note and the defaults a
 });
 
 test("good URL parameters give no note", async ({ page }) => {
-  await openTool(page, "?depth=4&map=radial&h0=30&shuffle=9&sw=12&anchors=3,5");
+  await openTool(page, "?depth=4&map=radial&ctr=dark&h0=30&shuffle=9&sw=12&anchors=3,5");
   await expect(page.locator("#message")).toHaveText("");
 });
 

@@ -9,6 +9,10 @@ swap budgets below are arithmetic, not experience.
 Open the tool with the links (start `PenroseColors\start.cmd` first, then replace the start of the address):
 `http://localhost:4175/color_tool/index.html` + the query.
 
+> **Update (change request round 1):** the *angular* mapping (E in the gallery, the angular rows of the numbers) was dropped
+> afterwards as too hard to understand, radial gained a bright/dark centre option, and every tiling now starts with default
+> anchors. The numbers below are from before and stay valid for what they describe.
+
 ## 1. Which tilings make appealing puzzles?
 
 | Seed | Depth | Tiles | Thick / thin | Symmetries | Capacity (max minimum swaps) | A full shuffle needs on average |

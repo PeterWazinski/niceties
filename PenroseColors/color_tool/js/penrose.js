@@ -73,6 +73,31 @@ const vkey = (p) => Math.round(p.x * 1e6) + "," + Math.round(p.y * 1e6);
 const ekey = (p, q) => { const a = vkey(p), b = vkey(q); return a < b ? a + "|" + b : b + "|" + a; };
 
 /**
+ * Turns an asymmetric patch (half, fan) so that its long axis runs from left to right, with the wheel centre on
+ * the left, so that it fills a landscape screen. Rotation about the origin keeps the origin the wheel centre.
+ * @param {Tile[]} tiles
+ * @param {Pt[][]} halves
+ * @returns {Pt[][]} the rotated halves (tiles are changed in place)
+ */
+function orient(tiles, halves) {
+  const n = tiles.length;
+  if (!n) return halves;
+  const mx = tiles.reduce((s, t) => s + t.cx, 0) / n, my = tiles.reduce((s, t) => s + t.cy, 0) / n;
+  let sxx = 0, syy = 0, sxy = 0;
+  for (const t of tiles) { const dx = t.cx - mx, dy = t.cy - my; sxx += dx * dx; syy += dy * dy; sxy += dx * dy; }
+  let a = -0.5 * Math.atan2(2 * sxy, sxx - syy);          // principal axis -> horizontal
+  if (-mx * Math.cos(a) + my * Math.sin(a) > 0) a += Math.PI; // the origin ends up on the left
+  const c = Math.cos(a), s = Math.sin(a);
+  const turn = (p) => ({ x: p.x * c - p.y * s, y: p.x * s + p.y * c });
+  for (const t of tiles) {
+    t.pts = t.pts.map(turn);
+    t.cx = (t.pts[0].x + t.pts[1].x + t.pts[2].x + t.pts[3].x) / 4;
+    t.cy = (t.pts[0].y + t.pts[1].y + t.pts[2].y + t.pts[3].y) / 4;
+  }
+  return halves.map((h) => h.map(turn));
+}
+
+/**
  * Generates a patch.
  * @param {string} seed one of SEED_NAMES
  * @param {number} depth number of subdivisions (>= 0)
@@ -113,6 +138,7 @@ export function generate(seed, depth) {
       throw new Error("more than two triangles share a base");
     }
   }
+  if (seed === "half" || seed === "fan") halves.splice(0, halves.length, ...orient(tiles, halves));
   // Stable ids: top to bottom, then left to right (rounded so float noise cannot reorder).
   tiles.sort((p, q) => Math.round(p.cy * 1e6) - Math.round(q.cy * 1e6) || Math.round(p.cx * 1e6) - Math.round(q.cx * 1e6));
   tiles.forEach((t, i) => { t.id = i; });
