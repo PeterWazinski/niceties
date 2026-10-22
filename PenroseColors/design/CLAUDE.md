@@ -16,7 +16,8 @@ Source of the idea: [vision.md](vision.md) (with four reference screenshots in t
 - [x] Questions asked and answered (two rounds), PRD written and committed.
 - [x] User reviewed the PRD (2026-10-22); feedback worked into [PRD.md](PRD.md) (second version).
 - [ ] User reads the second version of the PRD (not yet confirmed).
-- [ ] `implementation.md` (phases with checkboxed work items, test gate) – next step.
+- [x] [color_tool_implementation.md](color_tool_implementation.md) written (phases 0–6, colour tool only; **for review**).
+- [ ] User reviews the implementation plan; then phase 0 can start.
 - [ ] No code exists yet. The folder has no `index.html`, `package.json` or tests.
 
 ## Decisions taken in the discussion
@@ -56,10 +57,14 @@ tiles of a patch end at the same depth; it also breaks colour ties. A later expl
 2. Do the swap budgets 30 / 80 / 200 hold up in practice?
 3. Which tile counts and seeds feel good?
 
+## Folders
+
+`PenroseColors/color_tool/` = the colour tool (this plan), `PenroseColors/PenrosePuzzle/` = the later puzzle, `start.cmd` / `server.mjs` in `PenroseColors/` serve everything at `http://localhost:4175/`.
+
 ## Next steps
 
 1. User confirms the second version of [PRD.md](PRD.md).
-2. Write `implementation.md` in the style of `Sudoku/design/implementation.md`: phases, each with
+2. (done, see above) Write the implementation plan in the style of `Sudoku/design/implementation.md`: phases, each with
    checkboxed work items and tests, the phase gate from the root `CLAUDE.md`, a test-infrastructure
    section (Node test runner + Playwright with iPhone, iPad portrait/landscape, desktop). Suggested
    phase order: 0 scaffold and test harness (package.json, Playwright with `server.mjs`) → 1 tiling (`penrose.js`) with unit tests and a plain SVG
