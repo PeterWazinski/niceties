@@ -28,6 +28,7 @@ The rules of the repository [CLAUDE.md](../../CLAUDE.md) apply. In short:
    delivered *and* covered by passing tests; an item not delivered stays unticked with a note why,
    or moves to a later phase. The updated file is part of the phase commit.
 3. **Phase gate (every phase):**
+   - [ ] `npm run typecheck` (`tsc --noEmit`, TypeScript as a checker for the JSDoc-typed JavaScript) reports no errors.
    - [ ] `npm test` (unit, `node --test`) passes: **all** tests.
    - [ ] `npm run test:e2e` (headless Playwright, all four projects: iPhone, iPad portrait, iPad landscape, desktop) passes: **all** tests.
    - [ ] No skipped, `.only` or quarantined tests, no retries (`retries: 0`); a flaky test is fixed, not rerun.
@@ -36,7 +37,8 @@ The rules of the repository [CLAUDE.md](../../CLAUDE.md) apply. In short:
    - [ ] All files of the phase committed (`git add -A` in `PenroseColors/color_tool`, `git status` clean afterwards), message `PenroseColors color tool: phase N – <title>`, with the attribution line configured for the repository.
    - Never commit red. If a test fails, fix the cause in the same phase.
 4. **Stack:** plain HTML/CSS/**ES modules**, no framework, no build step, SVG rendering. Dev
-   dependency only `@playwright/test`. Same conventions as Sudoku (`tests/unit/*.test.js`,
+   dependencies only `@playwright/test`, `typescript` and `@types/node`. TypeScript is used **only
+   as a checker** (`checkJs`, `noEmit`): the sources stay `.js` with JSDoc types, nothing is compiled. Same conventions as Sudoku (`tests/unit/*.test.js`,
    `tests/e2e/`, `playwright.config.js`).
 5. **Pure logic first, DOM later:** everything except `view.js`, `controller.js`, `main.js` runs
    under Node without a DOM.
@@ -46,8 +48,11 @@ The rules of the repository [CLAUDE.md](../../CLAUDE.md) apply. In short:
 
 ## Test infrastructure (phase 0, used by all)
 
-- `color_tool/package.json` scripts: `test` → `node --test "tests/unit/*.test.js"`, `test:e2e` →
-  `playwright test`, `test:all` → both. `"type": "module"`.
+- `color_tool/package.json` scripts: `typecheck` → `tsc --noEmit`, `test` → `node --test "tests/unit/*.test.js"`,
+  `test:e2e` → `playwright test`, `test:all` → typecheck + both. `"type": "module"`.
+- `tsconfig.json`: `allowJs`, `checkJs`, `noEmit`, `target`/`module` ES2022, `lib` ES2022 + DOM, `strict` off
+  at first (tightened later), `include` `js/**`, `tests/**`, `../server.mjs`. Core data types (`Tile`,
+  `Settings`, `Arrangement`, …) are JSDoc `@typedef`s in `js/types.js`; public function signatures are annotated.
 - `playwright.config.js`: `webServer` runs `node ../server.mjs` (port 4175, `reuseExistingServer`),
   `baseURL` `http://localhost:4175/color_tool/`, `retries: 0`, projects `iphone`, `ipad-portrait`,
   `ipad-landscape` (WebKit device descriptors) and `desktop` (Chromium).
@@ -65,11 +70,13 @@ Goal: an empty but runnable tool with the test pipeline working.
 
 - [ ] `color_tool/` folder structure (`index.html`, `css/`, `js/`, `tests/unit`, `tests/e2e`), `.gitignore` (`node_modules`, `test-results`, `playwright-report`)
 - [ ] `package.json`, `npm install`, `npx playwright install` (same `@playwright/test` version as Sudoku)
+- [ ] TypeScript as a checker: dev dependencies `typescript` and `@types/node`, `tsconfig.json` and the `typecheck` script as described in the test infrastructure; `js/types.js` with the first `@typedef`s; VS Code shows the errors in the editor
+  (no extension needed)
 - [ ] `playwright.config.js` with the four projects and the `webServer` of `../server.mjs`
 - [ ] `index.html` with an empty `<main id="app">` and `<script type="module" src="js/main.js">`; dark background; `viewport-fit=cover`
 - [ ] `start.cmd` opens `http://localhost:4175/color_tool/` (done) – checked by hand
 - [ ] `color_tool/CLAUDE.md` (commands, code map placeholder); repository README table and root `CLAUDE.md` list the new project
-- [ ] Tests: unit sanity test (imports `js/config.js`: φ, default settings); e2e smoke test (page loads, no console errors, `#app` exists) in all four projects
+- [ ] Tests: `npm run typecheck` is clean (also proven by a deliberately wrong call that `tsc` rejects, checked once by hand); unit sanity test (imports `js/config.js`: φ, default settings); e2e smoke test (page loads, no console errors, `#app` exists) in all four projects
 
 ## Phase 1 – Tiling (PRD 4.1, 4.2 part 1)
 
