@@ -11,6 +11,7 @@
     "test:all": "npm run typecheck && npm test && npm run test:e2e"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "1.64.1",
     "@types/node": "^24.0.0",
     "typescript": "^5.9.0"

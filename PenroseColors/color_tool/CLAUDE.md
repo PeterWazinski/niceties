@@ -28,11 +28,15 @@ Pure logic, no DOM (runs under Node):
 - `color.js` – HSL→sRGB, the mappings `plane` / `radial` / `angular`, `colourTiles`, `colourStats` (ties)
 - `params.js` – settings ↔ URL query (only non-default values are written)
 - `puzzle.js` – colours move over fixed shapes: permutation per tile, same-type swaps, undo, shuffle (full or to
-  k minimum swaps), minimum swaps = tiles − cycles, anchors (phase 4 will use them)
+  k minimum swaps), minimum swaps = tiles − cycles, anchored tiles never move
+- `symmetry.js` – symmetries of a patch (rotations/reflections about the origin) as tile permutations; the wheel has 10,
+  `half` and `fan` only the identity
+- `uniqueness.js` – `analyse` (colour ties, symmetric copies not ruled out by the anchors) and `minimalAnchors`
+  (exact search over which symmetries a tile rules out, greedy beyond 20 symmetries)
 - `rng.js` – seeded random numbers
 - `types.js` – JSDoc typedefs
 
-DOM: `view.js` (SVG board, controls, drag and drop with pointer events), `controller.js` (settings, URL, selection,
+DOM: `view.js` (SVG board, controls, drag and drop with pointer events, anchor dots), `controller.js` (settings, URL, selection,
 keyboard), `main.js`. Styles: `css/style.css`.
 
 ## Things to know
@@ -43,4 +47,6 @@ keyboard), `main.js`. Styles: `css/style.css`.
 - Types: `tsconfig.json` has `checkJs`, not strict. Annotate shared data in `types.js`.
 - e2e tests read `data-id`, `data-type` and the `fill` attribute of `.tile` polygons; `helpers.js` has `drag()`
   (mouse) and `solvingSwaps()` (computes the swaps that sort a shuffled picture from the DOM).
+- `tools/explore.mjs` prints the numbers behind `../design/exploration-results.md` (`node tools/explore.mjs`).
+- Anchors: edit mode in the UI, `?anchors=3,17` in the URL; changing seed or depth clears them; `Suggest anchors` = `minimalAnchors`.
 - Test URLs: `?depth=3&shuffle=7&sw=6` = reproducible shuffle needing exactly 6 swaps.

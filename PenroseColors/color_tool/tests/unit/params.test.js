@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { parseParams, serializeParams } from "../../js/params.js";
+import { parseParams, serializeParams, ignoredParams } from "../../js/params.js";
 import { DEFAULTS, MAX_DEPTH, PHI, SLIDERS } from "../../js/config.js";
 
 test("config: golden ratio and defaults", () => {
@@ -50,4 +50,22 @@ test("every slider has a parameter and the ranges are sane", () => {
     const st = parseParams(`?${s.key}=${s.max}`);
     assert.equal(st[s.key], s.max);
   }
+});
+
+test("anchors: a comma separated list of tile ids", () => {
+  assert.equal(parseParams("?anchors=3,17,40").anchors, "3,17,40");
+  assert.equal(parseParams("?anchors=abc").anchors, "");
+  assert.equal(parseParams("?anchors=1,,2").anchors, "");
+  assert.equal(parseParams("?anchors=-4").anchors, "");
+  assert.equal(serializeParams({ ...DEFAULTS, anchors: "5,9" }), "anchors=5%2C9");
+  assert.equal(parseParams("?" + serializeParams({ ...DEFAULTS, anchors: "5,9" })).anchors, "5,9");
+});
+
+test("ignoredParams names what was ignored or corrected", () => {
+  assert.deepEqual(ignoredParams(""), []);
+  assert.deepEqual(ignoredParams("?depth=3&h0=250&seed=wheel"), []);
+  assert.deepEqual(ignoredParams("?depth=99"), ["depth"]);
+  assert.deepEqual(ignoredParams("?seed=nope&foo=1"), ["seed", "foo"]);
+  assert.deepEqual(ignoredParams("?h0=abc&anchors=x"), ["h0", "anchors"]);
+  assert.deepEqual(ignoredParams("?depth=4&h1=70&gap=2.5&shuffle=9&sw=30&map=radial"), []);
 });

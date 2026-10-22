@@ -11,5 +11,5 @@
     "noImplicitAny": false,
     "skipLibCheck": true
   },
-  "include": ["js/**/*.js", "tests/**/*.js", "playwright.config.js", "../server.mjs"]
+  "include": ["js/**/*.js", "tools/**/*.mjs", "tests/**/*.js", "playwright.config.js", "../server.mjs"]
 }

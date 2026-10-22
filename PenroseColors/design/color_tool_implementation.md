@@ -119,35 +119,35 @@ Goal: play with a colouring: shuffle, swap by drag and drop or by taps, count th
 
 Goal: answer vision question 3: how many tiles must stay fixed for a unique solution?
 
-- [ ] `symmetry.js`: symmetry group of a patch as permutations of tile ids: test the candidate rotations (multiples of 36° or 72°) and reflections about the patch centre/axis declared by the seed against the tile set (types and centres, with tolerance); identity always included
-- [ ] `uniqueness.js`: colour ties; for every symmetry *g* with `colour(g(t)) ≠ colour(t)` somewhere, the set of tiles that rule it out; unique ⇔ every such set meets the anchor set; **minimal anchor set** by greedy hitting set, exact search for small instances; result object (unique?, ties, symmetries not ruled out, anchors used)
-- [ ] Anchors: edit mode (click/tap or long press toggles an anchor, dot drawn on the tile), *Clear anchors*, *Suggest* (fills the minimal set); anchors in the URL (`anchors`); shuffle never moves them; anchored tiles cannot be selected or dragged (phase 3 code honours them)
-- [ ] Status area: unique / not unique, number of symmetries not ruled out, tied tiles, anchors used
-- [ ] Unit: symmetry group sizes of the known seeds (e.g. 10 for a wheel with full dihedral symmetry, 2 for a half seed, 1 for an asymmetric patch); every symmetry maps tile centres and types onto tiles; colour ties found for symmetric colourings and none for generic plane colourings; for small patches the minimal anchor set is verified **by brute force over all anchor subsets**; the greedy result is never smaller than the exact one and always valid; anchored tiles never change in a shuffle
-- [ ] e2e: toggling anchors changes the uniqueness status; *Suggest* makes the status "unique"; anchored tiles refuse selection and drag; anchors survive a reload via the URL
+- [x] `symmetry.js`: symmetry group of a patch as permutations of tile ids: test the candidate rotations and reflections about the origin (multiples of 18°; every seed is cut from the wheel, so the origin is its centre) against the tile set (types and centres, with tolerance); identity always included
+- [x] `uniqueness.js`: colour ties; for every symmetry *g* with `colour(g(t)) ≠ colour(t)` somewhere, the set of tiles that rule it out; unique ⇔ every such set meets the anchor set; **minimal anchor set** by greedy hitting set, exact search over the coverage of the symmetries (up to 20, greedy beyond); result object (unique?, ties, symmetries not ruled out, anchors used)
+- [x] Anchors: edit mode (click/tap or long press toggles an anchor, dot drawn on the tile), *Clear anchors*, *Suggest* (fills the minimal set); anchors in the URL (`anchors`); shuffle never moves them; anchored tiles cannot be selected or dragged (phase 3 code honours them)
+- [x] Status area: unique / not unique, number of symmetries not ruled out, tied tiles, anchors used
+- [x] Unit: symmetry group sizes of the known seeds (e.g. 10 for a wheel with full dihedral symmetry, 2 for a half seed, 1 for an asymmetric patch); every symmetry maps tile centres and types onto tiles; colour ties found for symmetric colourings and none for generic plane colourings; for small patches the minimal anchor set is verified **by brute force over all anchor subsets**; the greedy result is never smaller than the exact one and always valid; anchored tiles never change in a shuffle
+- [x] e2e: toggling anchors changes the uniqueness status; *Suggest* makes the status "unique"; anchored tiles refuse selection and drag; anchors survive a reload via the URL
 
 ## Phase 5 – Finish: layout, accessibility, robustness
 
 Goal: pleasant to use on desktop, iPad and iPhone; no rough edges.
 
-- [ ] Layout: control panel beside the board (landscape) or below it (portrait), sliders usable by touch, all controls reachable at 390 px width; dark neutral background
-- [ ] Accessibility: labels for controls and sliders, visible focus, live region, `prefers-reduced-motion`
-- [ ] Robustness: bad or missing URL parameters fall back to defaults with a short note; very large patches handled as in phase 1; clipboard failure handled
-- [ ] Performance check: 250 tiles redraw smoothly while a slider moves; a swap and a shuffle feel instant (measured in an e2e test with a generous limit)
-- [ ] `color_tool/README.md` (what it is, how to start with `start.cmd`, the URL parameters, tests); `color_tool/CLAUDE.md` code map completed
-- [ ] Unit/e2e: layout fits in all four projects (no horizontal scroll, controls visible), automated accessibility scan (axe) passes, bad URL parameters, screenshot baselines refreshed
+- [x] Layout: control panel beside the board (landscape) or below it (portrait), sliders usable by touch, all controls reachable at 390 px width; dark neutral background
+- [x] Accessibility: labels for controls and sliders, visible focus, live region, `prefers-reduced-motion`
+- [x] Robustness: bad or missing URL parameters fall back to defaults with a short note; very large patches handled as in phase 1; clipboard failure handled
+- [x] Performance check: 250 tiles redraw smoothly while a slider moves; a swap and a shuffle feel instant (measured in an e2e test with a generous limit)
+- [x] `color_tool/README.md` (what it is, how to start with `start.cmd`, the URL parameters, tests); `color_tool/CLAUDE.md` code map completed
+- [x] Unit/e2e: layout fits in all four projects (no horizontal scroll, controls visible), automated accessibility scan (axe) passes, bad URL parameters, screenshot baselines refreshed
 
 ## Phase 6 – Exploration results (answers to the vision questions)
 
 Goal: use the tool and write down what we learned, as input for the puzzle plan. Mostly manual work;
 the tool is only fixed if the exploration finds bugs.
 
-- [ ] Collect **appealing patterns** (seed, depth, tile count) with screenshots or URLs – vision question 1
-- [ ] Collect **appealing colourings** as URLs (plane, radial, angular; hue ranges, slopes) and note which are pleasant to repair after shuffling – vision question 2
-- [ ] **Uniqueness:** for at least three seed/colouring combinations record the number of anchors that made them unique, and which colourings need none – vision question 3
-- [ ] **Swap budgets:** try 30 / 80 / 200 minimum swaps by hand; note how long it takes and which tile counts feel right (PRD 12, open question 2)
-- [ ] `design/exploration-results.md` with the findings, URLs, and open questions for the puzzle; PRD 12–13 updated (hierarchy colouring, perceptual difficulty, hue ranges) where the findings change them
-- [ ] Decision: go/no-go for the puzzle and the first outline of its plan (`PenrosePuzzle/`)
+- [x] Collect **appealing patterns** (seed, depth, tile count) with screenshots or URLs – vision question 1
+- [x] Collect **appealing colourings** as URLs (plane, radial, angular; hue ranges, slopes) and note which are pleasant to repair after shuffling – vision question 2
+- [x] **Uniqueness:** for at least three seed/colouring combinations record the number of anchors that made them unique, and which colourings need none – vision question 3
+- [ ] **Swap budgets:** try 30 / 80 / 200 minimum swaps by hand; note how long it takes and which tile counts feel right (PRD 12, open question 2) – *not done: needs a human player. The arithmetic (which patches carry which budget) is in `exploration-results.md` section 4; the play test is yours.*
+- [x] `design/exploration-results.md` with the findings, URLs, and open questions for the puzzle; PRD 12–13 updated (hierarchy colouring, perceptual difficulty, hue ranges) where the findings change them
+- [ ] Decision: go/no-go for the puzzle and the first outline of its plan (`PenrosePuzzle/`) – *the recommendation (go) is in `exploration-results.md` section 5; the decision is yours*
 
 ---
 

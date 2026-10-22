@@ -30,6 +30,8 @@ export function parseParams(search) {
   if (shuffle !== null) st.shuffle = Math.round(shuffle);
   const sw = num(q.get("sw"), 0, 1000);
   if (sw !== null) st.sw = Math.round(sw);
+  const anchors = q.get("anchors");
+  if (anchors && /^\d+(,\d+)*$/.test(anchors)) st.anchors = anchors;
   return st;
 }
 
@@ -44,4 +46,22 @@ export function serializeParams(st) {
     if (st[key] !== DEFAULTS[key]) q.set(key, String(st[key]));
   }
   return q.toString();
+}
+
+/**
+ * Names of the URL parameters that were ignored or changed (unknown names, invalid or out-of-range values).
+ * @param {string} search
+ * @returns {string[]}
+ */
+export function ignoredParams(search) {
+  const q = new URLSearchParams(search);
+  const parsed = parseParams(search);
+  /** @type {string[]} */
+  const bad = [];
+  for (const [key, value] of q.entries()) {
+    if (!(key in DEFAULTS)) { bad.push(key); continue; }
+    const same = String(parsed[key]) === value || (typeof DEFAULTS[key] === "number" && Number(value) === parsed[key]);
+    if (!same) bad.push(key);
+  }
+  return bad;
 }

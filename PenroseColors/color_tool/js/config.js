@@ -26,7 +26,7 @@ export const SLIDERS = [
 
 /**
  * @typedef {{ seed: string, depth: number, map: string, h0: number, h1: number, s: number, l: number,
- *   ds: number, dl: number, rot: number, dt: number, gap: number, shuffle: number, sw: number }} Settings
+ *   ds: number, dl: number, rot: number, dt: number, gap: number, shuffle: number, sw: number, anchors: string }} Settings
  */
 
 /** @type {Settings} */
@@ -34,5 +34,6 @@ export const DEFAULTS = {
   seed: "wheel", depth: 3, map: "plane",
   h0: 250, h1: 70, s: 60, l: 60, ds: -20, dl: -25, rot: 0, dt: 0, gap: 1,
   shuffle: 0, // seed of the current shuffle, 0 = sorted
-  sw: 0       // target number of minimum swaps for the shuffle, 0 = full shuffle
+  sw: 0,      // target number of minimum swaps for the shuffle, 0 = full shuffle
+  anchors: "" // ids of the fixed tiles, comma separated
 };

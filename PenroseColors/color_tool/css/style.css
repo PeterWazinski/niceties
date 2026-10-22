@@ -5,6 +5,7 @@
   --ink: #ececf0;
   --muted: #9a9aa5;
   --accent: #6d8cff;
+  --primary: #3d5ad6; /* white text on it has a contrast of about 5.8 */
   --focus: #ffd24a;
   color-scheme: dark;
 }
@@ -33,6 +34,8 @@ body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-are
 .tile.target { stroke: #fff; stroke-width: 2px; stroke-dasharray: 4 3; }
 .tile.dragging { opacity: .45; }
 .tile.anchored { cursor: not-allowed; }
+.editing .tile { cursor: crosshair; }
+.anchor-dot { stroke: none; pointer-events: none; }
 .ghost { stroke: #fff; stroke-width: 2px; pointer-events: none; }
 
 h1 { margin: 4px 0 8px; font-size: 20px; }
@@ -48,7 +51,7 @@ h2 { margin: 16px 0 6px; font-size: 13px; text-transform: uppercase; letter-spac
 input[type="range"] { width: 100%; min-height: 28px; margin: 0; accent-color: var(--accent); }
 .buttons { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
 .btn { min-height: 44px; padding: 0 14px; font: inherit; font-weight: 600; color: var(--ink); background: #2c2c33; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; touch-action: manipulation; }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
 .btn[aria-pressed="true"] { outline: 2px solid var(--accent); }
 .btn[aria-disabled="true"] { opacity: .45; cursor: default; }
 button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }

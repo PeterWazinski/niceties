@@ -17,7 +17,7 @@ function template() {
   const sliders = SLIDERS.map((s) => `
     <label class="slider" data-key="${s.key}">
       <span class="slider-head"><span>${s.label}</span><output id="out-${s.key}"></output></span>
-      <input type="range" id="in-${s.key}" min="${s.min}" max="${s.max}" step="${s.step}">
+      <input type="range" id="in-${s.key}" aria-label="${s.label}" min="${s.min}" max="${s.max}" step="${s.step}">
     </label>`).join("");
   return `
     <div class="app">
@@ -44,7 +44,7 @@ function template() {
           <h2>Puzzle</h2>
           <label class="slider">
             <span class="slider-head"><span>Target swaps (0 = full shuffle)</span><output id="out-sw"></output></span>
-            <input type="range" id="in-sw" min="0" max="100" step="1">
+            <input type="range" id="in-sw" aria-label="Target swaps (0 = full shuffle)" min="0" max="100" step="1">
           </label>
           <div class="buttons">
             <button type="button" class="btn primary" id="shuffle">Shuffle</button>
@@ -53,6 +53,17 @@ function template() {
             <button type="button" class="btn" id="preview" aria-pressed="false">Sorted preview</button>
           </div>
           <p class="info" id="puzzle-info"></p>
+        </section>
+        <section>
+          <h2>Anchors and uniqueness</h2>
+          <div class="buttons">
+            <button type="button" class="btn" id="edit-anchors" aria-pressed="false">Edit anchors</button>
+            <button type="button" class="btn" id="suggest">Suggest anchors</button>
+            <button type="button" class="btn" id="clear-anchors">Clear anchors</button>
+          </div>
+          <p class="info" id="unique-state"></p>
+          <p class="info" id="unique-sym"></p>
+          <p class="info" id="unique-anchors"></p>
         </section>
         <section>
           <button type="button" class="btn" id="copy">Copy link</button>
@@ -69,6 +80,7 @@ function template() {
  *   onSetting?: (key: string, value: string | number) => void,
  *   onShuffle?: () => void, onReset?: () => void, onUndo?: () => void,
  *   onPreview?: (on: boolean) => void, onCopy?: () => void,
+ *   onEditAnchors?: (on: boolean) => void, onSuggest?: () => void, onClearAnchors?: () => void,
  *   onTap?: (id: number) => void, onSwap?: (a: number, b: number) => void,
  *   onKey?: (key: string) => boolean
  * }} handlers
@@ -91,6 +103,10 @@ export function createView(root, handlers = {}) {
   let polys = [];
   let announceFlip = false;
   let preview = false;
+  let editMode = false;
+  /** @type {Map<number, SVGCircleElement>} */
+  const dots = new Map();
+  let lastFit = { scale: 1, dx: 0, dy: 0 };
 
   const setText = (node, text) => { if (node.textContent !== text) node.textContent = text; };
 
@@ -108,6 +124,14 @@ export function createView(root, handlers = {}) {
   $("#reset").addEventListener("click", () => handlers.onReset && handlers.onReset());
   $("#undo").addEventListener("click", () => handlers.onUndo && handlers.onUndo());
   $("#copy").addEventListener("click", () => handlers.onCopy && handlers.onCopy());
+  $("#suggest").addEventListener("click", () => handlers.onSuggest && handlers.onSuggest());
+  $("#clear-anchors").addEventListener("click", () => handlers.onClearAnchors && handlers.onClearAnchors());
+  $("#edit-anchors").addEventListener("click", () => {
+    editMode = !editMode;
+    $("#edit-anchors").setAttribute("aria-pressed", String(editMode));
+    board.classList.toggle("editing", editMode);
+    if (handlers.onEditAnchors) handlers.onEditAnchors(editMode);
+  });
   $("#preview").addEventListener("click", () => {
     preview = !preview;
     $("#preview").setAttribute("aria-pressed", String(preview));
@@ -140,7 +164,8 @@ export function createView(root, handlers = {}) {
   });
   board.addEventListener("pointermove", (e) => {
     if (!press || e.pointerId !== press.pointerId) return;
-    if (!press.dragging && Math.hypot(e.clientX - press.x, e.clientY - press.y) > DRAG_START_PX) {
+    const draggable = !editMode && !polys[press.id].classList.contains("anchored");
+    if (draggable && !press.dragging && Math.hypot(e.clientX - press.x, e.clientY - press.y) > DRAG_START_PX) {
       press.dragging = true;
       const from = polys[press.id];
       from.classList.add("dragging");
@@ -179,6 +204,19 @@ export function createView(root, handlers = {}) {
     if (handlers.onKey && handlers.onKey(e.key)) e.preventDefault();
   });
 
+  // ---- anchors are drawn as a dot on the tile ----
+  /** @param {SVGCircleElement} dot @param {number} id */
+  function placeDot(dot, id) {
+    const t = tiles[id];
+    dot.setAttribute("cx", (t.cx * lastFit.scale + lastFit.dx).toFixed(2));
+    dot.setAttribute("cy", (t.cy * lastFit.scale + lastFit.dy).toFixed(2));
+  }
+  /** Black or white, whichever is readable on the colour. @param {string} hex */
+  function contrast(hex) {
+    const [r, g, b] = [1, 3, 5].map((k) => parseInt(hex.slice(k, k + 2), 16) / 255);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.5 ? "#000" : "#fff";
+  }
+
   // ---- layout ----
   function layout() {
     const w = Math.max(50, stage.clientWidth), h = Math.max(50, stage.clientHeight);
@@ -186,9 +224,11 @@ export function createView(root, handlers = {}) {
     board.setAttribute("width", String(w));
     board.setAttribute("height", String(h));
     const f = fit(tiles, w, h);
+    lastFit = f;
     tiles.forEach((t, i) => {
       polys[i].setAttribute("points", t.pts.map((p) => (p.x * f.scale + f.dx).toFixed(2) + "," + (p.y * f.scale + f.dy).toFixed(2)).join(" "));
     });
+    for (const [id, dot] of dots) placeDot(dot, id);
   }
   if (typeof ResizeObserver !== "undefined") new ResizeObserver(layout).observe(stage);
   window.addEventListener("resize", layout);
@@ -199,6 +239,8 @@ export function createView(root, handlers = {}) {
     /** Builds the polygons for a new tiling. @param {Tile[]} list */
     setTiles(list) {
       for (const p of polys) p.remove();
+      for (const d of dots.values()) d.remove();
+      dots.clear();
       tiles = list;
       polys = list.map((t) => {
         const p = document.createElementNS(SVG, "polygon");
@@ -221,7 +263,21 @@ export function createView(root, handlers = {}) {
         if (p.getAttribute("fill") !== fills[i]) p.setAttribute("fill", fills[i]);
         p.classList.toggle("selected", i === marks.selected);
         p.classList.toggle("cursor", i === marks.cursor);
-        p.classList.toggle("anchored", !!(marks.anchored && marks.anchored(i)));
+        const anchored = !!(marks.anchored && marks.anchored(i));
+        p.classList.toggle("anchored", anchored);
+        let dot = dots.get(i);
+        if (anchored && !dot) {
+          dot = /** @type {SVGCircleElement} */ (document.createElementNS(SVG, "circle"));
+          dot.setAttribute("class", "anchor-dot");
+          dot.setAttribute("r", "5");
+          board.insertBefore(dot, ghost);
+          dots.set(i, dot);
+          placeDot(dot, i);
+        } else if (!anchored && dot) {
+          dot.remove();
+          dots.delete(i);
+        }
+        if (dot) dot.setAttribute("fill", contrast(fills[i]));
       });
     },
 

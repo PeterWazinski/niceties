@@ -1,15 +1,18 @@
 // Connects settings, tiling, colouring, puzzle and view; keeps the URL in step.
 import { generate } from "./penrose.js";
 import { colourTiles, colourStats } from "./color.js";
-import { parseParams, serializeParams } from "./params.js";
+import { parseParams, serializeParams, ignoredParams } from "./params.js";
 import { createPuzzle } from "./puzzle.js";
 import { createRng } from "./rng.js";
 import { createView } from "./view.js";
+import { findSymmetries } from "./symmetry.js";
+import { analyse, minimalAnchors } from "./uniqueness.js";
 import { MAX_TILES, WARN_TILES } from "./config.js";
 
 /** @typedef {import("./types.js").Tile} Tile */
 
 const REFUSED = "Only tiles of the same shape can swap colours.";
+const ANCHORED = "Anchored tiles cannot move.";
 
 /** @param {HTMLElement} root */
 export function startApp(root) {
@@ -23,6 +26,11 @@ export function startApp(root) {
   let cursor = -1;        // keyboard position
   let preview = false;
   let tooMany = false;
+  let editing = false;    // anchor edit mode
+  /** @type {import("./symmetry.js").Symmetry[]} */
+  let symmetries = [];
+  /** @type {Set<number>} */
+  let anchorSet = new Set();
 
   const view = createView(root, {
     onSetting: (key, value) => setSetting(key, value),
@@ -31,6 +39,9 @@ export function startApp(root) {
     onUndo: () => { if (puzzle.undo()) { selected = -1; refresh(); view.announce("Swap undone."); } },
     onPreview: (on) => { preview = on; refresh(); },
     onCopy: copyLink,
+    onEditAnchors: (on) => { editing = on; selected = -1; refresh(); view.announce(on ? "Anchor editing on." : "Anchor editing off."); },
+    onSuggest: suggest,
+    onClearAnchors: () => setAnchors(new Set()),
     onTap: (id) => tap(id),
     onSwap: (a, b) => swap(a, b),
     onKey: (key) => keyboard(key)
@@ -54,7 +65,10 @@ export function startApp(root) {
     const patch = generate(settings.seed, settings.depth);
     tooMany = patch.tiles.length > MAX_TILES;
     tiles = tooMany ? [] : patch.tiles;
-    puzzle = createPuzzle(tiles.map((t) => t.type));
+    symmetries = findSymmetries(tiles);
+    anchorSet = new Set(settings.anchors ? settings.anchors.split(",").map(Number).filter((id) => id < tiles.length) : []);
+    settings.anchors = [...anchorSet].sort((a, b) => a - b).join(",");
+    puzzle = createPuzzle(tiles.map((t) => t.type), anchorSet);
     cursor = -1;
     view.setTiles(tiles);
     recolour();
@@ -83,6 +97,12 @@ export function startApp(root) {
     const state = !shuffled ? "Sorted" : puzzle.solved(colours) ? "Solved!" : "Not solved";
     view.setInfo("puzzle-info", `${state} · swaps made ${puzzle.moves} · minimum swaps needed ${puzzle.minimumSwaps()}`);
     view.setUndoEnabled(puzzle.moves > 0);
+    const u = analyse(colours, symmetries, anchorSet);
+    view.setInfo("unique-state", u.unique
+      ? (anchorSet.size ? "Unique: the anchors rule out every symmetric copy." : "Unique: no symmetric copy of the sorted picture exists.")
+      : `Not unique: ${u.open.length} symmetric ${u.open.length === 1 ? "copy" : "copies"} of the sorted picture not ruled out.`);
+    view.setInfo("unique-sym", `${symmetries.length} symmetries of the patch (identity included), ${u.relevant.length} change the colouring · ${u.tiedTiles} tiles share a colour`);
+    view.setInfo("unique-anchors", `${anchorSet.size} ${anchorSet.size === 1 ? "anchor" : "anchors"}${editing ? " · click or tap a tile to set or remove an anchor" : ""}`);
     if (state === "Solved!" && shuffled && !preview) view.announce("Solved!");
   }
 
@@ -90,6 +110,7 @@ export function startApp(root) {
   function setSetting(key, value) {
     settings[key] = value;
     if (key === "seed" || key === "depth") {
+      settings.anchors = "";
       syncUrl();
       rebuild();
       return;
@@ -102,8 +123,30 @@ export function startApp(root) {
     refresh();
   }
 
+  /** Replaces the anchors; the shuffle is applied again because anchored tiles must not move. @param {Set<number>} set */
+  function setAnchors(set) {
+    anchorSet = set;
+    settings.anchors = [...set].sort((a, b) => a - b).join(",");
+    puzzle = createPuzzle(tiles.map((t) => t.type), anchorSet);
+    applyShuffle();
+    syncUrl();
+    view.setSettings(settings, Math.max(1, puzzle.capacity()));
+    refresh();
+  }
+
+  function suggest() {
+    const r = minimalAnchors(colours, symmetries);
+    setAnchors(new Set(r.anchors));
+    const text = r.anchors.length
+      ? `${r.anchors.length} ${r.anchors.length === 1 ? "anchor" : "anchors"} suggested${r.exact ? " (the fewest possible)" : ""}.`
+      : "No anchor needed: no symmetry changes the colouring.";
+    view.setMessage(text);
+    view.announce(text);
+  }
+
   function swap(a, b) {
     const r = puzzle.swap(a, b);
+    if (r === "anchored") { view.setMessage(ANCHORED); view.announce(ANCHORED); return; }
     if (r === "refused") { view.setMessage(REFUSED); view.announce(REFUSED); return; }
     if (r !== "ok") return;
     view.setMessage("");
@@ -114,7 +157,13 @@ export function startApp(root) {
 
   function tap(id) {
     cursor = id;
-    if (puzzle.isAnchored(id)) return;
+    if (editing) {
+      const next = new Set(anchorSet);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      setAnchors(next);
+      return;
+    }
+    if (puzzle.isAnchored(id)) { view.setMessage(ANCHORED); view.announce(ANCHORED); return; }
     if (selected < 0) { selected = id; refresh(); return; }
     if (selected === id) { selected = -1; refresh(); return; }
     swap(selected, id);
@@ -170,6 +219,8 @@ export function startApp(root) {
   }
 
   rebuild();
+  const ignored = ignoredParams(location.search);
+  if (ignored.length) view.setMessage(`Ignored or corrected URL parameters: ${ignored.join(", ")}.`);
   root.dataset.ready = "true";
   return { view, getSettings: () => settings };
 }
