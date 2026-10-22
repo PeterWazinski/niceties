@@ -26,7 +26,7 @@ http.createServer((req, res) => {
     });
     res.end(data);
   });
-}).on("error", (e) => {
+}).on("error", (/** @type {NodeJS.ErrnoException} */ e) => {
   console.error(e.code === "EADDRINUSE" ? "Port " + PORT + " is already in use (is the server already running?)" : e.message);
   process.exit(1);
 }).listen(PORT, () => console.log("Penrose Colors: http://localhost:" + PORT + "/   (Ctrl+C or close this window to stop)"));

@@ -17,7 +17,8 @@ Source of the idea: [vision.md](vision.md) (with four reference screenshots in t
 - [x] User reviewed the PRD (2026-10-22); feedback worked into [PRD.md](PRD.md) (second version).
 - [ ] User reads the second version of the PRD (not yet confirmed).
 - [x] [color_tool_implementation.md](color_tool_implementation.md) written (phases 0–6, colour tool only; **for review**).
-- [ ] User reviews the implementation plan; then phase 0 can start.
+- [x] Implementation plan reviewed; **phases 0–3 implemented** (2026-10-22), see the plan for the ticked items and deviations.
+- [ ] User tries the tool (`start.cmd`) and gives feedback; then phases 4–6 (symmetry/uniqueness/anchors, finish, exploration).
 - [ ] No code exists yet. The folder has no `index.html`, `package.json` or tests.
 
 ## Decisions taken in the discussion

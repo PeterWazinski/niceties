@@ -4,7 +4,8 @@ A collection of small browser games and toys (see [README.md](README.md) for the
 project is a folder with static HTML/CSS/ES modules: **no framework, no build step**. Hosted on
 GitHub Pages. UI language is English. No ads, no tracking, no network requests after the first load.
 
-Projects with their own `CLAUDE.md`: [Sudoku](Sudoku/CLAUDE.md). Read it when working in that folder.
+Projects with their own `CLAUDE.md`: [Sudoku](Sudoku/CLAUDE.md), [PenroseColors](PenroseColors/color_tool/CLAUDE.md)
+(design state in [PenroseColors/design/CLAUDE.md](PenroseColors/design/CLAUDE.md)). Read them when working in that folder.
 `Sudoku` and `untangleMe` have automated tests; the others are single pages.
 
 ## Working rules

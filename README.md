@@ -8,6 +8,7 @@ GitHub Pages. The live versions are served from
 | Project | What it is | Live |
 |---|---|---|
 | [Sudoku](Sudoku/) | An ad-free Sudoku with three levels (Beginner, Expert, Master), symmetric puzzles generated on the device, notes by long press, hints, colour schemes, and confetti when you win. No timer, no score. Works offline once loaded, and can be added to the iPhone/iPad Home Screen. | [Play](https://peterwazinski.github.io/niceties/Sudoku/) |
+| [PenroseColors](PenroseColors/) | Work in progress: a tool that draws Penrose P3 tilings (thick and thin rhombs) and colours them with gradients from a plane through the HSL colour cone, with a shuffle-and-swap playground; the basis of a later colour-sorting puzzle. Start it with `PenroseColors/start.cmd`. | – |
 | [untangleMe](untangleMe/) | A planar-graph puzzle: the vertices of a scrambled graph are dragged until no two edges cross. Four size presets, a slider for 6–30 vertices, shareable puzzle links, and two themes. | [Play](https://peterwazinski.github.io/niceties/untangleMe/) |
 | [ColorSudoku](ColorSudoku/) | Generates three random, complete Sudokus that never share a digit at the same position and draws them nested into one colourful pattern. Inspired by nested colouring patterns. | [Open](https://peterwazinski.github.io/niceties/ColorSudoku/) |
 | [AmmanBeenker](AmmanBeenker/) | An aperiodic Ammann–Beenker tiling of squares and rhombi with eightfold symmetry, built by repeated subdivision, with adjustable degree. | [Open](https://peterwazinski.github.io/niceties/AmmanBeenker/) |

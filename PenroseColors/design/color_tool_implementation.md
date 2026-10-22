@@ -68,52 +68,52 @@ The rules of the repository [CLAUDE.md](../../CLAUDE.md) apply. In short:
 
 Goal: an empty but runnable tool with the test pipeline working.
 
-- [ ] `color_tool/` folder structure (`index.html`, `css/`, `js/`, `tests/unit`, `tests/e2e`), `.gitignore` (`node_modules`, `test-results`, `playwright-report`)
-- [ ] `package.json`, `npm install`, `npx playwright install` (same `@playwright/test` version as Sudoku)
-- [ ] TypeScript as a checker: dev dependencies `typescript` and `@types/node`, `tsconfig.json` and the `typecheck` script as described in the test infrastructure; `js/types.js` with the first `@typedef`s; VS Code shows the errors in the editor
+- [x] `color_tool/` folder structure (`index.html`, `css/`, `js/`, `tests/unit`, `tests/e2e`), `.gitignore` (`node_modules`, `test-results`, `playwright-report`)
+- [x] `package.json`, `npm install`, `npx playwright install` (same `@playwright/test` version as Sudoku)
+- [x] TypeScript as a checker: dev dependencies `typescript` and `@types/node`, `tsconfig.json` and the `typecheck` script as described in the test infrastructure; `js/types.js` with the first `@typedef`s; VS Code shows the errors in the editor
   (no extension needed)
-- [ ] `playwright.config.js` with the four projects and the `webServer` of `../server.mjs`
-- [ ] `index.html` with an empty `<main id="app">` and `<script type="module" src="js/main.js">`; dark background; `viewport-fit=cover`
-- [ ] `start.cmd` opens `http://localhost:4175/color_tool/` (done) – checked by hand
-- [ ] `color_tool/CLAUDE.md` (commands, code map placeholder); repository README table and root `CLAUDE.md` list the new project
-- [ ] Tests: `npm run typecheck` is clean (also proven by a deliberately wrong call that `tsc` rejects, checked once by hand); unit sanity test (imports `js/config.js`: φ, default settings); e2e smoke test (page loads, no console errors, `#app` exists) in all four projects
+- [x] `playwright.config.js` with the four projects and the `webServer` of `../server.mjs`
+- [x] `index.html` with an empty `<main id="app">` and `<script type="module" src="js/main.js">`; dark background; `viewport-fit=cover`
+- [ ] `start.cmd` opens `http://localhost:4175/color_tool/` (written; the server behind it is tested, but the launcher itself still has to be double-clicked once by hand)
+- [x] `color_tool/CLAUDE.md` (commands, code map placeholder); repository README table and root `CLAUDE.md` list the new project
+- [x] Tests: `npm run typecheck` is clean (also proven by a deliberately wrong call that `tsc` rejects, checked once by hand); unit sanity test (imports `js/config.js`: φ, default settings); e2e smoke test (page loads, no console errors, `#app` exists) in all four projects
 
 ## Phase 1 – Tiling (PRD 4.1, 4.2 part 1)
 
-Goal: generate P3 patches and draw them as plain outlines.
+Goal: generate P3 patches and draw them as plain outlines. *Delivered with a deviation: lone half-rhombs at the patch edge are dropped, so depth 0 has no tiles and the useful depths are 1–5 (10–430 tiles for the wheel).*
 
-- [ ] `rng.js`: seeded generator (e.g. mulberry32 or the one of Sudoku), `int(n)`, `shuffle(array)`
-- [ ] `penrose.js`: seeds (*sun*, *star*, *wheel*, and the mirrored *half* variants) as lists of Robinson triangles; subdivision (deflation) of the two triangle kinds by the golden ratio; merging triangle pairs into thick and thin rhombs; snapping of shared vertices with a tolerance
-- [ ] Tile list: `id` (stable for seed + depth), `type` (`thick` | `thin`), vertices, centre, neighbour ids (shared edge), `ancestors` (parent id per coarser level, PRD 13); also boundary flag
-- [ ] Patch outline and bounding box; `fit(width, height)` transform (centred, scaled, margins)
-- [ ] `view.js` (first part): SVG with one `<polygon data-id data-type>` per tile, outlines only (no colours yet); `controller.js` + `main.js`: controls for **seed** and **depth**; warning above 250 tiles, refusal above 700 (PRD 4.1)
-- [ ] Unit: tile counts for every seed and depth 0–5 against known values; thick : thin tends to φ; total tile area equals the area of the patch outline (no gaps, no overlaps); every edge is shared by exactly two tiles or lies on the boundary; all tiles have the right angles (72°/108° thick, 36°/144° thin); determinism (same seed and depth → identical list); every tile has one ancestor per coarser level and ancestors nest correctly
-- [ ] e2e: seeds × depths render the expected number of polygons; the picture fits the window in all four layouts (no scrolling, margins); changing the controls redraws; refusal message above 700 tiles
+- [x] `rng.js`: seeded generator (e.g. mulberry32 or the one of Sudoku), `int(n)`, `shuffle(array)`
+- [x] `penrose.js`: seeds as lists of Robinson triangles – **`wheel` (ten triangles), `half` (five) and `fan` (three)**; *sun* and *star* are not implemented (they need the arrow matching rules to label their triangles; the wheel gets a five-fold centre of five thick rhombs from depth 1 anyway); subdivision (deflation) of the two triangle kinds by the golden ratio; merging triangle pairs into thick and thin rhombs; snapping of shared vertices with a tolerance
+- [x] Tile list: `id` (stable for seed + depth), `type` (`thick` | `thin`), vertices, centre, neighbour ids (shared edge), `ancestors` (parent id per coarser level, PRD 13); also boundary flag
+- [x] Patch outline and bounding box; `fit(width, height)` transform (centred, scaled, margins)
+- [x] `view.js` (first part): SVG with one `<polygon data-id data-type>` per tile, outlines only (no colours yet); `controller.js` + `main.js`: controls for **seed** and **depth**; warning above 250 tiles, refusal above 700 (PRD 4.1)
+- [x] Unit: tile counts for every seed and depth 0–5 against known values; thick : thin tends to φ; total tile area equals the area of the patch outline (no gaps, no overlaps); every edge is shared by exactly two tiles or lies on the boundary; all tiles have the right angles (72°/108° thick, 36°/144° thin); determinism (same seed and depth → identical list); every tile has one ancestor per coarser level and ancestors nest correctly
+- [x] e2e: seeds × depths render the expected number of polygons; the picture fits the window in all four layouts (no scrolling, margins); changing the controls redraws; refusal message above 700 tiles
 
 ## Phase 2 – Colouring, sliders and URL (PRD 4.3, 5, 8 part 1)
 
 Goal: the heart of the tool: colour the tiles from a plane through the HSL cone, with live sliders.
 
-- [ ] `color.js`: HSL → sRGB (8-bit) and back, clamping; **the 8-bit sRGB value is the colour of a tile everywhere** (PRD 5)
-- [ ] Mappings: `plane` (hue along `u`, saturation and lightness by plane slopes, rotation), `radial`, `angular`; tile-type lightness shift `dt` (PRD 5.1–5.3)
-- [ ] `colouring.js` (or in `color.js`): `colourTiles(tiles, settings)` → array of `#rrggbb` per tile id; colour statistics: number of different colours, groups of tied tiles (PRD 5.4)
-- [ ] `params.js`: settings ↔ URL query (PRD 4.3 table), validation, defaults, unknown values ignored; the URL is updated without reload
-- [ ] Controls: mapping selector and **sliders** for hue start/end, saturation, lightness, saturation slope, lightness slope, rotation, tile-type shift, gap, each with a visible value; only the sliders that apply to the mapping are shown; **Copy link** button (clipboard, with fallback)
-- [ ] Redraw while a slider moves: recolour the existing polygons, never rebuild the tiling; statistics shown (colours, ties)
-- [ ] Unit: HSL→sRGB against known values and round trip; `plane` mapping is monotonic along `u` and continuous; for generic parameters all tile colours are distinct; `radial`/`angular` on a symmetric patch produce ties; `dt` changes only the lightness of thin tiles; `params` round trip and rejection of bad values; same settings → identical colours
-- [ ] e2e: URL parameters change the picture (compare `fill` values); every slider changes at least one tile colour and the URL; Copy link puts the current URL on the clipboard; reload with the same URL reproduces the colours; screenshot baselines for three default colourings per project
+- [x] `color.js`: HSL → sRGB (8-bit) and back, clamping; **the 8-bit sRGB value is the colour of a tile everywhere** (PRD 5)
+- [x] Mappings: `plane` (hue along `u`, saturation and lightness by plane slopes, rotation), `radial`, `angular`; tile-type lightness shift `dt` (PRD 5.1–5.3)
+- [x] `colouring.js` (or in `color.js`): `colourTiles(tiles, settings)` → array of `#rrggbb` per tile id; colour statistics: number of different colours, groups of tied tiles (PRD 5.4)
+- [x] `params.js`: settings ↔ URL query (PRD 4.3 table), validation, defaults, unknown values ignored; the URL is updated without reload
+- [x] Controls: mapping selector and **sliders** for hue start/end, saturation, lightness, saturation slope, lightness slope, rotation, tile-type shift, gap, each with a visible value; only the sliders that apply to the mapping are shown; **Copy link** button (clipboard, with fallback)
+- [x] Redraw while a slider moves: recolour the existing polygons, never rebuild the tiling; statistics shown (colours, ties)
+- [x] Unit: HSL→sRGB against known values and round trip; `plane` mapping is monotonic along `u` and continuous; for generic parameters all tile colours are distinct; `radial`/`angular` on a symmetric patch produce ties; `dt` changes only the lightness of thin tiles; `params` round trip and rejection of bad values; same settings → identical colours
+- [x] e2e: URL parameters change the picture (compare `fill` values); every slider changes at least one tile colour and the URL; Copy link puts the current URL on the clipboard; reload with the same URL reproduces the colours; screenshot baselines for three default colourings per project
 
 ## Phase 3 – Shuffle and manual solving (PRD 6)
 
 Goal: play with a colouring: shuffle, swap by drag and drop or by taps, count the swaps.
 
-- [ ] `puzzle.js`: state = target colours (from phase 2) + current arrangement; **two independent permutations** (thick, thin); `swap(a, b)` only for two tiles of the same type, returns `refused` otherwise; undo stack; reset; `solved`
-- [ ] Shuffle: seeded, by strength (all / percentage) and **to a target number of minimum swaps**; `minimumSwaps` = tiles − cycles per type, summed; shuffle seed in the URL (`shuffle`)
-- [ ] View: tile colours come from the arrangement; **drag and drop** with pointer events (the dragged colour follows the pointer, valid targets highlighted, drop elsewhere cancels; `touch-action: none` on the board); **two-tap swap** with selection highlight; sorted preview (button, hold or toggle); swap cross-fade ≈ 200 ms, shorter with `prefers-reduced-motion`
-- [ ] Controls and status: *Shuffle* with strength/target, *Reset*, *Undo*, *Sorted preview*; status line with swaps made, minimum swaps, "solved" message
-- [ ] Keyboard: arrow keys move the selection between neighbours, Enter selects/swaps, live region announces swaps and "solved"
-- [ ] Unit: shuffle determinism; shuffled arrangement is a permutation inside each type; thick/thin swap refused; `minimumSwaps` equals the length of an optimal solution found by brute force on small patches; shuffle to a target of k swaps yields minimum swaps k (or the closest possible, documented); undo/reset restore exactly; solving by the optimal swap sequence reaches `solved`
-- [ ] e2e: shuffle → picture differs from sorted and is reproducible from the URL; drag and drop swaps two colours; dropping on a tile of the other type or outside does nothing; two taps swap; the swap counter and minimum swaps are right; solving a small patch shows "solved"; touch (iPhone/iPad projects) works for tap and drag
+- [x] `puzzle.js`: state = target colours (from phase 2) + current arrangement; **two independent permutations** (thick, thin); `swap(a, b)` only for two tiles of the same type, returns `refused` otherwise; undo stack; reset; `solved`
+- [x] Shuffle: seeded, by strength (all / percentage) and **to a target number of minimum swaps**; `minimumSwaps` = tiles − cycles per type, summed; shuffle seed in the URL (`shuffle`)
+- [x] View: tile colours come from the arrangement; **drag and drop** with pointer events (the dragged colour follows the pointer, valid targets highlighted, drop elsewhere cancels; `touch-action: none` on the board); **two-tap swap** with selection highlight; sorted preview (button, hold or toggle); swap cross-fade ≈ 200 ms, shorter with `prefers-reduced-motion`
+- [x] Controls and status: *Shuffle* with strength/target, *Reset*, *Undo*, *Sorted preview*; status line with swaps made, minimum swaps, "solved" message
+- [x] Keyboard: arrow keys move the selection between neighbours, Enter selects/swaps, live region announces swaps and "solved"
+- [x] Unit: shuffle determinism; shuffled arrangement is a permutation inside each type; thick/thin swap refused; `minimumSwaps` equals the length of an optimal solution found by brute force on small patches; shuffle to a target of k swaps yields minimum swaps k (or the closest possible, documented); undo/reset restore exactly; solving by the optimal swap sequence reaches `solved`
+- [x] e2e: shuffle → picture differs from sorted and is reproducible from the URL; drag and drop swaps two colours; dropping on a tile of the other type or outside does nothing; two taps swap; the swap counter and minimum swaps are right; solving a small patch shows "solved"; touch (iPhone/iPad projects) works for tap and drag
 
 ## Phase 4 – Symmetry, uniqueness and anchors (PRD 4.2, 7)
 
