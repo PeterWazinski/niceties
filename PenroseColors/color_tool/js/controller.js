@@ -1,6 +1,6 @@
 // Connects settings, tiling, colouring, puzzle and view; keeps the URL in step.
 import { generate } from "./penrose.js";
-import { colourTiles, colourStats } from "./color.js";
+import { colourTiles, colourStats, stepFactor, slopeStep, slopesForStep } from "./color.js";
 import { parseParams, serializeParams, ignoredParams } from "./params.js";
 import { createPuzzle } from "./puzzle.js";
 import { createRng } from "./rng.js";
@@ -27,6 +27,7 @@ export function startApp(root) {
   let cursor = -1;        // keyboard position
   let preview = false;
   let tooMany = false;
+  let stepK = 0;          // colour step per point of slope for this tiling and mapping
   let editing = false;    // anchor edit mode
   /** @type {import("./symmetry.js").Symmetry[]} */
   let symmetries = [];
@@ -85,8 +86,9 @@ export function startApp(root) {
   /** The colours changed (a slider moved), the tiling did not. */
   function recolour() {
     colours = colourTiles(tiles, settings);
+    stepK = stepFactor(tiles, settings);
     view.setGap(settings.gap);
-    view.setSettings(settings, Math.max(1, puzzle.capacity()));
+    view.setSettings(settings, Math.max(1, puzzle.capacity()), { value: slopeStep(settings.ds, settings.dl, stepK), max: Math.round(Math.hypot(100, 100) * stepK * 10) / 10 || 1 });
   }
 
   function refresh() {
@@ -114,6 +116,16 @@ export function startApp(root) {
 
   /** @param {string} key @param {string | number} value */
   function setSetting(key, value) {
+    if (key === "step") {
+      // the step between tiles scales both slopes together; it is not a setting of its own
+      const s = slopesForStep(Number(value), stepK, settings.ds, settings.dl);
+      settings.ds = s.ds;
+      settings.dl = s.dl;
+      recolour();
+      syncUrl();
+      refresh();
+      return;
+    }
     settings[key] = value;
     if (key === "seed" || key === "depth") {
       settings.anchors = "";

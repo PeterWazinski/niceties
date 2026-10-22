@@ -20,6 +20,7 @@ Source of the idea: [vision.md](vision.md) (with four reference screenshots in t
 - [x] Implementation plan reviewed; **phases 0–3 implemented** (2026-10-22), see the plan for the ticked items and deviations.
 - [x] User tried the tool after phase 3 ("already looks great"); **phases 4–6 implemented** (2026-10-22): symmetry, uniqueness and anchors; accessibility, layout, robustness, README; exploration results in [exploration-results.md](exploration-results.md).
 - [x] Change request round 1 implemented (2026-10-23): collapsible sections, half/fan turned, angular dropped, radial centre option, default anchors (no Suggest), Peek. See the plan, section "After phase 6".
+- [x] Change request round 2: *Colour step between tiles* slider linked with the slope sliders.
 - [ ] User confirms two assumptions: the fan's default anchors are its four most distant tiles (not bounding-box corners), and a *Default anchors* button was added.
 - [ ] User reads the exploration results, plays the swap budgets by hand (30 / 80 / 200) and decides go/no-go for the puzzle (`PenrosePuzzle/`).
 - [ ] No code exists yet. The folder has no `index.html`, `package.json` or tests.

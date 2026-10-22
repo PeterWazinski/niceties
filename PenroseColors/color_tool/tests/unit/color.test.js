@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { hslToRgb, rgbToHsl, toHex, colourTiles, colourStats } from "../../js/color.js";
+import { hslToRgb, rgbToHsl, toHex, colourTiles, colourStats, stepFactor, slopeStep, slopesForStep } from "../../js/color.js";
 import { generate } from "../../js/penrose.js";
 import { DEFAULTS } from "../../js/config.js";
 
@@ -121,4 +121,59 @@ test("colourStats: distinct colours and tied groups", () => {
   assert.deepEqual(colourStats(["#000000", "#111111", "#000000", "#222222", "#111111", "#000000"]),
     { distinct: 3, ties: [[0, 2, 5], [1, 4]] });
   assert.deepEqual(colourStats([]), { distinct: 0, ties: [] });
+});
+
+test("the step factor: the average change of the gradient variable between neighbouring tiles", () => {
+  const plane = stepFactor(wheel3, DEFAULTS), radial = stepFactor(wheel3, { ...DEFAULTS, map: "radial" });
+  assert.ok(plane > 0.05 && plane < 0.5, "plane " + plane);
+  assert.ok(radial > plane, "radial changes faster than the plane (r runs from the centre to the rim)");
+  assert.equal(stepFactor([], DEFAULTS), 0);
+  // more tiles, smaller steps
+  const f = (d) => stepFactor(generate("wheel", d).tiles, DEFAULTS);
+  assert.ok(f(3) > f(4) && f(4) > f(5));
+  // rotating the plane changes which neighbours differ, the factor stays of the same size
+  assert.ok(Math.abs(stepFactor(wheel3, { ...DEFAULTS, rot: 90 }) - plane) < 0.5 * plane);
+  // it does not depend on the slopes
+  assert.equal(stepFactor(wheel3, { ...DEFAULTS, ds: 5, dl: 70 }), plane);
+});
+
+test("the step is the length of the slopes times the factor", () => {
+  assert.equal(slopeStep(0, 0, 0.2), 0);
+  assert.ok(Math.abs(slopeStep(-20, -25, 0.2) - Math.hypot(20, 25) * 0.2) < 1e-12);
+  assert.ok(Math.abs(slopeStep(30, 40, 0.1) - 5) < 1e-12);
+});
+
+test("a wanted step scales both slopes together and keeps their proportion and signs", () => {
+  const k = 0.15;
+  const r = slopesForStep(2, k, -20, -25);
+  assert.ok(r.ds < 0 && r.dl < 0);
+  assert.ok(Math.abs(r.ds / r.dl - 0.8) < 0.1, "proportion kept");
+  assert.ok(Math.abs(slopeStep(r.ds, r.dl, k) - 2) < 0.15, "gives the wanted step (within the half point grid)");
+  const up = slopesForStep(6, k, 20, -10);
+  assert.ok(up.ds > 0 && up.dl < 0);
+  assert.ok(Math.abs(up.ds / up.dl + 2) < 0.2);
+  // round trip: the slopes of a step give that step again
+  for (const want of [0.5, 1, 2.5, 4, 9]) {
+    const s = slopesForStep(want, k, -20, -25);
+    assert.ok(Math.abs(slopeStep(s.ds, s.dl, k) - want) < 0.2, `step ${want}`);
+  }
+  // both multiples of half a point
+  assert.equal(r.ds * 2, Math.round(r.ds * 2));
+  assert.equal(r.dl * 2, Math.round(r.dl * 2));
+});
+
+test("with both slopes at zero the default proportion is used; step 0 gives zero slopes", () => {
+  const r = slopesForStep(3, 0.15, 0, 0);
+  assert.ok(r.ds < 0 && r.dl < 0);
+  assert.ok(Math.abs(r.ds / r.dl - DEFAULTS.ds / DEFAULTS.dl) < 0.1);
+  assert.deepEqual(slopesForStep(0, 0.15, -20, -25), { ds: 0, dl: 0 });
+  assert.deepEqual(slopesForStep(5, 0, -20, -25), { ds: 0, dl: 0 }, "no factor (no tiles): nothing to scale");
+  assert.ok(Object.is(slopesForStep(0, 0.15, 20, 25).ds, 0), "no negative zero");
+});
+
+test("a step that is too large is held back so that no slope leaves -100..100", () => {
+  const r = slopesForStep(1000, 0.15, -20, -25);
+  assert.ok(Math.abs(r.ds) <= 100 && Math.abs(r.dl) <= 100);
+  assert.equal(Math.max(Math.abs(r.ds), Math.abs(r.dl)), 100);
+  assert.ok(Math.abs(r.ds / r.dl - 0.8) < 0.02);
 });

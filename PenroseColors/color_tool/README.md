@@ -19,6 +19,9 @@ Opening `index.html` directly from the file system does not work (browsers block
 - **Colour:** mapping *Plane* (hue left to right, saturation and lightness top to bottom), *Radial* (hue by angle,
   saturation and lightness by distance from the centre) with a **bright or dark centre** (*Centre* select). Sliders change the picture
   live: hue start/end, saturation, lightness, their slopes, rotation of the plane, lightness of thin tiles, gap.
+  **Colour step between tiles** shows how much saturation and lightness change on average from one tile to its
+  neighbour; it is linked both ways with the two slope sliders (move one, the others follow; the step scales both
+  slopes together).
   The panel shows how many different colours there are and how many tiles share one.
 - **Puzzle:** *Shuffle* mixes the colours. *Target swaps* sets how many swaps the shuffle needs at least (0 = a
   full shuffle). Swap two tiles of the **same shape** by dragging one onto the other, or click one and then the

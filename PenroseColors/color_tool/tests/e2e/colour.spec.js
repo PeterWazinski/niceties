@@ -108,3 +108,87 @@ test("Copy link puts the current URL on the clipboard", async ({ page, context, 
     await expect(page.locator("#message")).toHaveText("Link copied.");
   }
 });
+
+const num = async (page, sel) => Number(await page.locator(sel).inputValue());
+const out = (page, key) => page.locator("#out-" + key);
+
+test("the colour step slider shows the average step between tiles for the current slopes", async ({ page }) => {
+  await openTool(page, "?depth=3");
+  await expect(page.locator("#in-step")).toBeVisible();
+  const step = Number(await out(page, "step").textContent());
+  expect(step).toBeGreaterThan(3);
+  expect(step).toBeLessThan(7);
+  expect(await num(page, "#in-step")).toBeCloseTo(step, 1);
+  // a bigger patch has smaller steps for the same slopes
+  await openTool(page, "?depth=5");
+  expect(Number(await out(page, "step").textContent())).toBeLessThan(step);
+});
+
+test("moving the step slider scales both slope sliders and keeps their proportion", async ({ page }) => {
+  await openTool(page, "?depth=3");
+  const ds0 = await num(page, "#in-ds"), dl0 = await num(page, "#in-dl");
+  expect(ds0).toBe(-20);
+  expect(dl0).toBe(-25);
+  const before = Number(await out(page, "step").textContent());
+  await setSlider(page, "step", before / 2);
+  await expect.poll(() => num(page, "#in-ds")).toBeGreaterThan(-12);
+  const ds = await num(page, "#in-ds"), dl = await num(page, "#in-dl");
+  expect(Math.abs(ds)).toBeLessThan(Math.abs(ds0));
+  expect(Math.abs(dl)).toBeLessThan(Math.abs(dl0));
+  expect(ds / dl).toBeGreaterThan(0.6);
+  expect(ds / dl).toBeLessThan(1);
+  await expect(page.locator("#out-ds")).toHaveText(String(ds));
+  await expect(page.locator("#out-dl")).toHaveText(String(dl));
+  await expect(page).toHaveURL(/ds=/);
+  await expect(page).toHaveURL(/dl=/);
+  await expect(out(page, "step")).toHaveText((before / 2).toFixed(1));
+});
+
+test("moving a slope slider updates the step slider", async ({ page }) => {
+  await openTool(page, "?depth=3");
+  const before = Number(await out(page, "step").textContent());
+  await setSlider(page, "ds", 0);
+  await expect.poll(async () => Number(await out(page, "step").textContent())).toBeLessThan(before);
+  const afterDs = Number(await out(page, "step").textContent());
+  expect(afterDs).toBeGreaterThan(0);
+  expect(await num(page, "#in-step")).toBeCloseTo(afterDs, 1);
+  await setSlider(page, "dl", 0);
+  await expect(out(page, "step")).toHaveText("0.0");
+  expect(await num(page, "#in-step")).toBe(0);
+  await setSlider(page, "ds", 40);
+  await expect.poll(async () => Number(await out(page, "step").textContent())).toBeGreaterThan(before);
+});
+
+test("from zero slopes the step slider brings the default proportion back; it never pushes a slope past 100", async ({ page }) => {
+  await openTool(page, "?depth=3&ds=0&dl=0");
+  await expect(out(page, "step")).toHaveText("0.0");
+  await setSlider(page, "step", 3);
+  await expect.poll(() => num(page, "#in-ds")).toBeLessThan(0);
+  expect(await num(page, "#in-dl")).toBeLessThan(0);
+  const max = await page.locator("#in-step").getAttribute("max");
+  await setSlider(page, "step", Number(max));
+  await expect.poll(async () => Math.max(Math.abs(await num(page, "#in-ds")), Math.abs(await num(page, "#in-dl")))).toBeLessThanOrEqual(100);
+  expect(Math.max(Math.abs(await num(page, "#in-ds")), Math.abs(await num(page, "#in-dl")))).toBeGreaterThan(90);
+});
+
+test("the step slider changes the colours; the radial mapping gives another step for the same slopes", async ({ page }) => {
+  await openTool(page, "?depth=3");
+  const before = await fills(page);
+  const plane = Number(await out(page, "step").textContent());
+  await setSlider(page, "step", 1);
+  await expect.poll(async () => JSON.stringify(await fills(page))).not.toBe(JSON.stringify(before));
+  await openTool(page, "?depth=3&map=radial");
+  expect(Number(await out(page, "step").textContent())).toBeGreaterThan(plane);
+  await page.selectOption("#map", "plane");
+  await expect(out(page, "step")).toHaveText(plane.toFixed(1));
+});
+
+test("the step is not a URL parameter of its own", async ({ page }) => {
+  await openTool(page, "?depth=3");
+  await setSlider(page, "step", 2);
+  await expect(page).toHaveURL(/ds=/);
+  expect(page.url()).not.toContain("step=");
+  await page.reload();
+  await expect(page.locator(".tile").first()).toBeVisible();
+  await expect(out(page, "step")).toHaveText("2.0");
+});

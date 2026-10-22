@@ -18,8 +18,8 @@ export const SLIDERS = [
   { key: "h1", label: "Hue end", min: 0, max: 360, step: 1, maps: ["plane", "radial"] },
   { key: "s", label: "Saturation", min: 0, max: 100, step: 1, maps: ["plane", "radial"] },
   { key: "l", label: "Lightness", min: 0, max: 100, step: 1, maps: ["plane", "radial"] },
-  { key: "ds", label: "Saturation slope", min: -100, max: 100, step: 1, maps: ["plane", "radial"] },
-  { key: "dl", label: "Lightness slope", min: -100, max: 100, step: 1, maps: ["plane", "radial"] },
+  { key: "ds", label: "Saturation slope", min: -100, max: 100, step: 0.5, maps: ["plane", "radial"] },
+  { key: "dl", label: "Lightness slope", min: -100, max: 100, step: 0.5, maps: ["plane", "radial"] },
   { key: "rot", label: "Rotation", min: 0, max: 359, step: 1, maps: ["plane", "radial"] },
   { key: "dt", label: "Thin tile lightness", min: -30, max: 30, step: 1, maps: ["plane", "radial"] },
   { key: "gap", label: "Gap", min: 0, max: 6, step: 0.5, maps: ["plane", "radial"] }

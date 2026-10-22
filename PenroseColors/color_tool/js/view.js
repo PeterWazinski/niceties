@@ -44,6 +44,10 @@ function template() {
             <label class="field"><span>Mapping</span><select id="map" class="select">${options(MAPS)}</select></label>
             <label class="field" id="ctr-field"><span>Centre</span><select id="ctr" class="select">${options(CENTRES)}</select></label>
           </div>
+          <label class="slider step-slider" id="step-field">
+            <span class="slider-head"><span>Colour step between tiles</span><output id="out-step"></output></span>
+            <input type="range" id="in-step" aria-label="Colour step between neighbouring tiles (saturation and lightness points)" min="0" max="20" step="0.1">
+          </label>
           <div class="sliders">${sliders}</div>
           <p class="info" id="colour-info"></p>`;
   const anchors = `
@@ -130,6 +134,10 @@ export function createView(root, handlers = {}) {
       if (handlers.onSetting) handlers.onSetting(s.key, Number(e.target.value));
     });
   }
+  $("#in-step").addEventListener("input", (e) => {
+    $("#out-step").textContent = Number(e.target.value).toFixed(1);
+    if (handlers.onSetting) handlers.onSetting("step", Number(e.target.value));
+  });
   $("#shuffle").addEventListener("click", () => handlers.onShuffle && handlers.onShuffle());
   $("#reset").addEventListener("click", () => handlers.onReset && handlers.onReset());
   $("#undo").addEventListener("click", () => handlers.onUndo && handlers.onUndo());
@@ -315,8 +323,12 @@ export function createView(root, handlers = {}) {
     /** @param {number} gap stroke width in px between tiles */
     setGap(gap) { board.style.setProperty("--gap", gap + "px"); },
 
-    /** Shows the settings in the controls. @param {Settings} st @param {number} swMax */
-    setSettings(st, swMax) {
+    /**
+     * Shows the settings in the controls.
+     * @param {Settings} st @param {number} swMax
+     * @param {{ value: number, max: number }} [step] the colour step between neighbouring tiles the slopes give
+     */
+    setSettings(st, swMax, step) {
       $("#seed").value = st.seed;
       $("#depth").value = String(st.depth);
       $("#map").value = st.map;
@@ -326,6 +338,13 @@ export function createView(root, handlers = {}) {
         $("#in-" + s.key).value = String(st[s.key]);
         $("#out-" + s.key).textContent = String(st[s.key]);
         $(`.slider[data-key="${s.key}"]`).hidden = !s.maps.includes(st.map);
+      }
+      if (step) {
+        const input = $("#in-step");
+        input.max = String(step.max);
+        // the slider the user is moving keeps its position (the slopes are rounded to half points)
+        if (document.activeElement !== input) input.value = String(step.value);
+        $("#out-step").textContent = step.value.toFixed(1);
       }
       const sw = $("#in-sw");
       sw.max = String(Math.max(1, swMax));

@@ -162,6 +162,7 @@ Requested after the first try-out ("a game editor"): shorter panel, fewer modes,
 - [x] **Default anchors** (`anchors.js`): wheel and half wheel = tile nearest the middle + extreme tiles right, bottom, left, top; fan = the four extreme tiles. They are ordinary anchors (toggle, clear); `anchors` absent = defaults, `none` = no anchor. *Suggest anchors* removed, *Default anchors* button added. Tests: unit `anchors.test.js` (including: the defaults make every wheel colouring tried unique), e2e `anchors.spec.js`
 - [x] **Peek** replaces "Sorted preview" and the four puzzle buttons share one row (`layout.spec.js`)
 - [x] Docs: PRD 4.1, 4.3, 5.2, 6, 7, 8, 11, 12; this plan; READMEs; the exploration results carry a note on the dropped mapping
+- [x] **Colour step slider** (change request round 2): *Colour step between tiles* = average change of saturation and lightness between neighbouring tiles (`stepFactor`, `slopeStep`, `slopesForStep` in `color.js`); linked both ways with the two slope sliders (slopes now in half points); not a URL parameter. Tests: unit `color.test.js` (factor, round trip, proportion, zero, clamp), e2e `colour.spec.js` (both directions, URL, radial, reload)
 - Assumptions to confirm: the fan's "four corners" are read as its four most distant tiles (right, bottom, left, top), not the corners of its bounding box (which can be empty); *Default anchors* is an addition to restore the defaults.
 
 ## Requirements trace

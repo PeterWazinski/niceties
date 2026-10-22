@@ -137,6 +137,15 @@ The tile centre `p` is normalised to the patch's bounding box (`u`, `v` in −1 
 - the default parameters reproduce the soft "yellow-green – blue – violet" gradients of the
   reference screenshots.
 
+**Colour step between tiles.** The saturation and lightness slopes are hard to judge. The tool therefore shows
+and sets them also as one **step between neighbouring tiles**: the average change of saturation and lightness
+together (in percentage points) from one tile to a neighbour, `step = |(slope_s, slope_l)| × f`, where *f* is the
+average change of the gradient variable between neighbouring tiles (it depends on the tiling and the mapping, not on
+the slopes). The *step* slider and the two slope sliders are linked **both ways**: moving the step slider scales both
+slopes together (their proportion and signs stay; with both at zero the default proportion is used; no slope leaves
+−100…100), moving a slope slider updates the step. The step is derived, not a URL parameter of its own; the slopes
+(in half points) are.
+
 The mapping is **continuous**: neighbouring tiles get similar colours, and (for generic
 parameters) every tile gets its own distinct colour.
 

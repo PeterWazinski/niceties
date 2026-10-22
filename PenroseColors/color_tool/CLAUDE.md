@@ -26,6 +26,8 @@ Pure logic, no DOM (runs under Node):
   returns tiles (rhombs: id, type, corners, centre, neighbours, ancestors, boundary) and the lone halves that are
   dropped; `fit()` scales a patch into a box
 - `color.js` – HSL→sRGB, the mappings `plane` / `radial` (with `ctr` bright or dark centre), `colourTiles`, `colourStats` (ties)
+- `color.js` also has `stepFactor` / `slopeStep` / `slopesForStep`: the *Colour step between tiles* slider and the slope
+  sliders are linked both ways (the step is derived, not stored; the slopes are in half points)
 - `params.js` – settings ↔ URL query (only non-default values are written)
 - `puzzle.js` – colours move over fixed shapes: permutation per tile, same-type swaps, undo, shuffle (full or to
   k minimum swaps), minimum swaps = tiles − cycles, anchored tiles never move

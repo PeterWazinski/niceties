@@ -2,6 +2,8 @@
 // The 8-bit sRGB value of a tile ("#rrggbb") is THE colour of the tile everywhere:
 // display, comparison, ties.
 
+import { DEFAULTS } from "./config.js";
+
 /** @typedef {import("./types.js").Tile} Tile */
 /** @typedef {import("./config.js").Settings} Settings */
 
@@ -65,14 +67,9 @@ export function rgbToHsl(r, g, b) {
  */
 export function colourTiles(tiles, st) {
   if (!tiles.length) return [];
-  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-  for (const t of tiles) { x0 = Math.min(x0, t.cx); x1 = Math.max(x1, t.cx); y0 = Math.min(y0, t.cy); y1 = Math.max(y1, t.cy); }
-  const mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
-  const R = Math.max((x1 - x0) / 2, (y1 - y0) / 2) || 1;
-  const rot = st.rot * Math.PI / 180, cos = Math.cos(rot), sin = Math.sin(rot);
+  const place = framed(tiles, st.rot);
   return tiles.map((t) => {
-    const px = (t.cx - mx) / R, py = (t.cy - my) / R;
-    const u = px * cos - py * sin, v = px * sin + py * cos;
+    const { u, v } = place(t);
     let hue, sat = st.s, lig = st.l;
     if (st.map === "plane") {
       hue = st.h0 + (st.h1 - st.h0) * (u + 1) / 2;
@@ -89,6 +86,72 @@ export function colourTiles(tiles, st) {
     if (t.type === "thin") lig += st.dt;
     return toHex(hslToRgb(hue, sat, lig));
   });
+}
+
+/**
+ * The position of a tile in the colouring: (u, v) = the tile centre, centred and scaled by the larger half-extent
+ * of the patch into -1..1, then rotated by `rot` degrees.
+ * @param {Tile[]} tiles
+ * @param {number} rot
+ * @returns {(t: Tile) => { u: number, v: number }}
+ */
+function framed(tiles, rot) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const t of tiles) { x0 = Math.min(x0, t.cx); x1 = Math.max(x1, t.cx); y0 = Math.min(y0, t.cy); y1 = Math.max(y1, t.cy); }
+  const mx = (x0 + x1) / 2, my = (y0 + y1) / 2;
+  const R = Math.max((x1 - x0) / 2, (y1 - y0) / 2) || 1;
+  const a = rot * Math.PI / 180, cos = Math.cos(a), sin = Math.sin(a);
+  return (t) => {
+    const px = (t.cx - mx) / R, py = (t.cy - my) / R;
+    return { u: px * cos - py * sin, v: px * sin + py * cos };
+  };
+}
+
+/**
+ * How far the gradient variable of the saturation and lightness slopes (v in the plane mapping, 2r-1 in the radial
+ * one) changes on average between two neighbouring tiles. A slope of 1 point therefore changes the colour by about
+ * this many points from one tile to the next. It depends on the tiling and the mapping, not on the slopes.
+ * @param {Tile[]} tiles
+ * @param {Settings} st
+ * @returns {number}
+ */
+export function stepFactor(tiles, st) {
+  if (!tiles.length) return 0;
+  const place = framed(tiles, st.rot);
+  const g = tiles.map((t) => {
+    const { u, v } = place(t);
+    return st.map === "plane" ? v : 2 * clamp(Math.hypot(u, v), 0, 1) - 1;
+  });
+  let sum = 0, pairs = 0;
+  for (const t of tiles) for (const n of t.neighbours) if (n > t.id) { sum += Math.abs(g[t.id] - g[n]); pairs++; }
+  return pairs ? sum / pairs : 0;
+}
+
+/**
+ * The colour step between neighbouring tiles that the slopes give: the average change of saturation and lightness
+ * together (the length of the change in the saturation-lightness plane), in percentage points.
+ * @param {number} ds @param {number} dl @param {number} factor from stepFactor
+ */
+export function slopeStep(ds, dl, factor) {
+  return Math.hypot(ds, dl) * factor;
+}
+
+/**
+ * The slopes for a wanted step: both are scaled together, so their proportion and signs stay (with both at zero the
+ * default proportion is used). Neither slope may leave -100..100; the grid is half a point.
+ * @param {number} step wanted step between neighbouring tiles
+ * @param {number} factor from stepFactor
+ * @param {number} ds current saturation slope @param {number} dl current lightness slope
+ * @returns {{ ds: number, dl: number }}
+ */
+export function slopesForStep(step, factor, ds, dl) {
+  let a = ds, b = dl, m = Math.hypot(a, b);
+  if (m < 1e-9) { a = DEFAULTS.ds; b = DEFAULTS.dl; m = Math.hypot(a, b); }
+  let f = factor > 0 ? step / factor / m : 0;
+  const big = Math.max(Math.abs(a), Math.abs(b)) * f;
+  if (big > 100) f *= 100 / big;
+  const grid = (x) => Math.round(x * 2) / 2 || 0;
+  return { ds: grid(a * f), dl: grid(b * f) };
 }
 
 /**
