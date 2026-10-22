@@ -27,7 +27,7 @@ automatic uniqueness check. Step 2 appears only as an outlook (section 9).
 
 **Out of scope (step 1), decided:** perceptual (ΔE) uniqueness and difficulty, other tilings
 (P2 kite and dart, …), clipping the patch to a rectangle or circle, a preset manager, export as
-PNG/SVG, offline/PWA support (later), timer, score, ads, accounts. **Saving a setting** simply
+PNG/SVG, offline/PWA support (later, no redesign needed, see 3), timer, score, ads, accounts. **Saving a setting** simply
 means copying the URL (4.3).
 
 ## 2. Principles
@@ -43,12 +43,13 @@ means copying the URL (4.3).
 
 ## 3. Platform
 
-- **Staging: open `PenroseColors/index.html` directly from the file system** (double-click, `file://`) in
-  a desktop browser – no web server, no build. Consequence for the code: **no ES modules and no
-  `fetch`/service worker**, because browsers block them on `file://`. The scripts are plain
-  classic scripts loaded with `<script src>`; each file is written so that it also works under
-  Node for the unit tests (a small UMD wrapper: it sets a global namespace in the browser and
-  `module.exports` in Node). The project's `package.json` therefore does not use `"type": "module"`.
+- **Staging: a tiny local web server.** Double-click `PenroseColors/start.cmd`: it starts
+  `server.mjs` (Node, no dependencies, `http://localhost:4175/`, files never cached) and opens
+  the page in the default browser. Opening `index.html` straight from the file system is **not**
+  supported: browsers block ES modules and service workers on `file://`. In exchange the code is
+  plain **ES modules** like Sudoku, and adding a manifest and service worker later (PWA, offline)
+  needs one extra file and no redesign, because `localhost` is a secure context just like
+  GitHub Pages. The same server is used by the e2e tests.
 - Static pages, plain HTML/CSS/JS, hosted later on GitHub Pages next to the other projects.
 - **Input:** mouse (click, drag and drop) and touch, handled with pointer events; the same code
   serves both.
@@ -93,8 +94,9 @@ returned as a list of permutations of tile ids. It is needed by the uniqueness c
 Every setting can be given in the URL; unknown or invalid values fall back to defaults. The
 URL is updated when the user changes something (without reloading), so any state can be
 bookmarked or shared. The on-screen sliders (8) and the URL are two views of the same settings;
-**Copy link** puts the URL on the clipboard and is the way to save a setting. (On `file://` the
-URL is a `file:///…?…` link that works on the same machine.)
+**Copy link** puts the URL on the clipboard and is the way to save a setting. (A
+`localhost:4175/?…` link works on the same machine while the server runs; on GitHub Pages it
+works for everyone.)
 
 | Parameter | Meaning | Default |
 |---|---|---|
@@ -279,15 +281,14 @@ Pure logic first, no DOM (runs under Node):
 | `params.js` | URL parameters ↔ settings, with validation and defaults |
 
 DOM: `view.js` (SVG render, selection, drag and drop, animation), `controller.js` (input,
-sliders, controls, URL), `main.js`. All files are classic scripts with the UMD wrapper of
-section 3 (they load from `file://`).
+sliders, controls, URL), `main.js`. All files are ES modules (`<script type="module">`), the
+logic modules run unchanged under Node.
 
 ### 10.2 Tests
 
 Same set-up as Sudoku (see the repository `CLAUDE.md`): Node's test runner for logic
-(`require` of the UMD files), Playwright for browser tests on iPhone, iPad portrait, iPad
-landscape and desktop. Because the page works from `file://`, the e2e tests open
-`file:///…/index.html` directly; no web server is needed.
+(importing the modules directly), Playwright for browser tests on iPhone, iPad portrait, iPad
+landscape and desktop. The e2e tests use `server.mjs` as their `webServer` (port 4175).
 
 - **Unit:** tile counts for each seed and depth (known sequence of Penrose counts, thick : thin
   → φ), no overlaps and no gaps (areas add up to the patch outline), all edges shared by two
@@ -345,7 +346,7 @@ shuffle must feel instant on an iPhone. The symmetry group and the minimal-ancho
 | Tool features | Shuffle and manual solving; anchors and uniqueness check; **on-screen sliders** for the colour parameters, URL parameters as the same settings; saving = copying the URL; no export |
 | Swaps | **Same-type tiles only** (thick with thick, thin with thin); by drag and drop and by two taps |
 | Puzzle size | Swap budgets: beginner ≈ 30, medium ≈ 80, expert 150 – 200 minimum swaps → patches of about 20 – 250 tiles |
-| Platform | Desktop browser first, **runs from `index.html` on `file://`** (no ES modules, no service worker); mouse and touch; offline/PWA later |
+| Platform | Desktop browser first; ES modules served by a tiny local Node server, started by double-clicking `start.cmd` (`file://` is **not** supported); mouse and touch; PWA/offline later without redesign |
 | Game outline | Provisional: show sorted, then shuffle; levels by tiling and anchors. Timer / score / limits are open for the game design |
 
 ### Open questions

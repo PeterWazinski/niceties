@@ -38,10 +38,11 @@ Source of the idea: [vision.md](vision.md) (with four reference screenshots in t
 - **Puzzle size:** minimum swaps beginner ≈ 30, medium ≈ 80, expert 150–200 (never more) →
   patches of about 20–250 tiles; the tool shows minimum swaps (tiles − cycles) and can shuffle to a
   target swap count.
-- **Platform:** the user needs to run the app locally by **opening `index.html` from the file
-  system** in a desktop browser. So **no ES modules, no service worker, no fetch**: classic scripts
-  with a UMD wrapper (usable in Node for unit tests), `package.json` without `"type": "module"`,
-  e2e tests open `file://` pages. Desktop first, touch also works; offline/PWA later.
+- **Platform:** desktop browser first. The first idea (run from `file://`) was **dropped** on
+  2026-10-22: it would forbid ES modules and service workers and make a later PWA a redesign.
+  Instead `start.cmd` (done, committed) starts `server.mjs` (Node, `http://localhost:4175/`) and
+  opens the browser. Plain ES modules like Sudoku; the same server serves the e2e tests. Touch also
+  works; offline/PWA later by adding a manifest and a service worker.
 
 ## Idea to explore later (from the user, my opinion in PRD 13)
 
@@ -61,7 +62,7 @@ tiles of a patch end at the same depth; it also breaks colour ties. A later expl
 2. Write `implementation.md` in the style of `Sudoku/design/implementation.md`: phases, each with
    checkboxed work items and tests, the phase gate from the root `CLAUDE.md`, a test-infrastructure
    section (Node test runner + Playwright with iPhone, iPad portrait/landscape, desktop). Suggested
-   phase order: 0 scaffold and test harness (file:// compatible, UMD scripts) → 1 tiling (`penrose.js`) with unit tests and a plain SVG
+   phase order: 0 scaffold and test harness (package.json, Playwright with `server.mjs`) → 1 tiling (`penrose.js`) with unit tests and a plain SVG
    view → 2 colourings (`color.js`) and URL parameters → 3 shuffle, swap, undo, solved → 4 symmetry
    group and uniqueness check, anchors, suggested anchors → 5 touch layout, accessibility →
    6 exploration results (anchor counts for three combinations, answers to the vision questions).
