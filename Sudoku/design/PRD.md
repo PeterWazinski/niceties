@@ -1,6 +1,7 @@
 # Sudoku – Product Requirements Document
 
-Status: **Final – ready for the implementation plan** · 2026-10-18
+Status: **Final – ready for the implementation plan** · 2026-10-18 ·
+change request **Coach** (3.4.1, decisions round 3) added 2026-11-15
 
 A small, ad-free Sudoku for the browser. It follows the clean look of sudoku.com
 (see the screenshots in this folder) but has no ads, no scoring and no timer. It
@@ -10,7 +11,8 @@ Reference images (same folder):
 `portrait-layout-6inch.jpg`, `screenshot01-number-highlight.jpg`,
 `screenshot02-error.jpg`, `screenshot03-cell-highlight.jpg`.
 
-All review decisions are recorded in section 11. No questions are open.
+All review decisions are recorded in section 11. Open: one assumption of the Coach
+change request (no peeking without a help left, see section 11, round 3).
 
 ---
 
@@ -37,7 +39,7 @@ All review decisions are recorded in section 11. No questions are open.
 |---|---|
 | Primary devices | iPhone (~6", portrait), iPad (~10", portrait and landscape) |
 | Browsers | Safari iOS 15+ first; current Chrome/Edge/Firefox on desktop as a bonus |
-| Input | Touch first (tap = digit, long press = note); keyboard on desktop (arrows, 1–9 = digit, Shift+1–9 = note, H = hint) |
+| Input | Touch first (tap = digit, long press = note); keyboard on desktop (arrows, 1–9 = digit, Shift+1–9 = note, H = hint, C = coach) |
 | Network | Needed only for the first load; never afterwards |
 
 ## 3. User experience
@@ -59,18 +61,26 @@ One screen, no navigation. Plain, flat, lots of white space, like sudoku.com.
 │ │          9 × 9 board       │ │  square, full width
 │ │                            │ │
 │ └────────────────────────────┘ │
-│            💡 Hint             │  tool row (just Hint)
+│      💡 Hint      🎓 Coach      │  tool row (Hint and Coach)
+│            ● ● ○ ○             │  help counter, shared (3.4)
 │  1  2  3  4  5  6  7  8  9     │  number row (tap = digit, hold = note)
 └──────────────────────────────┘
 ```
+
+While the Coach is open (3.4.1) the **number row is replaced by the Coach panel**
+(technique, explanation, **Next** / **Fill**, **Close**); header, status row and
+board stay as they are.
 
 Differences from the sudoku.com screenshot: the *Time* slot is replaced by the
 **colour-scheme dropdown**; there is no pause button, no score, no menu bubble,
 and no Undo / Erase / Notes buttons (see 3.2 for why they are not needed).
 
 **Landscape (iPad, wide desktop)** – modelled on screenshots 1–3: board on the left,
-a side panel on the right with the status row, the Hint button, a 3×3 number
-pad and **New Game** at the bottom.
+a side panel on the right with the status row, the Hint and Coach buttons with
+the help counter, a 3×3 number pad and **New Game** at the bottom. While the Coach
+is open, the Coach panel takes the place of the number pad. On short landscape
+screens (up to 520 px high, one-row number strip) the explanation text **scrolls**
+inside the panel; the buttons stay visible.
 
 **Sizing rules**
 
@@ -107,7 +117,9 @@ The rules are strict, which is what makes Undo and Erase unnecessary:
    note is already on **turns it off**, otherwise it turns it on. **A note may be set
    even if that digit already stands in the cell's row, column or box** – no
    validation, so the user sees the situation as it is when annotating.
-5. **Hint** button with a counter `n/4`: at most four hints per game (3.4).
+5. **Hint** and **Coach** buttons share one help counter: at most four helps per
+   game in total (3.4). Hint fills a cell silently, Coach explains the technique
+   first and then fills the cell (3.4.1).
 6. A digit whose nine copies are all placed is greyed out in the number row.
 7. Filling the last cell ends the game: a short "Solved!" message with **New Game**.
    No score, no time.
@@ -196,9 +208,14 @@ There is no way to carry on a lost game, and no hint can be taken. With reduced
 motion the shake is skipped and the fade is short. A lost game is saved: after a
 reload the grey board and the popup are shown again (3.7).
 
-**Hint button** with a counter (`Hint 0/4`, like the mistake counter). **At most four
-hints per game**; after the fourth the button is greyed and further taps (or `H`)
-are ignored. Hints are not refunded and reset with a new game.
+**Help counter, shared by Hint and Coach.** **At most four helps per game in
+total**, any mix of Hint and Coach (e.g. 3 hints + 1 coach). The counter is a row of
+four dots under the two buttons (portrait: centred under the tool row; landscape:
+under the buttons in the side panel). A **filled dot is a used help**, counted like
+the mistake counter (`● ● ○ ○` = 2 of 4 used). Accessible name: "Help: 2 of 4 used".
+After the fourth help both buttons look inactive (`aria-disabled`) and further taps
+(or `H`, `C`) are ignored. Helps are not refunded and reset with a new game.
+(Supersedes the label `Hint n/4` of the first release.)
 
 | Situation | What Hint does |
 |---|---|
@@ -206,7 +223,77 @@ are ignored. Hints are not refunded and reset with a new game.
 | No wrong digit, a cell is **selected and empty** | The correct digit is **slowly faded in** there and locked. The cell is selected and gets a brief pulsing outline so the user notices where the hint landed. |
 | No wrong digit, **nothing useful selected** | The cell the logical solver would fill next is selected and filled the same way. |
 
-A hint never counts as a mistake; every hint that does something counts as a hint.
+A hint never counts as a mistake; every hint that does something counts as one help.
+
+#### 3.4.1 Coach
+
+The Coach teaches instead of just revealing: it finds the **easiest next move on
+the whole board**, explains the technique step by step on the board, and then
+fills the cell.
+
+**Which move.** The techniques of section 4 are tried from easy to hard
+(Beginner → Expert → Master, in the order of `techniques.js`). The selected cell
+is ignored: the Coach always starts with the easiest cell/technique. Only the
+singles place a digit; every other technique only removes candidates. So the
+Coach computes a **chain**: zero or more elimination steps, ending with the single
+that places a digit. Elimination steps that are not needed for that final
+placement are dropped from the chain, so the user only sees what matters.
+
+**Flow.**
+
+1. Tap **Coach** (or `C`). Board taps and the number row/pad are blocked until
+   the Coach is closed. The selection highlight is replaced by the coaching marks.
+   The user's own pencil notes are **hidden** while the Coach is open and come
+   back unchanged afterwards (the Coach never writes into them).
+2. The Coach panel replaces the number row/pad and shows the first step:
+   technique name and level (e.g. "Naked Pair · Expert") and one to three
+   sentences of explanation with the concrete cells and digits.
+3. On the board, for the current step:
+   - the **unit(s)** the step is about (row, column, box) get the light highlight;
+   - the **key cells** of the pattern (the pair, the X-Wing corners, the wing
+     pivot and pincers …) get the medium highlight;
+   - **computed candidates are shown only in the cells involved** in the step
+     (key cells and the cells losing candidates), not on the whole board.
+     Candidates that are **removed** by the step are **red and struck through**;
+     the **deciding candidates** (the pattern's digits, the single that is placed)
+     are in a neutral accent colour of the scheme. Colour is never the only signal:
+     removed ones are struck through, deciding ones are bold.
+4. An elimination step has the button **Next**: each elimination must be confirmed.
+   After Next the removed candidates are gone and the next step is shown.
+5. The last step (the single) has the button **Fill**: the digit is **slowly faded
+   in** and locked, with the pulsing outline, exactly like a Hint (3.4); the cell is
+   selected afterwards and the panel closes. **Only Fill uses a help.**
+6. **Close** (or `Esc`) is available at every step and ends coaching without
+   filling: no help is used, nothing on the board changes. **Peeking is allowed.**
+
+**Cell names in the text.** The first time a cell appears in one coaching session
+it is written in full ("row 4, column 6"), every later mention as "r4c6". Units are
+written "row 4", "column 6", "box 5" (boxes numbered 1–9, left to right, top to
+bottom).
+
+**Explanation templates** (English; `d` digit, `A`, `B` cells, `U` unit):
+
+| Technique | Level | Text (shape) |
+|---|---|---|
+| Naked single | Beginner | "A can only be d: every other digit already stands in its row, column or box." |
+| Hidden single | Beginner | "In U, the d fits only into A." |
+| Pointing | Expert | "In box b, the d can only be in U. So d is removed from the rest of U." |
+| Claiming | Expert | "In U, the d can only be in box b. So d is removed from the rest of box b." |
+| Naked pair / triple | Expert | "A and B can only hold d1 and d2 (between them). So d1 and d2 are removed from the other cells of U." |
+| Hidden pair / triple | Expert | "In U, d1 and d2 fit only into A and B. So all other candidates are removed from A and B." |
+| X-Wing / Swordfish | Master | "In rows r1 and r2, the d fits only into columns c1 and c2. One of the corners must be d in each row, so d is removed from the rest of columns c1 and c2." (and transposed) |
+| XY-Wing | Master | "Pivot A holds x/y, pincers B (x/z) and C (y/z). Whichever digit A gets, B or C becomes z. So z is removed from every cell that sees both B and C." |
+
+**Situations.**
+
+| Situation | What Coach does |
+|---|---|
+| A **wrong digit** is on the board (only after a reload, see 3.2) | In normal play this cannot happen: the mistake popup must be confirmed with OK (one mistake) and the digit fades out before Coach can be pressed. After a reload the wrong digit is **cleared first** (slow fade-out, no extra help), then coaching starts as usual. |
+| No technique of the catalogue applies (not expected: every generated puzzle is solvable with them) | The panel says "No technique from the list applies here." and offers **Fill** with the digit of the cell the Hint would choose; Fill uses one help. |
+| All four helps used, game lost or solved | Coach is inactive (no peeking without a help left). |
+
+A reload while the Coach is open closes it (coaching is not saved); the game
+itself is saved as before.
 
 ### 3.5 New game and levels
 
@@ -303,7 +390,8 @@ also offline.
    new grid after N tries).
 5. Return `{ givens, solution, level, symmetry }`.
 
-The step-4 solver doubles as the **hint engine**: it can name the next logical move.
+The step-4 solver doubles as the **hint engine** and the **Coach engine** (3.4.1):
+it can name the next logical move, the technique and the cells involved.
 
 ### 5.3 Symmetry (optional requirement – included)
 
@@ -386,7 +474,8 @@ Sudoku/
     config.js           levels (clue range, techniques), max mistakes, long-press threshold, symmetry list
     rng.js              seeded random (so tests are reproducible)
     solver.js           bitmask backtracking solver, solution counter (stop at 2)
-    techniques.js       human solving techniques (singles … fish, wings), used for grading + hints
+    techniques.js       human solving techniques (singles … fish, wings), used for grading, hints and Coach
+    coach.js            Coach chain (steps up to the next placement, pruned) and explanation texts (pure)
     symmetry.js         symmetry types -> orbit lists
     generator.js        full grid + symmetric dig + grade (pure functions)
     generator.worker.js runs the generator off the main thread
@@ -445,6 +534,9 @@ Sudoku/
 ## 8. Accessibility and polish
 
 - Visible focus and keyboard play on desktop (Shift+digit = note); ARIA labels on cells and buttons.
+- Coach: the panel text is announced through the `aria-live` region; focus moves to
+  **Next** / **Fill**; `Enter` activates it, `Esc` closes. Cell labels mention coaching
+  candidates ("candidates 4 8, 8 removed").
 - Colour is never the only signal: errors also get a bolder digit / a different
   background pattern in the B/W scheme (red alone is weak for colour-blind users).
 - `prefers-reduced-motion`: no animation. Otherwise only subtle ones (selection fade, solved message).
@@ -465,6 +557,11 @@ Sudoku/
 8. Layout fits an iPhone (6") and an iPad (10") in portrait without scrolling; iPad landscape uses the side panel.
 9. After one online load, the game can be played to completion and a new game started with the device in airplane mode.
 10. *New Game* appears in < 300 ms in the normal case (from the pool).
+11. **Coach** (3.4.1): explains the easiest next move step by step (Next per
+    elimination, Fill at the end), shows computed candidates only in the involved
+    cells (removed ones red and struck through), hides and restores the user's notes,
+    blocks input while open, and fills the cell like a Hint. Hint and Coach share
+    one counter of four helps (dots); Close before Fill costs nothing. Works offline.
 
 ## 10. Out of scope / future ideas
 
@@ -497,3 +594,22 @@ in untangleMe), auto-notes, more symmetries picker, German UI, printing.
 | Third mistake | The game is lost (shake, fade to grey, "Play Again"). Superseded: the earlier rule "Hint after game over → back to 2/3" is dropped. |
 | Hint reveal | The hint **slowly fades in** the correct digit, with a brief pulsing outline on the cell, so the user sees where it was given. No textual explanation. |
 | Long press | ~350 ms threshold and the first-run tip are accepted; they will be tuned after testing on a real device (the threshold lives in `config.js`). |
+
+### Change request Coach (review round 3, 2026-11-15)
+
+| Topic | Decision |
+|---|---|
+| Buttons | The tool row has two buttons, **Hint** and **Coach** (3.1). |
+| Help limit | Hint and Coach together at most **4 per game**; one shared counter shown as four dots, filled = used (3.4). |
+| Which move | Always the easiest cell/technique on the whole board; the selection is ignored (3.4.1). |
+| Filling | Coach fills the cell after the explanation (**Fill**), like a Hint. |
+| Wrong digit | The mistake popup is confirmed first (one mistake); then Coach costs one help. After a reload a wrong digit is cleared first without extra cost. |
+| Candidates | Computed candidates only in the cells involved; removed ones red and struck through, deciding ones in a neutral accent colour, bold. |
+| User notes | Hidden while coaching, restored unchanged; the Coach never writes into them. |
+| Chains | Every elimination step is confirmed with **Next**. |
+| Close | Allowed at every step; costs nothing (peeking is allowed). Uses a help only on Fill. |
+| Input while coaching | Board and number taps are blocked. |
+| Cell names | First mention long ("row 4, column 6"), later short ("r4c6"). |
+| Keyboard | `C` opens the Coach; `Enter` = Next/Fill, `Esc` = Close. |
+| Short landscape | The explanation scrolls inside the panel. |
+| No help left | Coach inactive, also for peeking (assumption, confirm in review). |
