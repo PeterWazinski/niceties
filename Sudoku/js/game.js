@@ -8,7 +8,7 @@
 //                 or cleared before anything else can be entered
 //   notes[81]     pencil notes as 9-bit masks (bit d-1 = digit d), only in empty cells
 //   mistakes      wrong digits entered so far (never refunded)
-//   hints         hints used so far (at most MAX_HINTS)
+//   hints         helps used so far: Hint and Coach together (at most MAX_HINTS)
 //   wrongOrder    cells that currently hold a wrong digit (at most one in a normal game)
 //   selected      selected cell or -1
 //   lost          the third mistake was made: the game is over
@@ -131,7 +131,7 @@ export function toggleNote(s, cell, digit) {
 
 // The cell the human-technique solver would fill next, or -1.
 function logicalCell(s) {
-  const grid = s.givens.map((g, i) => (isLocked(s, i) ? cellValue(s, i) : 0));
+  const grid = coachGrid(s);
   const cand = candidates(grid);
   for (let n = 0; n < 1000; n++) {
     const step = nextStep(grid, cand);
@@ -145,8 +145,45 @@ function logicalCell(s) {
 // The board the Coach works on: givens and correct digits, wrong digits left out.
 export const coachGrid = (s) => s.givens.map((g, i) => (isLocked(s, i) ? cellValue(s, i) : 0));
 
-// Coach chain for the current game (PRD 3.4.1); see coach.js.
+// ---- Coach (PRD 3.4.1) ------------------------------------------------------------
+// The Coach shares the help counter with Hint. Opening it and stepping through the
+// explanation is free; only coachFill uses a help.
+
+// Coach chain for the current game; see coach.js.
 export const coachSteps = (s) => coachChain(coachGrid(s));
+
+// The Coach can be opened: game running and a help left.
+export const coachAvailable = (s) => !s.lost && !s.solved && s.hints < MAX_HINTS;
+
+// A wrong digit left on the board (only after a reload) is cleared before coaching,
+// without using a help or counting a mistake. Returns the cleared cells.
+export function clearWrongForCoach(s) {
+  if (!coachAvailable(s)) return [];
+  const cleared = s.wrongOrder.slice();
+  for (const cell of cleared) s.entries[cell] = 0;
+  s.wrongOrder = [];
+  return cleared;
+}
+
+// Where Fill goes when no technique of the catalogue applies: the first empty cell.
+export function coachFallback(s) {
+  const cell = s.solution.findIndex((_, i) => cellValue(s, i) === 0);
+  return cell < 0 ? null : { cell, digit: s.solution[cell] };
+}
+
+// Fill at the end of coaching: locks the digit like a hint and uses one help.
+// Returns { kind: "filled" | "ignored", cell, digit }.
+export function coachFill(s, placement) {
+  const ignored = { kind: "ignored", cell: -1, digit: 0 };
+  if (!coachAvailable(s) || hasWrong(s) || !placement) return ignored;
+  const { cell, digit } = placement;
+  if (!Number.isInteger(cell) || cell < 0 || cell >= CELLS) return ignored;
+  if (cellValue(s, cell) !== 0 || digit !== s.solution[cell]) return ignored;
+  lock(s, cell, digit);
+  s.selected = cell;
+  s.hints++;
+  return { kind: "filled", cell, digit };
+}
 
 // Hint (PRD 3.4). Returns { kind: "cleared" | "revealed" | "ignored", cell, digit }.
 // At most MAX_HINTS per game; a lost or solved game takes none.

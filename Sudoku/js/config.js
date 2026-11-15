@@ -1,6 +1,6 @@
 // Constants shared by the game, the generator and the tests.
 export const MAX_MISTAKES = 3;
-export const MAX_HINTS = 4;          // shared by Hint and Coach (PRD 3.4)
+export const MAX_HINTS = 4;          // helps per game, shared by Hint and Coach (PRD 3.4)
 // Coach (PRD 3.4.1): give up a chain after this many steps (never reached in practice).
 export const COACH_MAX_STEPS = 50;
 

@@ -6,7 +6,8 @@ import { generate } from "../../js/generator.js";
 import { MAX_MISTAKES, MAX_HINTS } from "../../js/config.js";
 import {
   newGame, select, enterDigit, toggleNote, hint, remaining, placed, serialize, deserialize,
-  cellValue, isLocked, isWrong, isEditable, isBlocked, hasNote, clearCell
+  cellValue, isLocked, isWrong, isEditable, isBlocked, hasNote, clearCell,
+  coachSteps, coachAvailable, clearWrongForCoach, coachFallback, coachFill
 } from "../../js/game.js";
 
 const puzzle = generate("beginner", createRng(12));
@@ -376,7 +377,10 @@ test("property: random legal play never breaks the invariants", () => {
       if (a < 4) { if (rng.int(6) === 0) clearCell(s, cell); else enterDigit(s, cell, digit); }
       else if (a < 7) toggleNote(s, cell, digit);
       else if (a < 8) select(s, cell);
-      else if (a < 9) { if (rng.int(4) === 0) hint(s); }
+      else if (a < 9) {
+        if (rng.int(4) === 0) hint(s);
+        else if (rng.int(4) === 0) { clearWrongForCoach(s); if (coachAvailable(s)) coachFill(s, coachSteps(s).placement); }
+      }
       else if (s.lost) hint(s);
 
       assert.ok(s.mistakes >= 0 && s.mistakes <= MAX_MISTAKES);
@@ -408,4 +412,108 @@ test("saves from before the hint limit still load (no hints; dialogOpen meant lo
   const back = deserialize(JSON.stringify(d));
   assert.equal(back.lost, true);
   assert.equal(back.hints, 0);
+});
+
+// ---- Coach (PRD 3.4.1) -------------------------------------------------------------
+
+const fillByCoach = (s) => coachFill(s, coachSteps(s).placement);
+
+test("coach fill locks the digit, selects the cell, removes peer notes and uses one help", () => {
+  const s = fresh();
+  const { placement } = coachSteps(s);
+  for (const j of PEERS[placement.cell]) if (cellValue(s, j) === 0) toggleNote(s, j, placement.digit);
+  const r = fillByCoach(s);
+  assert.deepEqual(r, { kind: "filled", cell: placement.cell, digit: placement.digit });
+  assert.ok(isLocked(s, placement.cell));
+  assert.equal(s.selected, placement.cell);
+  assert.equal(s.hints, 1);
+  assert.equal(s.mistakes, 0);
+  for (const j of PEERS[placement.cell]) assert.ok(!hasNote(s, j, placement.digit));
+});
+
+test("help limit is shared: 3 hints + 1 coach, or 4 coach fills, then both are refused", () => {
+  const a = fresh();
+  for (let n = 0; n < 3; n++) assert.equal(hint(a).kind, "revealed");
+  assert.equal(fillByCoach(a).kind, "filled");
+  assert.equal(a.hints, MAX_HINTS);
+  assert.equal(coachAvailable(a), false);
+  assert.equal(hint(a).kind, "ignored");
+  assert.equal(fillByCoach(a).kind, "ignored");
+
+  const b = fresh();
+  for (let n = 0; n < MAX_HINTS; n++) assert.equal(fillByCoach(b).kind, "filled");
+  const before = serialize(b);
+  assert.equal(hint(b).kind, "ignored");
+  assert.equal(fillByCoach(b).kind, "ignored");
+  assert.equal(serialize(b), before, "refused helps change nothing");
+});
+
+test("opening and stepping through the Coach is free; only fill counts", () => {
+  const s = fresh();
+  coachSteps(s); coachSteps(s);
+  assert.equal(s.hints, 0);
+  assert.equal(coachAvailable(s), true);
+});
+
+test("coach fill refuses bad placements, a wrong digit on the board, a lost or solved game", () => {
+  const s = fresh(), cells = emptyCells(s);
+  const target = cells[0];
+  assert.equal(coachFill(s, null).kind, "ignored");
+  assert.equal(coachFill(s, { cell: target, digit: wrongDigit(s, target) }).kind, "ignored");
+  assert.equal(coachFill(s, { cell: s.givens.findIndex((g) => g), digit: 1 }).kind, "ignored");
+  assert.equal(coachFill(s, { cell: 99, digit: 1 }).kind, "ignored");
+  enterDigit(s, cells[1], wrongDigit(s, cells[1]));
+  assert.equal(coachFill(s, { cell: target, digit: s.solution[target] }).kind, "ignored");
+  assert.equal(s.hints, 0);
+  const lost = fresh();
+  threeMistakes(lost, emptyCells(lost)[0]);
+  assert.equal(coachAvailable(lost), false);
+  assert.equal(fillByCoach(lost).kind, "ignored");
+});
+
+test("coach can solve the game; afterwards it is unavailable", () => {
+  const s = fresh();
+  for (let n = 0; n < CELLS && !s.solved; n++) { assert.equal(fillByCoach(s).kind, "filled"); s.hints = 0; }
+  assert.equal(s.solved, true);
+  assert.equal(coachAvailable(s), false);
+});
+
+test("a wrong digit kept over a reload is cleared for the Coach without cost", () => {
+  const s = fresh(), cell = emptyCells(s)[0];
+  enterDigit(s, cell, wrongDigit(s, cell));
+  const restored = deserialize(serialize(s));
+  assert.ok(isWrong(restored, cell));
+  assert.deepEqual(clearWrongForCoach(restored), [cell]);
+  assert.equal(restored.entries[cell], 0);
+  assert.deepEqual(restored.wrongOrder, []);
+  assert.equal(restored.mistakes, 1, "no extra mistake");
+  assert.equal(restored.hints, 0, "no help used");
+  assert.deepEqual(clearWrongForCoach(restored), [], "nothing left to clear");
+  assert.equal(fillByCoach(restored).kind, "filled");
+  assert.equal(restored.hints, 1);
+});
+
+test("clearing for the Coach does nothing when no help is left", () => {
+  const s = fresh();
+  for (let n = 0; n < MAX_HINTS; n++) hint(s);
+  const cell = emptyCells(s)[0];
+  enterDigit(s, cell, wrongDigit(s, cell));
+  assert.deepEqual(clearWrongForCoach(s), []);
+  assert.ok(isWrong(s, cell));
+});
+
+test("coach fallback: the first empty cell with its solution digit", () => {
+  const s = fresh(), first = emptyCells(s)[0];
+  assert.deepEqual(coachFallback(s), { cell: first, digit: s.solution[first] });
+  const done = fresh();
+  for (const i of emptyCells(done)) enterDigit(done, i, done.solution[i]);
+  assert.equal(coachFallback(done), null);
+});
+
+test("save / restore keeps the shared help count after coach fills", () => {
+  const s = fresh();
+  fillByCoach(s); hint(s);
+  const back = deserialize(serialize(s));
+  assert.equal(back.hints, 2);
+  assert.deepEqual(JSON.parse(serialize(back)), JSON.parse(serialize(s)));
 });

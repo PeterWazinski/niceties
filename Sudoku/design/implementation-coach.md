@@ -103,23 +103,39 @@ Result: 164 unit tests green (25 new). Smoke run of 45 games: longest pruned cha
 
 Gate → commit `Sudoku: coach phase C1 – coach engine`.
 
-## Phase C2 – Game model
+## Phase C2 – Game model ✅ 2026-11-15
 
-- [ ] `game.js`: `coachFill(state, placement)` – locks the digit like `hint`, selects
-  the cell, removes the digit from peer notes, `hints++`; ignored when lost, solved or
-  `hints >= MAX_HINTS`
-- [ ] `game.js`: `coachAvailable(state)` – not lost, not solved, `hints < MAX_HINTS`
-- [ ] `game.js`: `clearWrongForCoach(state)` – clears the wrong digit (reload case)
-  without changing `hints` or `mistakes`; returns the cleared cell
-- [ ] `config.js`: keep `MAX_HINTS = 4` as the shared limit (comment: Hint + Coach)
+- [x] `game.js`: `coachFill(state, placement)` – locks the digit like `hint`, selects
+  the cell, removes the digit from peer notes, `hints++`; ignored when lost, solved,
+  `hints >= MAX_HINTS`, a wrong digit on the board, or the placement is not an empty
+  cell with its solution digit. Returns `{ kind: "filled" | "ignored", cell, digit }`
+- [x] `game.js`: `coachAvailable(state)` – not lost, not solved, `hints < MAX_HINTS`
+- [x] `game.js`: `clearWrongForCoach(state)` – clears the wrong digit(s) (reload case)
+  without changing `hints` or `mistakes`; returns the cleared cells (nothing when the
+  Coach is not available)
+- [x] `game.js`: `coachFallback(state)` – placement for Fill when no technique
+  applies (PRD 3.4.1): the first empty cell with its solution digit
+- [x] `config.js`: keep `MAX_HINTS = 4` as the shared limit (comment: Hint + Coach);
+  the state field `hints` now counts helps of both kinds, so saves stay valid
 
 Tests (unit, `game.test.js`):
-- [ ] Mixed use: 3 hints + 1 coach fill → both inactive; 4 coach fills → Hint ignored
-- [ ] Coach fill locks, removes peer notes, solves the game on the last cell
-- [ ] Wrong digit after a restore: cleared without cost, mistakes unchanged
-- [ ] Save → restore round trip unchanged; saves from before still load
-- [ ] Property test extended: random play with Hint and Coach never exceeds 4 helps
-- [ ] e2e: earlier tests pass
+- [x] Mixed use: 3 hints + 1 coach fill → both refused; 4 coach fills → Hint and Coach
+  refused, state unchanged
+- [x] Coach fill locks, selects, removes peer notes, uses one help; coach fills alone
+  solve a whole game, then the Coach is unavailable
+- [x] Opening the Coach (computing the chain) is free
+- [x] Refused fills: no placement, wrong digit, given cell, out of range, wrong digit
+  on the board, lost game
+- [x] Wrong digit after a restore: cleared without cost, mistakes unchanged; nothing
+  cleared when no help is left
+- [x] Fallback placement; none when the board is full
+- [x] Save → restore round trip keeps the shared count; saves from before still load
+  (existing test)
+- [x] Property test extended: random play with Hint and Coach never exceeds 4 helps
+- [x] e2e: earlier tests pass – desktop project (92 green, Chrome); WebKit, a11y and
+  visual as noted in C1
+
+Result: 173 unit tests green (9 new).
 
 Gate → commit `Sudoku: coach phase C2 – coach in the game model`.
 
