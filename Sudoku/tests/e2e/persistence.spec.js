@@ -67,7 +67,7 @@ test("the game is saved after every move: reload shows the identical board, note
   await expect(page.locator("#app")).toHaveAttribute("data-ready", "true");
   expect(await snapshot(page)).toEqual(before);
   await expect(mistakes(page)).toHaveText("1/3");
-  await expect(page.locator("#hint-count")).toHaveText("0/4");
+  await expect(page.locator("#help-dots")).toHaveAttribute("data-used", "0");
   await expect(cell(page, empties[2])).toHaveAttribute("aria-label", /notes 3 7/);
   await expect(cell(page, empties[1])).toHaveClass(/sel/);
   await expect(cell(page, empties[1])).toHaveAttribute("data-state", "wrong");
@@ -221,12 +221,12 @@ test("used hints survive a reload and a new game resets them", async ({ page }) 
   await openGame(page);
   await useHint(page);
   await useHint(page);
-  await expect(page.locator("#hint-count")).toHaveText("2/4");
+  await expect(page.locator("#help-dots")).toHaveAttribute("data-used", "2");
   await page.reload();
   await expect(page.locator("#app")).toHaveAttribute("data-ready", "true");
-  await expect(page.locator("#hint-count")).toHaveText("2/4");
+  await expect(page.locator("#help-dots")).toHaveAttribute("data-used", "2");
   await page.locator("#new-game").click();
   await page.locator("#dialog-new").click();
   await expect(dialog(page)).toBeHidden();
-  await expect(page.locator("#hint-count")).toHaveText("0/4");
+  await expect(page.locator("#help-dots")).toHaveAttribute("data-used", "0");
 });

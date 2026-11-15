@@ -1,12 +1,14 @@
 /* Colour schemes as CSS variable sets, selected by <html data-scheme="...">.
    Variables: page/ink = page and given digits, player = digits entered by the
    player, wrong = wrong digits, *-bg = cell backgrounds per highlight layer,
-   line / line-strong = thin and box borders, btn* = buttons, muted = labels. */
+   line / line-strong = thin and box borders, btn* = buttons, muted = labels,
+   coach-accent = deciding candidates while coaching (bold; ≥ 4.5:1 on sel-bg). */
 
 :root, :root[data-scheme="bw"] {
   --page-bg: #ffffff;
   --ink: #000000;
   --player: #333333;
+  --coach-accent: #333333;
   --wrong: #a00018;
   --muted: #595959;
   --cell-bg: #ffffff;
@@ -27,6 +29,7 @@
   --page-bg: #ffffff;
   --ink: #344861;
   --player: #2a4fa6;
+  --coach-accent: #2a4fa6;
   --wrong: #a81c28;
   --muted: #5d6b82;
   --cell-bg: #ffffff;
@@ -47,6 +50,7 @@
   --page-bg: #f4ecd8;
   --ink: #3b2f20;
   --player: #6e3509;
+  --coach-accent: #6e3509;
   --wrong: #8c1515;
   --muted: #6b5a42;
   --cell-bg: #f8f1e0;
@@ -67,6 +71,7 @@
   --page-bg: #121417;
   --ink: #e8eaed;
   --player: #8ab4f8;
+  --coach-accent: #8ab4f8;
   --wrong: #ffa199;
   --muted: #a3a9b0;
   --cell-bg: #181b1f;
@@ -87,6 +92,7 @@
   --page-bg: #f3f7f1;
   --ink: #1f3a2b;
   --player: #155a31;
+  --coach-accent: #155a31;
   --wrong: #a3261f;
   --muted: #55705f;
   --cell-bg: #fafdf8;

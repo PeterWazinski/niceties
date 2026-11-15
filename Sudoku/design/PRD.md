@@ -61,15 +61,14 @@ One screen, no navigation. Plain, flat, lots of white space, like sudoku.com.
 │ │          9 × 9 board       │ │  square, full width
 │ │                            │ │
 │ └────────────────────────────┘ │
-│      💡 Hint      🎓 Coach      │  tool row (Hint and Coach)
-│            ● ● ○ ○             │  help counter, shared (3.4)
+│  💡 Hint    ● ● ○ ○   🎓 Coach  │  tool row: Hint, help dots (3.4), Coach
 │  1  2  3  4  5  6  7  8  9     │  number row (tap = digit, hold = note)
 └──────────────────────────────┘
 ```
 
-While the Coach is open (3.4.1) the **number row is replaced by the Coach panel**
-(technique, explanation, **Next** / **Fill**, **Close**); header, status row and
-board stay as they are.
+While the Coach is open (3.4.1) the tool row becomes **Close · dots · Next/Fill**
+and the **number row is replaced by the Coach panel** (technique and level,
+explanation); header, status row and board stay as they are.
 
 Differences from the sudoku.com screenshot: the *Time* slot is replaced by the
 **colour-scheme dropdown**; there is no pause button, no score, no menu bubble,
@@ -77,8 +76,9 @@ and no Undo / Erase / Notes buttons (see 3.2 for why they are not needed).
 
 **Landscape (iPad, wide desktop)** – modelled on screenshots 1–3: board on the left,
 a side panel on the right with the status row, the Hint and Coach buttons with
-the help counter, a 3×3 number pad and **New Game** at the bottom. While the Coach
-is open, the Coach panel takes the place of the number pad. On short landscape
+the help dots between them, a 3×3 number pad and **New Game** at the bottom. While
+the Coach is open, the tool row becomes Close · dots · Next/Fill and the Coach panel
+takes the place of the number pad. On short landscape
 screens (up to 520 px high, one-row number strip) the explanation text **scrolls**
 inside the panel; the buttons stay visible.
 
@@ -210,8 +210,8 @@ reload the grey board and the popup are shown again (3.7).
 
 **Help counter, shared by Hint and Coach.** **At most four helps per game in
 total**, any mix of Hint and Coach (e.g. 3 hints + 1 coach). The counter is a row of
-four dots under the two buttons (portrait: centred under the tool row; landscape:
-under the buttons in the side panel). A **filled dot is a used help**, counted like
+four dots **between the two buttons** in the tool row (in one row, so the board
+keeps its size on the iPhone). A **filled dot is a used help**, counted like
 the mistake counter (`● ● ○ ○` = 2 of 4 used). Accessible name: "Help: 2 of 4 used".
 After the fourth help both buttons look inactive (`aria-disabled`) and further taps
 (or `H`, `C`) are ignored. Helps are not refunded and reset with a new game.
@@ -247,7 +247,8 @@ placement are dropped from the chain, so the user only sees what matters.
    back unchanged afterwards (the Coach never writes into them).
 2. The Coach panel replaces the number row/pad and shows the first step:
    technique name and level (e.g. "Naked Pair · Expert") and one to three
-   sentences of explanation with the concrete cells and digits.
+   sentences of explanation with the concrete cells and digits; a long text
+   scrolls inside the panel. The tool row turns into **Close · dots · Next/Fill**.
 3. On the board, for the current step:
    - the **unit(s)** the step is about (row, column, box) get the light highlight;
    - the **key cells** of the pattern (the pair, the X-Wing corners, the wing
@@ -600,7 +601,7 @@ in untangleMe), auto-notes, more symmetries picker, German UI, printing.
 | Topic | Decision |
 |---|---|
 | Buttons | The tool row has two buttons, **Hint** and **Coach** (3.1). |
-| Help limit | Hint and Coach together at most **4 per game**; one shared counter shown as four dots, filled = used (3.4). |
+| Help limit | Hint and Coach together at most **4 per game**; one shared counter shown as four dots between the buttons, filled = used (3.4). |
 | Which move | Always the easiest cell/technique on the whole board; the selection is ignored (3.4.1). |
 | Filling | Coach fills the cell after the explanation (**Fill**), like a Hint. |
 | Wrong digit | The mistake popup is confirmed first (one mistake); then Coach costs one help. After a reload a wrong digit is cleared first without extra cost. |

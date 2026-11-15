@@ -1,7 +1,11 @@
-// Connects model and view: taps, long presses, keyboard, hint animation, dialogs,
-// new games (pool + worker), settings and the saved game.
+// Connects model and view: taps, long presses, keyboard, hint animation, Coach,
+// dialogs, new games (pool + worker), settings and the saved game.
 import { createView } from "./view.js";
-import { newGame, select, enterDigit, toggleNote, clearCell, hint, hasWrong, isWrong } from "./game.js";
+import {
+  newGame, select, enterDigit, toggleNote, clearCell, hint, hasWrong, isWrong,
+  coachSteps, coachAvailable, clearWrongForCoach, coachFallback, coachFill
+} from "./game.js";
+import { explain, cellNamer } from "./coach.js";
 import { createGeneratorClient } from "./generator-client.js";
 import { createPool } from "./pool.js";
 import { createConfetti } from "./confetti.js";
@@ -42,7 +46,10 @@ export function startApp(root) {
   let losing = false;      // the losing effect is running
   let pending = null;      // { run, cancel }: New Game waiting for the "abandon?" answer
   let tipShown = safeGet(TIP_KEY) === "1";
-  const blocked = () => !state || animating || loading || mistakeShown > 0 || losing;
+  // Coach session (PRD 3.4.1): { steps, texts, placement, index } while the panel is open.
+  // Not saved: a reload closes it.
+  let coach = null;
+  const blocked = () => !state || animating || loading || mistakeShown > 0 || losing || coach !== null;
 
   const view = createView(root, {
     onCell: (i) => { if (!blocked() && !pending) { select(state, i); sync(); } },
@@ -53,7 +60,10 @@ export function startApp(root) {
       say(r === "on" ? "note" : r === "off" ? "noteOff" : r);
     }),
     onHint: () => doHint(),
-    onNewGame: () => requestNewGame(state && state.level),
+    onCoach: () => openCoach(),
+    onCoachNext: () => coachNext(),
+    onCoachClose: () => closeCoach(),
+    onNewGame: () => { closeCoach(false); requestNewGame(state && state.level); },
     onDialogNew: () => {
       if (pending) { const p = pending; pending = null; p.run(); }
       else if (mistakeShown) removeMistake();
@@ -61,7 +71,7 @@ export function startApp(root) {
     },
     onDialogCancel: () => cancelPending(),
     onScheme: (id) => { view.setScheme(id); saveScheme(id); },
-    onLevel: (level) => requestNewGame(level)
+    onLevel: (level) => { closeCoach(false); requestNewGame(level); }
   });
 
   const confetti = createConfetti(view.el.confetti, { reducedMotion });
@@ -74,7 +84,7 @@ export function startApp(root) {
     // confetti rain when the game has just been solved (not for a restored game: solved games are never saved)
     if (state.solved && !celebrated) { celebrated = true; confetti.fire(); }
     if (!state.solved) celebrated = false;
-    view.setTipVisible(!tipShown);
+    view.setTipVisible(!tipShown && !coach);
     view.showDialog(pending ? "confirm" : state.solved ? "solved" : mistakeShown ? "mistake" : state.lost && !losing ? "lost" : null, mistakeShown);
     if (state.solved) clearGame(); else saveGame(state);
   }
@@ -147,6 +157,81 @@ export function startApp(root) {
     setTimeout(() => { animating = false; view.setBusy(false); }, ms);
   }
 
+  // ---- Coach (PRD 3.4.1) ----------------------------------------------------------
+
+  const where = (cell) => `row ${Math.floor(cell / 9) + 1}, column ${(cell % 9) + 1}`;
+
+  function openCoach() {
+    if (blocked() || pending) return;
+    if (!coachAvailable(state)) { sync(); return; }
+    // a wrong digit kept over a reload is cleared first, for free (it fades out)
+    const wrongDigits = new Map(state.wrongOrder.map((c) => [c, state.entries[c]]));
+    const cleared = clearWrongForCoach(state);
+    if (cleared.length) {
+      const cell = cleared[cleared.length - 1];
+      const ms = reducedMotion() ? HINT_ANIM_REDUCED_MS : HINT_ANIM_MS;
+      animating = true;
+      view.setBusy(true);
+      sync();
+      view.announce(`The wrong digit in ${where(cell)} is removed.`);
+      view.animateClear(cell, wrongDigits.get(cell), ms);
+      setTimeout(() => { animating = false; view.setBusy(false); startCoach(); }, ms);
+      return;
+    }
+    startCoach();
+  }
+
+  function startCoach() {
+    const { steps, placement } = coachSteps(state);
+    if (placement) {
+      const name = cellNamer();
+      const texts = steps.map((step, i) => explain(step, name, { afterEliminations: i > 0 }));
+      coach = { steps, texts, placement, index: 0 };
+    } else {
+      // not expected: every generated puzzle is solvable with the catalogue
+      const fallback = coachFallback(state);
+      if (!fallback) { sync(); return; }
+      coach = { steps: [], texts: [], placement: fallback, index: 0 };
+    }
+    sync();
+    showCoachStep();
+  }
+
+  function showCoachStep() {
+    const step = coach.steps[coach.index] || null;
+    const t = coach.texts[coach.index] || { title: "Coach", level: "", text: "No technique from the list applies here." };
+    const last = coach.index >= coach.steps.length - 1;
+    view.showCoach({ ...t, last, step });
+    view.focusCoachNext();
+    view.announce(`${t.level ? `${t.title}, ${t.level}. ` : ""}${t.text} ${last ? "Fill" : "Next"}.`);
+  }
+
+  function coachNext() {
+    if (!coach) return;
+    if (coach.index < coach.steps.length - 1) { coach.index++; showCoachStep(); return; }
+    const { placement } = coach;
+    coach = null;
+    view.showCoach(null);
+    const r = coachFill(state, placement);
+    if (r.kind !== "filled") { sync(); return; }
+    const ms = reducedMotion() ? HINT_ANIM_REDUCED_MS : HINT_ANIM_MS;
+    animating = true;
+    view.setBusy(true);
+    sync();
+    view.announce(`Coach: ${r.digit} in ${where(r.cell)}.`);
+    view.animateReveal(r.cell, ms);
+    setTimeout(() => { animating = false; view.setBusy(false); }, ms);
+  }
+
+  // Close without filling: free, nothing on the board changes.
+  function closeCoach(focus = true) {
+    if (!coach) return;
+    coach = null;
+    view.showCoach(null);
+    sync();
+    if (focus) view.focusCoachButton();
+  }
+
   // New game at `level`, asking first if the current game has progress.
   function requestNewGame(level) {
     if (blocked() || pending) return;
@@ -199,6 +284,12 @@ export function startApp(root) {
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && pending) { cancelPending(); return; }
+    if (coach) {
+      if (e.key === "Escape") { e.preventDefault(); closeCoach(); return; }
+      // Enter on a focused button clicks it already; elsewhere it means Next / Fill
+      if (e.key === "Enter" && !(e.target && e.target.tagName === "BUTTON")) { e.preventDefault(); coachNext(); }
+      return;
+    }
     if (blocked() || pending || e.ctrlKey || e.metaKey || e.altKey || state.lost || state.solved) return;
     // typing in a dropdown (type-ahead, arrow keys) must not play the game
     if (e.target && e.target.tagName === "SELECT") return;
@@ -214,6 +305,7 @@ export function startApp(root) {
     }
     if (e.key === "Backspace" || e.key === "Delete") { e.preventDefault(); act(() => say(clearCell(state, state.selected))); return; }
     if (e.key === "h" || e.key === "H") { e.preventDefault(); doHint(); return; }
+    if (e.key === "c" || e.key === "C") { e.preventDefault(); openCoach(); return; }
     const move = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -9, ArrowDown: 9 }[e.key];
     if (move) {
       e.preventDefault();

@@ -139,49 +139,69 @@ Result: 173 unit tests green (9 new).
 
 Gate → commit `Sudoku: coach phase C2 – coach in the game model`.
 
-## Phase C3 – UI: buttons, help dots, Coach panel, board marks
+## Phase C3 – UI: buttons, help dots, Coach panel, board marks ✅ 2026-11-15
 
-- [ ] `view.js`: tool row with **Hint** and **Coach** (icon + label), help dots
-  (`●○`, filled = used) under the buttons, `aria-label` "Help: n of 4 used";
-  both `aria-disabled` when no help is left; remove the `Hint n/4` label
-- [ ] `view.js`: Coach panel in place of the number row/pad: title + level, text,
-  **Next** / **Fill**, **Close**; text area scrolls on short landscape screens
-  (≤ 520 px high), buttons stay visible
-- [ ] `view.js`: coaching marks on the board: unit (light), key cells (medium),
-  candidate mini grid only in involved cells; classes `.coach-unit`, `.coach-key`,
-  `.cand-removed` (red, struck through), `.cand-key` (accent, bold); user notes hidden
-  while open, restored afterwards
-- [ ] `controller.js`: Coach flow – open (clear a wrong digit first if present), step
-  index, Next, Fill (`coachFill` + the existing hint fade-in/pulse animation), Close;
-  board and number input blocked while open; reload closes it
-- [ ] Keyboard: `C` opens, `Enter` = Next/Fill, `Esc` = Close; focus on the primary
-  button; texts announced through the `aria-live` region
-- [ ] `themes.css`: `--coach-accent` (and, if needed, `--coach-removed`) for all five
-  schemes
-- [ ] `base.css`: tool row with two buttons in portrait and landscape; panel sizes
+- [x] `view.js`: tool row with **Hint** and **Coach** (icon + label) and the help dots
+  (filled = used) **between** them in the same row (no extra row, so the iPhone
+  board keeps its size; PRD 3.1/3.4 updated); `data-used` on `#help-dots` and a
+  screen-reader text "Help: n of 4 used"; both buttons `aria-disabled` when no help
+  is left; the `Hint n/4` label is gone
+- [x] `view.js`: Coach panel (`#coach-panel`: title · level, text) in place of the
+  number row/pad; while it is open the tool row becomes **Close · dots · Next/Fill**
+  (`#coach-close`, `#coach-next`). The text scrolls (portrait: what is left below the
+  board; landscape: up to 232 px; short landscape: two lines)
+- [x] `view.js`: coaching marks: units `.coach-unit` (light), key cells `.coach-key`
+  (medium), a candidate grid `.cands` only in the involved cells, candidates
+  `.removed` (red, struck through, bold) and `.key` (accent, extra bold); selection
+  highlights give way while coaching; notes hidden and restored; cell labels name
+  the candidates and the removed ones
+- [x] `controller.js`: Coach flow – open (a wrong digit kept over a reload fades out
+  first, free), step index, Next, Fill (`coachFill` + the hint fade-in/pulse), Close
+  (focus back on Coach); board, number pad, Hint and keys blocked while open; New
+  Game / Level close the Coach first; reload closes it (not saved)
+- [x] Keyboard: `C` opens, `Enter` = Next/Fill, `Esc` = Close; focus on Next/Fill;
+  texts announced through the `aria-live` region
+- [x] `themes.css`: `--coach-accent` for all five schemes (= the player colour;
+  ≥ 4.62:1 on the key-cell background). Other candidates use `--ink` (the muted
+  colour falls below 4.5:1 on `--sel-bg`). No `--coach-removed`: `--wrong` reaches
+  ≥ 4.76:1 everywhere
+- [x] `base.css`: tool row grid, dots, panel, marks; `[hidden]` overrides for the
+  flex/grid elements
 
-Tests (e2e, new `coach.spec.js`, all four projects; positions are loaded by writing
-a prepared `sudoku.game` into localStorage before the page opens):
-- [ ] Beginner position: Coach shows "Hidden Single · Beginner" (or Naked Single),
-  key cell marked, **Fill** fades the digit in and locks it, one dot filled
-- [ ] Expert position: first step an elimination with **Next**, removed candidates
-  red and struck through (computed style: `text-decoration-line` includes
-  `line-through`), deciding ones bold; after Next they are gone; last step **Fill**
-- [ ] Master position (X-Wing or XY-Wing) runs through to Fill
-- [ ] Close at any step: no dot filled, board unchanged, notes visible again exactly
-  as before
-- [ ] Taps on board cells and number buttons do nothing while the panel is open
-- [ ] Shared limit: 2 hints + 2 coach fills → both buttons inactive, `H` and `C` ignored
-- [ ] Wrong digit kept over a reload (`keepWrong`) → Coach clears it, mistakes and
-  dots unchanged, then coaching starts
-- [ ] Cell names: first long, then short in the same session
-- [ ] Short landscape (≤ 520 px high): panel text scrolls, Next/Fill/Close visible
-  and ≥ 44 px
-- [ ] Keyboard (desktop): `C`, `Enter`, `Esc`
-- [ ] a11y: axe scan with the panel open in every scheme; contrast of `.cand-key` and
-  `.cand-removed` ≥ 4.5:1; colour not the only signal
-- [ ] Visual baselines updated for the new tool row (intended change; look at the images)
-- [ ] e2e: earlier tests pass (layout, gameplay, a11y specs adapted to the dots)
+Tests (e2e, new `coach.spec.js` + `coach-helpers.js`; positions are found by
+playing generated games forward with the Coach and loaded as `sudoku.game`):
+- [x] Beginner position (hidden single): key cell marked, Fill locks the digit, one
+  dot filled, pad and Coach button back, no marks left
+- [x] Expert position: first step an elimination with Next, removed candidates red
+  (`--wrong`) and `line-through`, key ones ≥ 700 weight, candidates only in the step's
+  cells; then through to Fill
+- [x] Master position runs through a master technique to Fill (titles and texts on
+  the page equal the engine's)
+- [x] Close in the middle: no dot used, board unchanged, notes and labels exactly as
+  before, focus on Coach
+- [x] Taps on cells, digit keys and `H` do nothing while the panel is open
+- [x] Shared limit: 2 hints + 2 coach fills → four filled dots, both buttons
+  inactive, `C` and `H` ignored
+- [x] Wrong digit kept over a reload → cleared, mistakes 1/3 and dots unchanged,
+  coaching starts
+- [x] Cell names: every short name comes after the long one; the page shows the
+  engine's texts
+- [x] Short landscape (844×390): text scrolls, Next/Close visible and ≥ 44 px
+- [x] The page never scrolls while coaching
+- [x] Keyboard: `C`, `Esc`, `Enter`; screen reader: step text announced, candidates
+  and removed digits in the cell label
+- [x] Contrast of every coaching candidate ≥ 4.5:1 in every scheme (computed colours)
+- [ ] a11y: axe scan with the panel open in every scheme – **written**
+  (`a11y.spec.js`), **not run here** (`@axe-core/playwright` missing in the cloud
+  session); run on the dev notebook
+- [ ] Visual baselines: the tool row changed, so `visual.spec.js` will differ –
+  update with `npx playwright test visual.spec.js --update-snapshots` on the dev
+  notebook (Windows baselines) and look at the images
+- [x] e2e: earlier tests pass (layout, gameplay and persistence adapted to the
+  dots). Run here: desktop project in Chrome (106 green incl. C4) and the iPhone /
+  iPad projects **emulated in Chrome** (all specs except a11y/visual: 315 green).
+  Real WebKit could not run in the cloud session: run the four projects on the dev
+  notebook
 
 Gate → commit `Sudoku: coach phase C3 – coach UI`.
 

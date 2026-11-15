@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { openGame, cell, values, peersOf } from "./helpers.js";
 import { num, enter, hold, mistakes, puzzleFor, emptyIndices, wrongFor, keepWrong, ackMistake, threeMistakes } from "./play-helpers.js";
+import { expertPosition, openPosition } from "./coach-helpers.js";
 
 test.use({ reducedMotion: "reduce" });
 
@@ -43,6 +44,16 @@ test("accessibility scan (axe): a busy board in every colour scheme", async ({ p
   for (const s of SCHEMES) {
     await page.selectOption("#scheme", s);
     await scan(page, "scheme " + s + " (busy board)");
+  }
+});
+
+test("accessibility scan (axe): the Coach panel and its board marks in every colour scheme", async ({ page }) => {
+  await openPosition(page, expertPosition().state);
+  await page.locator("#coach").click();
+  await expect(page.locator("#coach-panel")).toBeVisible();
+  for (const s of SCHEMES) {
+    await page.selectOption("#scheme", s);
+    await scan(page, "scheme " + s + " (coach)");
   }
 });
 

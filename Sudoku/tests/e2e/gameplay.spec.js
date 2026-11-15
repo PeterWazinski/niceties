@@ -291,7 +291,7 @@ test("the third wrong digit loses the game: popup with Play Again only, the boar
   await page.keyboard.press("Digit5"); // keyboard input is ignored too
   await page.keyboard.press("h");
   expect(await values(page)).toEqual(before);
-  await expect(page.locator("#hint-count")).toHaveText("0/4");
+  await expect(page.locator("#help-dots")).toHaveAttribute("data-used", "0");
 });
 
 test("Play Again starts a fresh puzzle with 0/3 mistakes and 0/4 hints", async ({ page }) => {
@@ -299,7 +299,7 @@ test("Play Again starts a fresh puzzle with 0/3 mistakes and 0/4 hints", async (
   await page.locator("#dialog-new").click();
   await expect(dialog(page)).toBeHidden();
   await expect(mistakes(page)).toHaveText("0/3");
-  await expect(page.locator("#hint-count")).toHaveText("0/4");
+  await expect(page.locator("#help-dots")).toHaveAttribute("data-used", "0");
   await expect(page.locator(".app")).not.toHaveClass(/lost/);
   const next = puzzleFor(13);
   await expect.poll(() => values(page)).toEqual(next.givens.map((d) => (d ? String(d) : "")));
@@ -381,11 +381,11 @@ test("arrow keys stop at the edges of the board", async ({ page }) => {
 });
 
 test("the Hint button counts its uses; after four hints it is greyed and ignores taps", async ({ page }) => {
-  await expect(page.locator("#hint-count")).toHaveText("0/4");
+  await expect(page.locator("#help-dots")).toHaveAttribute("data-used", "0");
   await expect(page.locator("#hint")).toHaveAttribute("aria-disabled", "false");
   for (let n = 1; n <= 4; n++) {
     await useHint(page);
-    await expect(page.locator("#hint-count")).toHaveText(`${n}/4`);
+    await expect(page.locator("#help-dots")).toHaveAttribute("data-used", `${n}`);
   }
   await expect(page.locator("#hint")).toHaveAttribute("aria-disabled", "true");
   const before = await values(page);
@@ -393,13 +393,13 @@ test("the Hint button counts its uses; after four hints it is greyed and ignores
   await page.keyboard.press("h");
   await waitIdle(page);
   expect(await values(page)).toEqual(before);
-  await expect(page.locator("#hint-count")).toHaveText("4/4");
+  await expect(page.locator("#help-dots")).toHaveAttribute("data-used", "4");
 });
 
 test("a hint that removes a wrong digit counts as a hint", async ({ page }) => {
   const i = await firstEmpty(page);
   await keepWrong(page, i, wrongFor(P, i));
   await useHint(page);
-  await expect(page.locator("#hint-count")).toHaveText("1/4");
+  await expect(page.locator("#help-dots")).toHaveAttribute("data-used", "1");
   await expect(mistakes(page)).toHaveText("1/3");
 });

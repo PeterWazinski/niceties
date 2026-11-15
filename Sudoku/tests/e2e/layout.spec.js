@@ -47,7 +47,7 @@ test("landscape: the panel sits to the right of the board; portrait: below it", 
 });
 
 test("touch targets are large enough", async ({ page }) => {
-  for (const sel of ["#hint", "#new-game", "#level", "#scheme"]) {
+  for (const sel of ["#hint", "#coach", "#new-game", "#level", "#scheme"]) {
     const b = await page.locator(sel).boundingBox();
     expect(b.height, sel + " height").toBeGreaterThanOrEqual(44);
     expect(b.width, sel + " width").toBeGreaterThanOrEqual(44);
@@ -58,8 +58,8 @@ test("touch targets are large enough", async ({ page }) => {
   }
 });
 
-test("all controls are visible: title, status, board, hint, pad, new game", async ({ page }) => {
-  for (const sel of [".title", "#level", "#mistakes", "#scheme", "#board", "#hint", "#numpad", "#new-game"]) {
+test("all controls are visible: title, status, board, hint, coach, help dots, pad, new game", async ({ page }) => {
+  for (const sel of [".title", "#level", "#mistakes", "#scheme", "#board", "#hint", "#coach", "#help-dots", "#numpad", "#new-game"]) {
     await expect(page.locator(sel)).toBeVisible();
   }
   await expect(page.locator("#mistakes")).toHaveText("0/3");
