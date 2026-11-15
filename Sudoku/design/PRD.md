@@ -275,14 +275,14 @@ bottom).
 
 | Technique | Level | Text (shape) |
 |---|---|---|
-| Naked single | Beginner | "A can only be d: every other digit already stands in its row, column or box." |
+| Naked single | Beginner | "A can only be d: every other digit already stands in its row, column or box." (after eliminations in the chain: "A can only be d: all other candidates are gone.") |
 | Hidden single | Beginner | "In U, the d fits only into A." |
 | Pointing | Expert | "In box b, the d can only be in U. So d is removed from the rest of U." |
 | Claiming | Expert | "In U, the d can only be in box b. So d is removed from the rest of box b." |
 | Naked pair / triple | Expert | "A and B can only hold d1 and d2 (between them). So d1 and d2 are removed from the other cells of U." |
 | Hidden pair / triple | Expert | "In U, d1 and d2 fit only into A and B. So all other candidates are removed from A and B." |
-| X-Wing / Swordfish | Master | "In rows r1 and r2, the d fits only into columns c1 and c2. One of the corners must be d in each row, so d is removed from the rest of columns c1 and c2." (and transposed) |
-| XY-Wing | Master | "Pivot A holds x/y, pincers B (x/z) and C (y/z). Whichever digit A gets, B or C becomes z. So z is removed from every cell that sees both B and C." |
+| X-Wing / Swordfish | Master | "In rows r1 and r2, the d fits only into columns c1 and c2. So in columns c1 and c2 the d must be in rows r1 and r2, and it is removed from the rest of columns c1 and c2." (and transposed) |
+| XY-Wing | Master | "A can only be x or y. If it is x, B must be z; if it is y, C must be z. Either way one of B and C is z, so the z is removed from every cell that sees both." |
 
 **Situations.**
 

@@ -44,41 +44,62 @@ green, checkboxes ticked only when delivered and tested, one commit per phase
 
 ---
 
-## Phase C1 – Coach engine (pure logic)
+## Phase C1 – Coach engine (pure logic) ✅ 2026-11-15
 
-- [ ] `techniques.js`: add metadata to the steps, backward compatible (new fields only):
+- [x] `techniques.js`: add metadata to the steps, backward compatible (new fields only):
   - hidden single: `unit` (index 0–26)
   - pointing: `box`, `line` (row/column unit index), `digit`
   - claiming: `line`, `box`, `digit`
   - naked/hidden subsets: `unit`, `digits`
   - X-Wing/Swordfish: `digit`, `base` (row or column unit indices), `cover`
   - XY-Wing: `pivot`, `pincers`, `digit` (= z)
-- [ ] `techniques.js`: `validStep(grid, cand, step)` – true if the step's pattern
+- [x] `techniques.js`: `validStep(grid, cand, step)` – true if the step's pattern
   still holds and still removes at least one candidate (per technique; reuses the
   finders' logic restricted to the step's cells/units)
-- [ ] `coach.js` (new, pure): `coachChain(state)` → `{ steps, placement }` or
+- [x] `coach.js` (new, pure): `coachChain(grid)` → `{ steps, placement }` or
   `{ steps: [], placement: null }` (catalogue exhausted); for each step also the
   candidate snapshot *before* the step, restricted to the involved cells
-  (`shown: { cell: mask }`, `removed: [{cell, digit}]`, `key: [{cell, digit}]`)
-- [ ] `coach.js`: pruning as described above
-- [ ] `coach.js`: `explain(step, names)` → `{ title: "Naked Pair", level: "Expert", text }`
-  with the templates of PRD 3.4.1; `cellNamer()` (long first, short after), unit names
-- [ ] `config.js`: `COACH_MAX_STEPS = 50`
+  (`shown: { cell: mask }`, `removed: [{cell, digit}]`, `key: [{cell, digit}]`,
+  `keyCells`, `units`). Takes the board (givens + correct digits) instead of the
+  game state, so it stays independent of `game.js`; the adapter is in `game.js`
+  (`coachGrid(state)`, `coachSteps(state)`)
+- [x] `coach.js`: pruning as described above (`coachChain(grid, { prune: false })`
+  gives the unpruned chain for tests)
+- [x] `coach.js`: `explain(step, name, { afterEliminations })` →
+  `{ title: "Naked Pair", level: "Expert", text }` with the templates of PRD 3.4.1;
+  `cellNamer()` (long first, short after), unit names; a naked single after
+  eliminations says "all other candidates are gone"
+- [x] `config.js`: `COACH_MAX_STEPS = 50`
+- [x] Brought forward from C4 (forced by `pwa.test.js`, which requires every `js/`
+  file to be in the module graph and precached): `coach.js` imported by `game.js`,
+  in the `sw.js` precache list, `VERSION` 4 → 5
 
 Tests (unit, `tests/unit/coach.test.js`, `techniques.test.js`):
-- [ ] Every technique has a fixture position where the Coach chain uses it, with the
-  expected title, level, key cells, removed candidates and text
-- [ ] The easiest technique wins: a position with a naked single and a pair gives a
-  one-step chain (the single)
-- [ ] Every chain ends with a placement whose digit equals the solution; no removed
-  candidate is ever the solution digit of its cell (seeded batch: 50 games per level,
-  played forward with Coach until solved)
-- [ ] Pruning: a constructed chain with an unrelated elimination step drops it; every
-  remaining step passes `validStep`
-- [ ] Cell names: first mention long, later short, per session; box numbers 1–9
-- [ ] Catalogue exhausted → `placement: null`
-- [ ] Existing grading results unchanged (the added fields do not change `gradePuzzle`)
-- [ ] e2e: earlier tests pass
+- [x] Every technique has a fixture with its metadata, `validStep` true where found,
+  false after applying it and false when the pattern is broken (9 fixtures + singles);
+  every technique has an explanation test with the exact text, title and level
+- [x] The easiest technique wins: a fresh Beginner puzzle gives a one-step chain (the
+  single); in the batch the unpruned chain always starts with `nextStep`'s technique
+- [x] Every chain ends with a placement whose digit equals the solution; no removed
+  candidate is ever the solution digit of its cell; every step holds when replayed
+  (seeded batch: 10 games per level, played forward with the Coach until solved;
+  expert games use expert techniques, master games master techniques)
+- [x] Pruning: never longer than the unpruned chain, shortens some chains in the
+  batch, every remaining step passes `validStep` (replaced the constructed chain:
+  the batch shows real unneeded steps)
+- [x] Decorated steps: candidates only in the involved cells, removed and key
+  candidates among them
+- [x] Cell names: first mention long, later short, per session; box numbers 1–9
+- [x] Catalogue exhausted → `placement: null`
+- [x] Existing grading results unchanged (all generator/technique tests green)
+- [x] Game adapter: the Coach ignores a wrong digit
+- [x] e2e: earlier tests pass – **desktop project only** (92 green, Chrome); the WebKit
+  projects, `a11y.spec.js` (needs `@axe-core/playwright`) and `visual.spec.js`
+  (Windows baselines) could not run in the cloud session. C1 changes no UI; run the
+  full gate on the dev notebook before C3.
+
+Result: 164 unit tests green (25 new). Smoke run of 45 games: longest pruned chain
+4 steps, about 1 ms per Coach call.
 
 Gate → commit `Sudoku: coach phase C1 – coach engine`.
 
@@ -150,8 +171,7 @@ Gate → commit `Sudoku: coach phase C3 – coach UI`.
 
 ## Phase C4 – Offline, docs, release
 
-- [ ] `sw.js`: `js/coach.js` in the precache list (the unit test in `pwa.test.js`
-  fails otherwise), `VERSION` raised
+- [ ] `sw.js`: `VERSION` raised (the precache entry for `js/coach.js` came in C1)
 - [ ] e2e offline: after one online load, offline reload, Coach runs through Next and
   Fill
 - [ ] `README.md` (Sudoku): Coach in "Playing", shared help limit, keyboard `C`

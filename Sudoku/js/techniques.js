@@ -1,7 +1,14 @@
-// Human solving techniques, used to grade a puzzle (and later to give hints).
+// Human solving techniques, used to grade a puzzle, for hints and for the Coach.
 // Every finder looks at the grid plus the candidate masks and returns one step:
 //   placement   { technique, cell, digit }
 //   elimination { technique, eliminations: [{ cell, digit }], cells: [...] }
+// plus what the Coach needs to explain it (unit indices into UNITS: 0-8 rows,
+// 9-17 columns, 18-26 boxes):
+//   hiddenSingle  unit
+//   pointing      digit, box, line          claiming  digit, line, box
+//   subsets       unit, digits
+//   fish          digit, base (lines holding the pattern), cover (crossing lines)
+//   xyWing        pivot, pincers, digit (the one removed)
 // The grader always applies the easiest technique that makes progress, so the
 // techniques it ends up using are the ones the puzzle really requires.
 import { CELLS, ROW, COL, BOX, UNITS, PEERS } from "./grid.js";
@@ -57,7 +64,7 @@ export function findHiddenSingle(grid, cand = candidates(grid)) {
       const bit = 1 << (d - 1);
       let cell = -1, n = 0;
       for (const i of unit) if (cand[i] & bit) { cell = i; n++; }
-      if (n === 1) return { technique: "hiddenSingle", cell, digit: d };
+      if (n === 1) return { technique: "hiddenSingle", cell, digit: d, unit: UNITS.indexOf(unit) };
     }
   }
   return null;
@@ -79,7 +86,7 @@ function findNakedSubset(size, name) {
           if (combo.includes(i)) continue;
           for (const d of digitsOf(cand[i] & union)) eliminations.push({ cell: i, digit: d });
         }
-        if (eliminations.length) return { technique: name, cells: combo, eliminations };
+        if (eliminations.length) return { technique: name, cells: combo, eliminations, unit: UNITS.indexOf(unit), digits: digitsOf(union) };
       }
     }
     return null;
@@ -101,7 +108,7 @@ function findHiddenSubset(size, name) {
         const keep = ds.reduce((m, d) => m | (1 << (d - 1)), 0);
         const eliminations = [];
         for (const i of cells) for (const d of digitsOf(cand[i] & ~keep)) eliminations.push({ cell: i, digit: d });
-        if (eliminations.length) return { technique: name, cells, eliminations };
+        if (eliminations.length) return { technique: name, cells, eliminations, unit: UNITS.indexOf(unit), digits: ds };
       }
     }
     return null;
@@ -116,13 +123,13 @@ function findPointing(grid, cand) {
       const bit = 1 << (d - 1);
       const cells = box.filter((i) => cand[i] & bit);
       if (cells.length < 2) continue;
-      for (const line of [ROW, COL]) {
+      for (const [line, offset] of [[ROW, 0], [COL, 9]]) {
         if (!cells.every((i) => line[i] === line[cells[0]])) continue;
         const eliminations = [];
         for (let j = 0; j < CELLS; j++) {
           if (line[j] === line[cells[0]] && BOX[j] !== b && (cand[j] & bit)) eliminations.push({ cell: j, digit: d });
         }
-        if (eliminations.length) return { technique: "pointing", cells, eliminations };
+        if (eliminations.length) return { technique: "pointing", cells, eliminations, digit: d, box: 18 + b, line: offset + line[cells[0]] };
       }
     }
   }
@@ -141,7 +148,7 @@ function findClaiming(grid, cand) {
       for (const j of UNITS[18 + BOX[cells[0]]]) {
         if (!line.includes(j) && (cand[j] & bit)) eliminations.push({ cell: j, digit: d });
       }
-      if (eliminations.length) return { technique: "claiming", cells, eliminations };
+      if (eliminations.length) return { technique: "claiming", cells, eliminations, digit: d, line: u, box: 18 + BOX[cells[0]] };
     }
   }
   return null;
@@ -178,7 +185,9 @@ function findFish(size, name) {
           if (eliminations.length) {
             const cells = [];
             for (const line of used) for (let k = 0; k < 9; k++) if (union & (1 << k) && (cand[cellAt(line, k)] & bit)) cells.push(cellAt(line, k));
-            return { technique: name, digit: d, cells, eliminations };
+            const cover = [];
+            for (let k = 0; k < 9; k++) if (union & (1 << k)) cover.push(byRow ? 9 + k : k);
+            return { technique: name, digit: d, cells, eliminations, base: used.map((line) => (byRow ? line : 9 + line)), cover };
           }
         }
       }
@@ -206,7 +215,7 @@ function findXYWing(grid, cand) {
             eliminations.push({ cell: j, digit: digitsOf(c)[0] });
           }
         }
-        if (eliminations.length) return { technique: "xyWing", cells: [p, w1, w2], eliminations };
+        if (eliminations.length) return { technique: "xyWing", cells: [p, w1, w2], eliminations, pivot: p, pincers: [w1, w2], digit: digitsOf(c)[0] };
       }
     }
   }
@@ -243,6 +252,47 @@ export function applyStep(grid, cand, step) {
   grid[step.cell] = step.digit;
   cand[step.cell] = 0;
   for (const j of PEERS[step.cell]) cand[j] &= ~bit;
+}
+
+// Does a step (as returned by a finder, possibly in another candidate state) still
+// hold in this state: its pattern is intact and it still removes at least one
+// candidate (eliminations) or still forces its digit (placements)?
+export function validStep(grid, cand, step) {
+  const bitOf = (d) => 1 << (d - 1);
+  const has = (i, d) => (cand[i] & bitOf(d)) !== 0;
+  if (!step.eliminations) {
+    if (grid[step.cell] || !has(step.cell, step.digit)) return false;
+    if (step.technique === "nakedSingle") return popcount(cand[step.cell]) === 1;
+    if (step.technique === "hiddenSingle") return UNITS[step.unit].every((i) => i === step.cell || !has(i, step.digit));
+    return false;
+  }
+  if (!step.eliminations.some((e) => has(e.cell, e.digit))) return false;
+  // every cell holding the digit in unit `from` lies in unit `to`
+  const confined = (d, from, to) => UNITS[from].every((i) => !has(i, d) || UNITS[to].includes(i));
+  switch (step.technique) {
+    case "pointing": return confined(step.digit, step.box, step.line);
+    case "claiming": return confined(step.digit, step.line, step.box);
+    case "nakedPair": case "nakedTriple": {
+      const keep = step.digits.reduce((m, d) => m | bitOf(d), 0);
+      return step.cells.every((i) => cand[i] && (cand[i] & ~keep) === 0)
+        && step.eliminations.every((e) => !step.cells.includes(e.cell));
+    }
+    case "hiddenPair": case "hiddenTriple":
+      return step.digits.every((d) => UNITS[step.unit].every((i) => !has(i, d) || step.cells.includes(i)));
+    case "xWing": case "swordfish": {
+      const cover = new Set(step.cover.flatMap((u) => UNITS[u]));
+      return step.base.every((u) => UNITS[u].every((i) => !has(i, step.digit) || cover.has(i)));
+    }
+    case "xyWing": {
+      const [p, [a, b]] = [step.pivot, step.pincers];
+      const z = bitOf(step.digit);
+      if (popcount(cand[p]) !== 2 || popcount(cand[a]) !== 2 || popcount(cand[b]) !== 2) return false;
+      if (cand[p] & z || !(cand[a] & z) || !(cand[b] & z)) return false;
+      const x = cand[a] & ~z, y = cand[b] & ~z;
+      return x !== y && (x | y) === cand[p] && isPeer[p][a] && isPeer[p][b];
+    }
+    default: return false;
+  }
 }
 
 // The easiest applicable step, or null when the techniques are exhausted.

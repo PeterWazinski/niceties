@@ -16,6 +16,7 @@
 import { CELLS, PEERS, UNITS } from "./grid.js";
 import { MAX_MISTAKES, MAX_HINTS, LEVELS } from "./config.js";
 import { candidates, nextStep, applyStep } from "./techniques.js";
+import { coachChain } from "./coach.js";
 
 const bit = (d) => 1 << (d - 1);
 
@@ -140,6 +141,12 @@ function logicalCell(s) {
   }
   return -1;
 }
+
+// The board the Coach works on: givens and correct digits, wrong digits left out.
+export const coachGrid = (s) => s.givens.map((g, i) => (isLocked(s, i) ? cellValue(s, i) : 0));
+
+// Coach chain for the current game (PRD 3.4.1); see coach.js.
+export const coachSteps = (s) => coachChain(coachGrid(s));
 
 // Hint (PRD 3.4). Returns { kind: "cleared" | "revealed" | "ignored", cell, digit }.
 // At most MAX_HINTS per game; a lost or solved game takes none.

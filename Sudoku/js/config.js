@@ -1,6 +1,8 @@
 // Constants shared by the game, the generator and the tests.
 export const MAX_MISTAKES = 3;
-export const MAX_HINTS = 4;
+export const MAX_HINTS = 4;          // shared by Hint and Coach (PRD 3.4)
+// Coach (PRD 3.4.1): give up a chain after this many steps (never reached in practice).
+export const COACH_MAX_STEPS = 50;
 
 // Press length that turns a tap on a number into a note (PRD 3.2.1), in ms.
 export const LONG_PRESS_MS = 350;

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { TECHNIQUES, techniqueLevel, applyStep, nextStep, gradePuzzle, candidates } from "../../js/techniques.js";
+import { TECHNIQUES, techniqueLevel, applyStep, nextStep, gradePuzzle, candidates, validStep } from "../../js/techniques.js";
 import { parseGrid } from "../../js/grid.js";
 
 const bits = (...ds) => ds.reduce((m, d) => m | (1 << (d - 1)), 0);
@@ -127,4 +127,61 @@ test("grader: a puzzle that needs more than singles is not graded as singles-onl
   const g = parseGrid("800000000003600000070090200050007000000045700000100030001000068008500010090000400");
   const r = gradePuzzle(g);
   assert.ok(!(r.solved && r.hardest === "beginner"));
+});
+
+// ---- Coach metadata and validStep (PRD 3.4.1) ------------------------------------
+
+// [technique, candidate setup, expected metadata, change that breaks the pattern]
+const FIXTURES = [
+  ["nakedPair", (c) => { c[0] = bits(1, 2); c[1] = bits(1, 2); c[2] = bits(1, 2, 3); c[3] = bits(2, 4); },
+    { unit: 0, digits: [1, 2] }, (c) => { c[1] |= bits(3); }],
+  ["nakedTriple", (c) => { c[0] = bits(1, 2); c[1] = bits(2, 3); c[2] = bits(1, 3); c[3] = bits(1, 2, 3, 4); },
+    { unit: 0, digits: [1, 2, 3] }, (c) => { c[0] |= bits(4); }],
+  ["hiddenPair", (c) => { c[0] = bits(1, 2, 3, 4); c[1] = bits(1, 2, 5); c[2] = bits(3, 4, 5, 6); c[3] = bits(3, 5, 6); },
+    { unit: 0, digits: [1, 2] }, (c) => { c[2] |= bits(1); }],
+  ["hiddenTriple", (c) => { c[0] = bits(1, 2, 7); c[1] = bits(2, 3, 8); c[2] = bits(1, 3, 9); c[3] = bits(7, 8, 9); c[4] = bits(7, 8, 9); },
+    { unit: 0, digits: [1, 2, 3] }, (c) => { c[3] |= bits(1); }],
+  ["pointing", (c) => { c[0] = bits(5, 6); c[1] = bits(5, 7); c[5] = bits(5, 8); },
+    { digit: 5, box: 18, line: 0 }, (c) => { c[at(1, 1)] = bits(5); }],
+  ["claiming", (c) => { c[0] = bits(5, 6); c[1] = bits(5, 7); c[at(1, 1)] = bits(5, 9); },
+    { digit: 5, line: 0, box: 18 }, (c) => { c[5] = bits(5); }],
+  ["xWing", (c) => { for (const [r, k] of [[1, 2], [1, 6], [4, 2], [4, 6], [7, 2]]) c[at(r, k)] = bits(5); },
+    { digit: 5, base: [1, 4], cover: [11, 15] }, (c) => { c[at(1, 4)] = bits(5); }],
+  ["swordfish", (c) => { for (const [r, k] of [[0, 1], [0, 4], [3, 4], [3, 7], [6, 1], [6, 7], [8, 4]]) c[at(r, k)] = bits(3); },
+    { digit: 3, base: [0, 3, 6], cover: [10, 13, 16] }, (c) => { c[at(0, 2)] = bits(3); }],
+  ["xyWing", (c) => { c[at(0, 0)] = bits(1, 2); c[at(0, 1)] = bits(1, 3); c[at(1, 0)] = bits(2, 3); c[at(1, 1)] = bits(3, 9); },
+    { pivot: 0, pincers: [1, 9], digit: 3 }, (c) => { c[0] = bits(1, 2, 4); }]
+];
+
+for (const [name, setup, meta, breakIt] of FIXTURES) {
+  test(`${name}: Coach metadata, and validStep holds only while the pattern does`, () => {
+    const cand = empty();
+    setup(cand);
+    const step = finder(name)(empty(), cand);
+    for (const [k, v] of Object.entries(meta)) {
+      const got = Array.isArray(step[k]) ? step[k].slice().sort((a, b) => a - b) : step[k];
+      assert.deepEqual(got, v, k);
+    }
+    assert.equal(validStep(empty(), cand, step), true, "valid where it was found");
+    const done = cand.slice();
+    applyStep(empty(), done, step);
+    assert.equal(validStep(empty(), done, step), false, "nothing left to remove");
+    const broken = cand.slice();
+    breakIt(broken);
+    assert.equal(validStep(empty(), broken, step), false, "pattern broken");
+  });
+}
+
+test("singles: hidden single knows its unit; validStep checks both singles", () => {
+  const cand = empty();
+  cand[at(0, 3)] = bits(4, 5); cand[at(0, 4)] = bits(5, 6); cand[at(0, 5)] = bits(5, 6);
+  const hs = finder("hiddenSingle")(empty(), cand);
+  assert.deepEqual([hs.cell, hs.digit, hs.unit], [at(0, 3), 4, 0]);
+  assert.equal(validStep(empty(), cand, hs), true);
+  const other = cand.slice(); other[at(0, 4)] |= bits(4);
+  assert.equal(validStep(empty(), other, hs), false);
+  const ns = { technique: "nakedSingle", cell: at(0, 3), digit: 4 };
+  assert.equal(validStep(empty(), cand, ns), false, "two candidates: not a naked single");
+  const one = cand.slice(); one[at(0, 3)] = bits(4);
+  assert.equal(validStep(empty(), one, ns), true);
 });
