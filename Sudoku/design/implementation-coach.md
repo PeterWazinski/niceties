@@ -224,6 +224,20 @@ Still to do on the dev notebook (cannot run in the cloud session):
 
 Gate → commit `Sudoku: coach phase C4 – offline and docs`.
 
+## After the release
+
+- [x] **Step counter and preparation note** (2026-11-15, after testing on the iPad:
+  a chain like Pointing → XY-Wing → Hidden Single looked as if the first step
+  were already the solution). Analysis: no defect – over 8,700 chains a single
+  never came before the last step, and the UI showed exactly the engine's steps.
+  Change: for chains of several steps the title starts with "Step k of n"; every
+  elimination step shows the note "This step removes candidates; no cell can be
+  filled yet." (also announced); PRD 3.4.1 and README updated; title kept on one
+  line, portrait text height formula corrected (the note made the iPhone page 1 px
+  too tall); `VERSION` 7. Tests: `coach.spec.js` (counter and note on every step,
+  one-step chain without them), offline title pattern. Run: 173 unit, desktop 108,
+  emulated iPhone/iPad 324 – all green; WebKit, axe and visual still on the notebook.
+
 ---
 
 ## Acceptance traceability (PRD 9, criterion 11)

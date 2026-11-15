@@ -248,7 +248,11 @@ placement are dropped from the chain, so the user only sees what matters.
 2. The Coach panel replaces the number row/pad and shows the first step:
    technique name and level (e.g. "Naked Pair · Expert") and one to three
    sentences of explanation with the concrete cells and digits; a long text
-   scrolls inside the panel. The tool row turns into **Close · dots · Next/Fill**.
+   scrolls inside the panel. When the chain has several steps, the title starts
+   with a **step counter** ("Step 1 of 3 · Pointing · Expert"), and every
+   elimination step starts with the note **"This step removes candidates; no cell
+   can be filled yet."** (change request 2026-11-15, after testing on the iPad:
+   without it a preparing step looked like the solution). The tool row turns into **Close · dots · Next/Fill**.
 3. On the board, for the current step:
    - the **unit(s)** the step is about (row, column, box) get the light highlight;
    - the **key cells** of the pattern (the pair, the X-Wing corners, the wing

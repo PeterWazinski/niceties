@@ -128,14 +128,18 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); ou
 
 /* Coach panel: takes the place of the number pad, the text scrolls if it is long */
 .coach-panel { min-width: 0; }
-.coach-title { margin: 0; font-size: 16px; font-weight: 700; }
+/* one line, so the step counter never pushes the page beyond the screen */
+.coach-title { margin: 0; font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* elimination steps: "no cell can be filled yet", on its own line above the explanation */
+.coach-note { display: block; color: var(--muted); font-style: italic; }
+.coach-note[hidden] { display: none; }
 .coach-text {
   margin: 4px 0 0;
   font-size: 15px;
   line-height: 1.35;
   overflow-y: auto;
-  /* portrait: what is left below the board (title, status, tool row and gaps take the rest) */
-  max-height: max(4.1em, min(12em, 100dvh - var(--board) - 262px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+  /* portrait: what is left below the board; 242px = header, status, tool row, Coach title, gaps and padding (measured on the iPhone viewport) */
+  max-height: max(3.6em, min(12em, 100dvh - var(--board) - 242px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
 }
 
 .tip { margin: 0; text-align: center; font-size: 14px; color: var(--muted); }

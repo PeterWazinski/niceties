@@ -159,6 +159,8 @@ export function startApp(root) {
 
   // ---- Coach (PRD 3.4.1) ----------------------------------------------------------
 
+  const COACH_PREP_NOTE = "This step removes candidates; no cell can be filled yet.";
+
   const where = (cell) => `row ${Math.floor(cell / 9) + 1}, column ${(cell % 9) + 1}`;
 
   function openCoach() {
@@ -201,9 +203,13 @@ export function startApp(root) {
     const step = coach.steps[coach.index] || null;
     const t = coach.texts[coach.index] || { title: "Coach", level: "", text: "No technique from the list applies here." };
     const last = coach.index >= coach.steps.length - 1;
-    view.showCoach({ ...t, last, step });
+    const count = coach.steps.length;
+    // several steps: "Step 1 of 3"; elimination steps say that no cell is filled yet
+    const counter = count > 1 ? `Step ${coach.index + 1} of ${count}` : "";
+    const note = last ? "" : COACH_PREP_NOTE;
+    view.showCoach({ ...t, last, step, counter, note });
     view.focusCoachNext();
-    view.announce(`${t.level ? `${t.title}, ${t.level}. ` : ""}${t.text} ${last ? "Fill" : "Next"}.`);
+    view.announce(`${counter ? counter + ". " : ""}${t.level ? `${t.title}, ${t.level}. ` : ""}${note ? note + " " : ""}${t.text} ${last ? "Fill" : "Next"}.`);
   }
 
   function coachNext() {

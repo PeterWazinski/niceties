@@ -48,7 +48,7 @@ function template() {
       <div class="numpad" id="numpad" role="group" aria-label="Numbers">${nums}</div>
       <section class="coach-panel" id="coach-panel" aria-label="Coach" hidden>
         <p class="coach-title" id="coach-title"></p>
-        <p class="coach-text" id="coach-text" tabindex="0"></p>
+        <p class="coach-text" id="coach-text" tabindex="0"><span class="coach-note" id="coach-note"></span><span id="coach-body"></span></p>
       </section>
       <p class="tip" id="tip" hidden>Tip: hold a number to add a note</p>
       <p class="notice" id="notice" hidden></p>
@@ -106,7 +106,7 @@ export function createView(root, handlers = {}) {
     app: $(".app"), board: $("#board"), numpad: $("#numpad"), mistakes: $("#mistakes"),
     level: $("#level"), scheme: $("#scheme"), newGame: $("#new-game"), hint: $("#hint"), tip: $("#tip"), notice: $("#notice"),
     coach: $("#coach"), coachClose: $("#coach-close"), coachNext: $("#coach-next"), coachPanel: $("#coach-panel"),
-    coachTitle: $("#coach-title"), coachText: $("#coach-text"), helpDots: $("#help-dots"), helpText: $("#help-text"),
+    coachTitle: $("#coach-title"), coachText: $("#coach-text"), coachNote: $("#coach-note"), coachBody: $("#coach-body"), helpDots: $("#help-dots"), helpText: $("#help-text"),
     confetti: $("#confetti"), live: $("#live"), overlay: $("#overlay"), dialogTitle: $("#dialog-title"), dialogText: $("#dialog-text"),
     dialogNew: $("#dialog-new"), dialogCancel: $("#dialog-cancel"), preparing: $("#preparing")
   };
@@ -189,7 +189,8 @@ export function createView(root, handlers = {}) {
       el.live.textContent = text + (announceFlip ? "​" : "");
     },
 
-    // Coach (PRD 3.4.1): show = { title, level, text, last, step } for the current step,
+    // Coach (PRD 3.4.1): show = { title, level, text, last, step, counter, note } for the
+    // current step (counter "Step 1 of 3" and note only for chains of several steps),
     // or null to close. The panel replaces the number pad; the tool row turns into
     // Close · dots · Next/Fill.
     showCoach(show) {
@@ -203,8 +204,11 @@ export function createView(root, handlers = {}) {
       el.coachClose.hidden = !open;
       el.coachNext.hidden = !open;
       if (open) {
-        setText(el.coachTitle, show.level ? `${show.title} · ${show.level}` : show.title);
-        setText(el.coachText, show.text);
+        const name = show.level ? `${show.title} · ${show.level}` : show.title;
+        setText(el.coachTitle, show.counter ? `${show.counter} · ${name}` : name);
+        setText(el.coachNote, show.note || "");
+        el.coachNote.hidden = !show.note;
+        setText(el.coachBody, show.text);
         el.coachText.scrollTop = 0;
         setText(el.coachNext, show.last ? "Fill" : "Next");
       }

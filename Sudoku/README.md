@@ -22,8 +22,10 @@ Specification: [design/PRD.md](design/PRD.md) · plan: [design/implementation.md
   digit.
 - **Coach**: explains the easiest next move on the whole board, step by step. The
   cells involved show their candidates; candidates that a step removes are red
-  and struck through, the deciding ones bold. Each elimination is confirmed with
-  **Next**, the last step with **Fill**, which places the digit. **Close** stops
+  and struck through, the deciding ones bold. Often no cell can be filled
+  directly: then some steps only remove candidates ("Step 1 of 3"), each confirmed
+  with **Next**; the last step, a single, is confirmed with **Fill**, which places
+  the digit. **Close** stops
   at any time and costs nothing. Your own notes are hidden while coaching and come
   back unchanged.
 - **Helps:** Hint and Coach share four helps per game, shown as four dots between

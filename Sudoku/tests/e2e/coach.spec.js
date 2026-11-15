@@ -21,8 +21,12 @@ async function runThrough(page, chain) {
   const titles = [];
   for (let k = 0; k < chain.steps.length; k++) {
     const last = k === chain.steps.length - 1;
-    await expect(page.locator("#coach-title")).toHaveText(`${texts[k].title} · ${texts[k].level}`);
-    await expect(page.locator("#coach-text")).toHaveText(texts[k].text);
+    // several steps: "Step k of n" in front; elimination steps carry the note (PRD 3.4.1)
+    const counter = chain.steps.length > 1 ? `Step ${k + 1} of ${chain.steps.length} · ` : "";
+    await expect(page.locator("#coach-title")).toHaveText(`${counter}${texts[k].title} · ${texts[k].level}`);
+    await expect(page.locator("#coach-body")).toHaveText(texts[k].text);
+    if (last) await expect(page.locator("#coach-note")).toBeHidden();
+    else await expect(page.locator("#coach-note")).toHaveText("This step removes candidates; no cell can be filled yet.");
     await expect(page.locator("#coach-next")).toHaveText(last ? "Fill" : "Next");
     titles.push(texts[k].title);
     await page.locator("#coach-next").click();
@@ -81,6 +85,28 @@ test("expert position: eliminations with Next (red, struck through), then Fill",
   await runThrough(page, chain);
   await expect(cell(page, chain.placement.cell)).toHaveAttribute("data-value", String(chain.placement.digit));
   expect(await helpsUsed(page)).toBe("1");
+});
+
+test("several steps: the step counter and the note make clear that no cell is filled yet", async ({ page }) => {
+  const { state, chain } = positionWhere((steps) => steps.length >= 3, ["master"]);
+  await openPosition(page, state);
+  await page.locator("#coach").click();
+  const n = chain.steps.length;
+  await expect(page.locator("#coach-title")).toHaveText(new RegExp(`^Step 1 of ${n} · `));
+  await expect(page.locator("#coach-note")).toBeVisible();
+  await expect(page.locator("#live")).toContainText(`Step 1 of ${n}. `);
+  await expect(page.locator("#live")).toContainText("no cell can be filled yet");
+  for (let k = 1; k < n; k++) await page.locator("#coach-next").click();
+  await expect(page.locator("#coach-title")).toHaveText(new RegExp(`^Step ${n} of ${n} · (Hidden|Naked) Single · Beginner$`));
+  await expect(page.locator("#coach-note")).toBeHidden();
+  await expect(page.locator("#coach-next")).toHaveText("Fill");
+});
+
+test("one step: no counter, no note", async ({ page }) => {
+  await openPosition(page, BEGINNER.state);
+  await page.locator("#coach").click();
+  await expect(page.locator("#coach-title")).toHaveText(/^(Hidden|Naked) Single · Beginner$/);
+  await expect(page.locator("#coach-note")).toBeHidden();
 });
 
 test("master position: the chain runs through a master technique to Fill", async ({ page }) => {
