@@ -18,9 +18,17 @@ Specification: [design/PRD.md](design/PRD.md) · plan: [design/implementation.md
   the selected empty cell. A note may be set even if the digit is already in the
   row, column or box. When you place a correct digit, its notes disappear from
   that row, column and box. The first time, a small tip explains this.
-- **Hint** (at most four per game, shown as `Hint n/4`): the selected empty cell
-  (or the next logical cell) slowly shows its digit. After the fourth hint the
-  button does nothing.
+- **Hint**: the selected empty cell (or the next logical cell) slowly shows its
+  digit.
+- **Coach**: explains the easiest next move on the whole board, step by step. The
+  cells involved show their candidates; candidates that a step removes are red
+  and struck through, the deciding ones bold. Each elimination is confirmed with
+  **Next**, the last step with **Fill**, which places the digit. **Close** stops
+  at any time and costs nothing. Your own notes are hidden while coaching and come
+  back unchanged.
+- **Helps:** Hint and Coach share four helps per game, shown as four dots between
+  the two buttons (a filled dot is a used help). After the fourth both buttons do
+  nothing.
 - **Three mistakes lose the game:** the board shakes, the screen fades to grey
   and a popup offers *Play Again*.
 - **New Game** and the **Level** dropdown (Beginner, Expert, Master) ask before
@@ -29,7 +37,8 @@ Specification: [design/PRD.md](design/PRD.md) · plan: [design/implementation.md
 - Your colour scheme, level and the complete game in progress (including notes
   and mistakes) are remembered in the browser.
 - Keyboard (desktop): arrow keys move, `1`–`9` enter a digit, `Shift+1`–`9`
-  toggle a note, `H` gives a hint, `Esc` cancels a question.
+  toggle a note, `H` gives a hint, `C` opens the Coach (`Enter` = Next/Fill,
+  `Esc` closes it), `Esc` cancels a question.
 
 | Level | Clues | Hardest technique needed |
 |---|---|---|
@@ -100,9 +109,10 @@ css/base.css, css/themes.css      layout / colour schemes (CSS variables)
 js/                               game logic (pure) and the DOM layer
   grid, rng, solver, symmetry     geometry, seeded random, bitmask solver, symmetries
   techniques, generator           human solving techniques, puzzle generation + grading
+  coach                           Coach chain, pruning, board marks and explanation texts
   generator.worker, generator-client, pool
                                   generation off the main thread, one puzzle per level in storage
-  game, highlight                 rules: locking, mistakes, notes, hint; highlight sets
+  game, highlight                 rules: locking, mistakes, notes, hint, coach fill; highlight sets
   view, numpad, controller        rendering, tap-vs-hold, wiring
   settings, store, storage        remembered scheme/level, saved game, safe localStorage
 icons/, tools/make-icons.mjs      app icons and their generator

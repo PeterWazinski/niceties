@@ -61,6 +61,20 @@ test("offline: a new game at every level, hints, scheme change", async ({ page }
   await expect(page.locator("html")).toHaveAttribute("data-scheme", "dark");
 });
 
+test("offline: the Coach explains and fills (PRD 3.4.1)", async ({ page }) => {
+  await loadOnline(page, "index.html?seed=12");
+  await reloadOffline(page);
+  await page.locator("#coach").click();
+  await expect(page.locator("#coach-panel")).toBeVisible();
+  await expect(page.locator("#coach-title")).toHaveText(/ · (Beginner|Expert|Master)$/);
+  while (await page.locator("#coach-next").textContent() === "Next") await page.locator("#coach-next").click();
+  const before = (await values(page)).filter((x) => x !== "").length;
+  await page.locator("#coach-next").click();
+  await expect(page.locator("#coach-panel")).toBeHidden();
+  await expect.poll(async () => (await values(page)).filter((x) => x !== "").length).toBe(before + 1);
+  await expect(page.locator("#help-dots")).toHaveAttribute("data-used", "1");
+});
+
 test("a whole session talks only to the own origin", async ({ page, context }) => {
   const foreign = [];
   const origin = new URL(page.context()._options?.baseURL || "http://localhost:4174/").origin;

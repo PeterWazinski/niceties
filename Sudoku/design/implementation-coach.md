@@ -205,14 +205,22 @@ playing generated games forward with the Coach and loaded as `sudoku.game`):
 
 Gate → commit `Sudoku: coach phase C3 – coach UI`.
 
-## Phase C4 – Offline, docs, release
+## Phase C4 – Offline, docs, release ✅ 2026-11-15
 
-- [ ] `sw.js`: `VERSION` raised (the precache entry for `js/coach.js` came in C1)
-- [ ] e2e offline: after one online load, offline reload, Coach runs through Next and
-  Fill
-- [ ] `README.md` (Sudoku): Coach in "Playing", shared help limit, keyboard `C`
-- [ ] `implementation.md` "After the release": entry for the Coach, pointing to this file
-- [ ] PRD 9 criterion 11 mapped to tests (table below)
+- [x] `sw.js`: `VERSION` 5 → 6 (the precache entry for `js/coach.js` came in C1), so
+  installed apps pick up the new UI
+- [x] e2e offline: after one online load, offline reload, Coach runs through Next and
+  Fill, one dot used (`offline.spec.js`; green on desktop and the emulated devices)
+- [x] `README.md` (Sudoku): Coach and shared helps in "Playing", keyboard `C` /
+  `Enter` / `Esc`, `coach` in the project layout
+- [x] `implementation.md` "After the release": entry for the Coach, pointing to this file
+- [x] PRD 9 criterion 11 mapped to tests (table below)
+
+Still to do on the dev notebook (cannot run in the cloud session):
+- [ ] `npm run test:all` with real WebKit for the iPhone / iPad projects
+- [ ] `a11y.spec.js` incl. the new Coach axe scan
+- [ ] `visual.spec.js --update-snapshots`, look at the new images, commit them
+- [ ] Try it on the real iPhone / iPad (GitHub Pages)
 
 Gate → commit `Sudoku: coach phase C4 – offline and docs`.
 
@@ -222,14 +230,14 @@ Gate → commit `Sudoku: coach phase C4 – offline and docs`.
 
 | Part | Test(s) |
 |---|---|
-| Easiest move, step by step | unit coach (easiest wins, fixtures per technique); e2e coach (Beginner/Expert/Master positions) |
+| Easiest move, step by step | unit coach (easiest wins, batch, texts per technique); e2e coach (Beginner/Expert/Master positions) |
 | Next per elimination, Fill at the end | e2e coach (Expert, Master) |
 | Candidates only in involved cells, removed red + struck through | unit coach (`shown`, `removed`); e2e coach (computed styles) |
 | Notes hidden and restored | e2e coach (Close) |
 | Input blocked | e2e coach |
 | Shared limit of four, dots | unit game (mixed use); e2e coach (shared limit) |
 | Close costs nothing | unit game; e2e coach |
-| Offline | e2e offline (C4) |
+| Offline | e2e offline: "the Coach explains and fills" (C4) |
 
 ## Risks to watch
 
