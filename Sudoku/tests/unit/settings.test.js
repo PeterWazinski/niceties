@@ -35,10 +35,10 @@ test("settings: saved values come back", () => {
 });
 
 test("settings: invalid stored values fall back to the defaults, invalid values are not saved", () => {
-  const m = install({ [SCHEME_KEY]: "neon", [LEVEL_KEY]: "easy" });
+  const m = install({ [SCHEME_KEY]: "plaid", [LEVEL_KEY]: "easy" });
   assert.deepEqual(loadSettings(), { scheme: "bw", level: "beginner" });
-  saveScheme("neon"); saveLevel("easy");
-  assert.equal(m.get(SCHEME_KEY), "neon", "unchanged: invalid value ignored");
+  saveScheme("plaid"); saveLevel("easy");
+  assert.equal(m.get(SCHEME_KEY), "plaid", "unchanged: invalid value ignored");
   assert.equal(m.get(LEVEL_KEY), "easy");
 });
 

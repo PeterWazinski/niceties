@@ -320,9 +320,13 @@ defined as CSS variable sets, so more can be added in minutes):
 | Sepia | Warm paper, brown ink – easy on the eyes |
 | Dark | Near-black background, light digits |
 | Forest | Soft greens |
+| Neon | Near-black background, cyan grid lines and white givens with a soft glow, pink player digits, coral red for errors (change request 2026-11-16) |
+| Rainbow | Light page, each 3×3 box its own pastel tint (red → pink), dark givens, violet player digits; highlights in lilac layers instead of the tint; rainbow title and New Game button (change request 2026-11-16) |
 
 Every scheme must keep givens, player digits, the three highlight levels and the
-error red clearly distinguishable (minimum contrast 4.5:1 for digits).
+error red clearly distinguishable (minimum contrast 4.5:1 for digits; in Rainbow
+on every box tint). Neon's glow was halved after the first proposal so the digits
+stay sharp.
 The colour scheme switches live, with no reload. The browser's
 `theme-color` meta tag follows the scheme.
 
@@ -517,7 +521,9 @@ Sudoku/
 - **Generator isolation:** `generator.js` is plain ES module code, imported by
   the worker and by the node tests, with no DOM or worker APIs inside.
 - **Colour schemes:** `data-scheme="bw"` on `<html>`; `themes.css` defines
-  variables only. Adding a scheme = adding one block + one dropdown entry.
+  variables. Adding a scheme = adding one block + one dropdown entry. Neon and
+  Rainbow add a few scheme-scoped effect rules at the end of `themes.css` (glow;
+  box tints through a per-cell `--cell-bg` and the cell's `data-box`).
 - **Responsive:** `min(100vw − gutters, 100dvh − chrome)` for the board size,
   `@media (orientation: landscape) and (min-width: 700px)` for the side-panel layout.
 - **Worker support:** module workers are supported in Safari 15+. If creating the
@@ -589,7 +595,7 @@ in untangleMe), auto-notes, more symmetries picker, German UI, printing.
 | Game state | The complete game is saved and resumed (3.7) |
 | Tap on a filled cell | Highlights identical digits **and** row, column, box (3.3) |
 | Entry order | Cell first, then number; a number tap without a selected editable cell does nothing |
-| Language / colours | English only; start with B/W, Classic Blue, Sepia, Dark, Forest (3.6) |
+| Language / colours | English only; start with B/W, Classic Blue, Sepia, Dark, Forest (3.6); Neon and Rainbow added 2026-11-16 |
 | Clue ranges | Taken as proposed in section 4 (38–42 / 30–34 / 24–28), symmetry as in 5.3 |
 
 ### Confirmed (review round 2)

@@ -281,3 +281,17 @@ Gate → commit `Sudoku: phase 9 – polish, accessibility and release`.
 - [x] **Wrong digit stops the game** (change request; since the mistakes rework only reachable after a reload, see above): while a wrong digit is on the board only that cell accepts input (no digits, no notes elsewhere; warning text; number buttons inactive). It is changed to the right digit, replaced by another wrong one (new mistake), or cleared — by tapping the same digit again, Backspace / Delete, or Hint. No Clear button. Model: `clearCell`, `isBlocked`, `hasWrong`, `enterDigit` results `blocked` / `cleared`. Tests: unit `game.test.js` (blocking, clearing, property test: at most one wrong digit), e2e `gameplay.spec.js` (blocking, clearing by same digit and by keys, Hint unblocks), screen reader messages in `a11y.spec.js`; the other specs were adapted to the new rule.
 
 - [x] **Coach** (change request 2026-11-15, PRD 3.4.1): Coach button next to Hint, explains the easiest next move step by step and fills the cell; Hint and Coach share one limit of four helps (dots). Planned and done in its own file: [implementation-coach.md](implementation-coach.md) (phases C1–C4; full WebKit, axe and visual runs still to do on the dev notebook).
+
+- [x] **Neon and Rainbow colour schemes** (change request 2026-11-16, PRD 3.6): proposals
+  as screenshots first (Neon glow halved after review, Rainbow variant A "tinted boxes"
+  chosen over B "coloured digits", which mixed up the error red with the digit 1).
+  `themes.css`: two variable blocks plus scheme-scoped effects (Neon: transparent plain
+  cells and board with a drop-shadow so lines and digits glow, digit/title/button
+  halos; Rainbow: per-box `--cell-bg` tints, lilac highlight layers, gradient title
+  and New Game). `view.js`: `data-box` on every cell. `schemes.js`: two entries.
+  `sw.js` VERSION 8. Tests: theme and a11y scheme lists now seven; new
+  `themes.spec.js` tests (Rainbow: nine tints, 4.5:1 for ink/player/wrong/notes on
+  every tint, highlights replace the tint; Neon: glow present, plain cells
+  transparent, highlights opaque; B/W has neither); settings unit test uses another
+  invalid id. Run in the cloud session: unit, desktop, emulated iPhone/iPad green;
+  WebKit, axe and visual on the dev notebook.

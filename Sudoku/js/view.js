@@ -19,7 +19,7 @@ function template() {
   const options = (list) => list.map(([v, n]) => `<option value="${v}">${n}</option>`).join("");
   const cells = Array.from({ length: 81 }, (_, i) => {
     const notes = Array.from({ length: 9 }, () => "<span></span>").join("");
-    return `<button type="button" class="cell" tabindex="-1" data-i="${i}" data-r="${Math.floor(i / 9)}" data-c="${i % 9}">` +
+    return `<button type="button" class="cell" tabindex="-1" data-i="${i}" data-r="${Math.floor(i / 9)}" data-c="${i % 9}" data-box="${Math.floor(i / 27) * 3 + Math.floor((i % 9) / 3)}">` +
       `<span class="digit"></span><span class="notes" aria-hidden="true">${notes}</span>` +
       `<span class="cands" aria-hidden="true">${notes}</span></button>`;
   }).join("");

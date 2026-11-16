@@ -2,7 +2,9 @@
    Variables: page/ink = page and given digits, player = digits entered by the
    player, wrong = wrong digits, *-bg = cell backgrounds per highlight layer,
    line / line-strong = thin and box borders, btn* = buttons, muted = labels,
-   coach-accent = deciding candidates while coaching (bold; ≥ 4.5:1 on sel-bg). */
+   coach-accent = deciding candidates while coaching (bold; ≥ 4.5:1 on sel-bg).
+   Neon and Rainbow add a few effects at the end of this file (glow, box tints);
+   the variables alone already give a complete, readable scheme. */
 
 :root, :root[data-scheme="bw"] {
   --page-bg: #ffffff;
@@ -107,4 +109,78 @@
   --primary-bg: #2f6f4a;
   --primary-ink: #ffffff;
   --focus: #155a31;
+}
+
+:root[data-scheme="neon"] {
+  --page-bg: #07060f;
+  --ink: #e6fbff;
+  --player: #ff6ad5;
+  --coach-accent: #ff6ad5;
+  --wrong: #ff7b6b;
+  --muted: #8f9bb8;
+  --cell-bg: #0d0b22;
+  --peer-bg: #0e2036;
+  --same-bg: #0f344a;
+  --sel-bg: #511953;
+  --conflict-bg: #511929;
+  --line: #13506a;
+  --line-strong: #19f0ff;
+  --btn-bg: #11132a;
+  --btn-ink: #19f0ff;
+  --primary-bg: #ff2bd6;
+  --primary-ink: #12001a;
+  --focus: #ffe14d;
+}
+
+:root[data-scheme="rainbow"] {
+  --page-bg: #fffdf7;
+  --ink: #1d1b3a;
+  --player: #4318b0;
+  --coach-accent: #4318b0;
+  --wrong: #a3001f;
+  --muted: #55526e;
+  --cell-bg: #ffffff;
+  --peer-bg: #ebe6fa;
+  --same-bg: #d9cffa;
+  --sel-bg: #cbbdf6;
+  --conflict-bg: #f7c2cb;
+  --line: #b9b6cc;
+  --line-strong: #1d1b3a;
+  --btn-bg: #f1edff;
+  --btn-ink: #3b1fa0;
+  --primary-bg: #4318b0;
+  --primary-ink: #ffffff;
+  --focus: #1d1b3a;
+}
+
+/* ---- Neon effects: glowing lines, a halo around digits and buttons ----
+   Plain cells and the board are transparent, so the board's drop-shadow lights up
+   the grid lines and the digits; highlighted cells keep their opaque colours. */
+:root[data-scheme="neon"] body { background: radial-gradient(ellipse at 50% 30%, #15123a 0%, #07060f 70%); }
+:root[data-scheme="neon"] .board { background: transparent; filter: drop-shadow(0 0 1.5px rgba(25, 240, 255, 0.75)); }
+:root[data-scheme="neon"] .cell { --cell-bg: transparent; }
+:root[data-scheme="neon"] .cell .digit { text-shadow: 0 0 2px currentColor, 0 0 5px currentColor; }
+:root[data-scheme="neon"] .title { color: #19f0ff; text-shadow: 0 0 3px #19f0ff, 0 0 8px #19f0ff; }
+:root[data-scheme="neon"] .btn { box-shadow: 0 0 0 1px rgba(25, 240, 255, 0.6), 0 0 5px rgba(25, 240, 255, 0.35); }
+:root[data-scheme="neon"] .btn.primary { box-shadow: 0 0 6px rgba(255, 43, 214, 0.7); }
+:root[data-scheme="neon"] .num { text-shadow: 0 0 3px currentColor; }
+
+/* ---- Rainbow effects: every 3x3 box its own tint (plain cells only; highlights
+   use the lilac layers above), rainbow title and New Game button ---- */
+:root[data-scheme="rainbow"] .cell[data-box="0"] { --cell-bg: #ffd9d9; }
+:root[data-scheme="rainbow"] .cell[data-box="1"] { --cell-bg: #ffe6cc; }
+:root[data-scheme="rainbow"] .cell[data-box="2"] { --cell-bg: #fff4c2; }
+:root[data-scheme="rainbow"] .cell[data-box="3"] { --cell-bg: #dff5cf; }
+:root[data-scheme="rainbow"] .cell[data-box="4"] { --cell-bg: #cff2ec; }
+:root[data-scheme="rainbow"] .cell[data-box="5"] { --cell-bg: #d6e6ff; }
+:root[data-scheme="rainbow"] .cell[data-box="6"] { --cell-bg: #e1d9ff; }
+:root[data-scheme="rainbow"] .cell[data-box="7"] { --cell-bg: #f3d9fb; }
+:root[data-scheme="rainbow"] .cell[data-box="8"] { --cell-bg: #ffd9ea; }
+:root[data-scheme="rainbow"] .title {
+  background: linear-gradient(90deg, #d32f2f, #e65100, #9e7600, #2e7d32, #1565c0, #4527a0, #7b1fa2);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+:root[data-scheme="rainbow"] .btn.primary {
+  background: linear-gradient(90deg, #c62828, #bf360c, #2e7d32, #1565c0, #6a1b9a);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }

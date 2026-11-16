@@ -4,5 +4,7 @@ export const SCHEMES = [
   { id: "blue", name: "Classic Blue", themeColor: "#ffffff" },
   { id: "sepia", name: "Sepia", themeColor: "#f4ecd8" },
   { id: "dark", name: "Dark", themeColor: "#121417" },
-  { id: "forest", name: "Forest", themeColor: "#f3f7f1" }
+  { id: "forest", name: "Forest", themeColor: "#f3f7f1" },
+  { id: "neon", name: "Neon", themeColor: "#07060f" },
+  { id: "rainbow", name: "Rainbow", themeColor: "#fffdf7" }
 ];
