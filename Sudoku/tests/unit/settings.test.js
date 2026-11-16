@@ -18,7 +18,7 @@ function installBroken() {
   globalThis.localStorage = { getItem: boom, setItem: boom, removeItem: boom };
 }
 
-const { loadSettings, saveScheme, saveLevel, SCHEME_KEY, LEVEL_KEY } = await import("../../js/settings.js");
+const { loadSettings, saveScheme, saveLevel, SCHEME_KEY, LEVEL_KEY, loadLang, saveLang, LANG_KEY } = await import("../../js/settings.js");
 const { loadGame, saveGame, clearGame, GAME_KEY } = await import("../../js/store.js");
 
 test("settings: defaults on a clean profile", () => {
@@ -95,4 +95,21 @@ test("store: a solved game is not restored", () => {
 test("store: nothing saved gives null", () => {
   install();
   assert.equal(loadGame(), null);
+});
+
+test("language (PRD 3.8): saved choice wins over the device language, invalid ones are ignored", () => {
+  const m = install();
+  assert.equal(LANG_KEY, "sudoku.lang");
+  assert.equal(loadLang("de"), "de", "nothing saved → device language");
+  assert.equal(loadLang("en"), "en");
+  saveLang("de");
+  assert.equal(m.get(LANG_KEY), "de");
+  assert.equal(loadLang("en"), "de", "saved choice wins");
+  saveLang("fr");
+  assert.equal(m.get(LANG_KEY), "de", "invalid value not saved");
+  install({ [LANG_KEY]: "klingon" });
+  assert.equal(loadLang("en"), "en", "invalid stored value → device language");
+  installBroken();
+  assert.equal(loadLang("de"), "de");
+  assert.doesNotThrow(() => saveLang("en"));
 });

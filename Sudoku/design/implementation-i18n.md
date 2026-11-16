@@ -77,43 +77,61 @@ Result: 179 unit tests green.
 
 Gate → commit `Sudoku: i18n phase L1 – text tables`.
 
-## Phase L2 – German and the globe button
+## Phase L2 – German and the globe button ✅ 2026-11-16
 
-- [ ] `i18n.js`: German table with every key (texts of PRD 3.8), German Coach phrase
-  set ("Reihe 4, Spalte 6" → "r4s6", "Block 5", "Reihen 2 und 7", "4 und 8", the 11
-  templates); technique titles in `de` = English
-- [ ] `settings.js`: `loadLang()`, `saveLang()` with `sudoku.lang`
-- [ ] `main.js` / `controller.js`: start language = saved choice, else
+- [x] `i18n.js`: German table with every key (texts of PRD 3.8), German Coach phrases
+  ("Reihe 4, Spalte 6" → "r4s6", "Block 5", "Reihen 2 und 7", "4 und 8", the 11
+  templates); the `tech.*` keys are left out on purpose, so technique names fall back
+  to English (fill them in to translate later); `lang.code` / `lang.label` /
+  `lang.name` for the globe button
+- [x] `settings.js`: `loadLang(fallback)`, `saveLang()` with `sudoku.lang`
+- [x] `controller.js`: start language = saved choice, else
   `detectLang(navigator.languages || [navigator.language])`
-- [ ] `view.js`: globe button `#lang` (icon + current code, accessible name per PRD
-  3.8) in the header left of New Game (portrait) and in the title row (landscape)
-- [ ] `controller.js`: tap / click toggles, saves, calls `view.setLanguage()`, redraws
-  an open Coach panel, announces "Deutsch" / "English"; works while the Coach is open,
-  not while a dialog is open (the overlay covers it anyway)
-- [ ] `base.css`: header with three items in portrait and landscape; German texts are
-  longer ("Neues Spiel", "Schließen", "Eintragen", "Hinweis") – no truncation, no
-  page scroll, targets ≥ 44 px
+- [x] `view.js`: globe button `#lang` (icon + `#lang-code`, accessible name per PRD
+  3.8) in a new `.head` (title + globe) left of New Game in portrait, the title row
+  in landscape
+- [x] `controller.js`: tap toggles, saves, `view.setLanguage()`, redraws an open
+  Coach panel (texts rebuilt with a new `cellNamer(lang)`, same step, focus stays),
+  announces "Deutsch" / "English"
+- [x] `base.css`: header with title, globe and New Game; tool buttons with less side
+  padding and `minmax(0, 1fr)` columns (German "Hinweis"/"Schließen" made the tool
+  row 24 px too wide on 375 px phones); short landscape: 12 px instead of 27 px above
+  the panel, so the 44 px globe adds no height
+- [x] German tip shortened to "Tipp: Zahl lang drücken für eine Notiz" (the PRD text
+  wrapped to two lines on 375 px phones); PRD 3.8 updated
 
 Tests:
-- [ ] unit `i18n.test.js`: `de` has exactly the keys of `en`; no empty string; every
-  function key accepts the same values in both languages
-- [ ] unit `coach.test.js`: German text for every technique (exact strings, as in the
-  English tests), German cell names (long then short, per session), lists, plurals;
-  the 30-game batch also produces German texts without `undefined` or `NaN`
-- [ ] unit `settings.test.js`: `sudoku.lang` saved / loaded, invalid value ignored
-- [ ] e2e `language.spec.js` (new, all four projects):
-  - [ ] locale `de-DE` starts in German (header, status labels, levels Leicht/Mittel/
-    Schwer, scheme names, Hint/Coach, tip, `<html lang="de">`); locale `en-US` in English
-  - [ ] the globe toggles live both ways, label = current language, no reload
-  - [ ] the choice survives a reload and wins over the device language
-  - [ ] dialogs (mistake, lost, solved, confirm) and the notice in German
-  - [ ] screen reader: cell labels ("Reihe 1, Spalte 1, …"), announcements, help text
-  - [ ] Coach in German: title "Schritt 1 von n · Pointing · Mittel", note, texts equal
-    the engine's German texts; switching with the panel open redraws it, names long again
-  - [ ] the page never scrolls in German (portrait, landscape, short landscape with
-    the Coach open); all buttons ≥ 44 px
-- [ ] e2e a11y: axe scan in German (main screen, a dialog, the Coach panel)
-- [ ] e2e: earlier tests pass
+- [x] unit `i18n.test.js` (+8): `de` has exactly the keys of `en` except `tech.*`;
+  every German text filled, same values, no `undefined`/`NaN`/`${`; UI texts of PRD
+  3.8 (help, dialogs, levels, schemes, cell names, step counter, globe code)
+- [x] unit (German Coach): exact texts for every technique, "r4s6" after the long
+  name, per session; real chains of 16 expert/master games in German without gaps or
+  English unit words
+- [x] unit `settings.test.js` (+1): `sudoku.lang` saved / loaded, invalid value
+  ignored, saved choice wins, storage errors
+- [x] e2e `language.spec.js` (new, 12 tests, all projects):
+  - [x] locale `de-DE` starts in German (header, labels, Leicht/Mittel/Schwer,
+    scheme names, Hinweis/Coach, tip, board and help labels, `<html lang="de">`,
+    title "Sudoku"); locale `en-US` in English, "EN", English accessible name
+  - [x] the globe toggles live both ways (no reload), label = current language,
+    announcement
+  - [x] the choice survives a reload and wins over the device language; an invalid
+    saved value falls back to the device language
+  - [x] dialogs (mistake, confirm with Abbrechen, lost) and the notice in German; the
+    game is untouched by a switch
+  - [x] screen reader: cell labels ("Reihe r, Spalte c, d, vorgegeben" / "leer" /
+    "richtig"), "Richtig.", "Coach: d in Reihe …"
+  - [x] Coach in German: "Schritt 1 von n · <technique> · Mittel", note, texts equal
+    the engine's German texts; switching with the panel open shows the English step,
+    switching back and stepping through to "Eintragen" works
+  - [x] the page never scrolls in German (also with the Coach open); globe, New Game,
+    Hint, Coach ≥ 44 px and visible; labels not cut off, the tip on one line
+- [x] e2e a11y: axe scan in German (main screen, Coach panel, confirm dialog) –
+  written, runs on the notebook (axe not available in the cloud session)
+- [x] e2e: earlier tests pass (`play-helpers.js` accepts "Fehler n/3" as well as
+  "Mistake n/3"): desktop 124, emulated iPhone/iPad 372 (Chrome)
+
+Result: 188 unit tests green.
 
 Gate → commit `Sudoku: i18n phase L2 – German and the globe button`.
 

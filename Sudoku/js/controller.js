@@ -6,11 +6,11 @@ import {
   coachSteps, coachAvailable, clearWrongForCoach, coachFallback, coachFill
 } from "./game.js";
 import { explain, cellNamer } from "./coach.js";
-import { t, DEFAULT_LANG } from "./i18n.js";
+import { t, detectLang } from "./i18n.js";
 import { createGeneratorClient } from "./generator-client.js";
 import { createPool } from "./pool.js";
 import { createConfetti } from "./confetti.js";
-import { loadSettings, saveScheme, saveLevel } from "./settings.js";
+import { loadSettings, saveScheme, saveLevel, loadLang, saveLang } from "./settings.js";
 import { loadGame, saveGame, clearGame } from "./store.js";
 import { safeGet, safeSet } from "./storage.js";
 import { LEVELS, MAX_MISTAKES, HINT_ANIM_REDUCED_MS, HINT_ANIM_MS, LOSS_SHAKE_MS, LOSS_DIM_MS, LOSS_REDUCED_MS, TIP_KEY } from "./config.js";
@@ -46,8 +46,9 @@ export function startApp(root) {
   let losing = false;      // the losing effect is running
   let pending = null;      // { run, cancel }: New Game waiting for the "abandon?" answer
   let tipShown = safeGet(TIP_KEY) === "1";
-  // language of every text (PRD 3.8); fixed English until the toggle exists
-  let lang = DEFAULT_LANG;
+  // language of every text (PRD 3.8): saved choice, else the device language
+  const device = typeof navigator !== "undefined" ? (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language]) : [];
+  let lang = loadLang(detectLang(device));
   const tr = (key, values) => t(lang, key, values);
   const where = (cell) => tr("cell.pos", { r: Math.floor(cell / 9) + 1, c: (cell % 9) + 1 });
   // Coach session (PRD 3.4.1): { steps, texts, placement, index } while the panel is open.
@@ -75,8 +76,10 @@ export function startApp(root) {
     },
     onDialogCancel: () => cancelPending(),
     onScheme: (id) => { view.setScheme(id); saveScheme(id); },
-    onLevel: (level) => { closeCoach(false); requestNewGame(level); }
+    onLevel: (level) => { closeCoach(false); requestNewGame(level); },
+    onLang: () => toggleLang()
   });
+  view.setLanguage(lang);
 
   const confetti = createConfetti(view.el.confetti, { reducedMotion });
 
@@ -154,6 +157,25 @@ export function startApp(root) {
     setTimeout(() => { animating = false; view.setBusy(false); }, ms);
   }
 
+  // ---- Language (PRD 3.8) -----------------------------------------------------------
+
+  // One tap toggles English <-> German, live: texts, dialog, an open Coach panel.
+  function toggleLang() {
+    lang = lang === "de" ? "en" : "de";
+    saveLang(lang);
+    view.setLanguage(lang);
+    if (coach) {
+      // the session's texts again in the new language; cell names start long again
+      if (coach.steps.length) {
+        const name = cellNamer(lang);
+        coach.texts = coach.steps.map((step, i) => explain(step, name, { afterEliminations: i > 0, lang }));
+      }
+      sync();
+      showCoachStep(false);
+    } else sync();
+    view.announce(tr("lang.name"));
+  }
+
   // ---- Coach (PRD 3.4.1) ----------------------------------------------------------
 
 
@@ -194,7 +216,8 @@ export function startApp(root) {
     showCoachStep();
   }
 
-  function showCoachStep() {
+  // focus: move the focus to Next/Fill and announce the step (not after a language switch)
+  function showCoachStep(focus = true) {
     const step = coach.steps[coach.index] || null;
     const t = coach.texts[coach.index] || { title: tr("coach"), level: "", text: tr("coach.none") };
     const last = coach.index >= coach.steps.length - 1;
@@ -203,6 +226,7 @@ export function startApp(root) {
     const counter = count > 1 ? tr("coach.step", { k: coach.index + 1, n: count }) : "";
     const note = last ? "" : tr("coach.prep");
     view.showCoach({ ...t, last, step, counter, note });
+    if (!focus) return;
     view.focusCoachNext();
     view.announce(`${counter ? counter + ". " : ""}${t.level ? `${t.title}, ${t.level}. ` : ""}${note ? note + " " : ""}${t.text} ${tr(last ? "fill" : "next")}.`);
   }

@@ -36,6 +36,10 @@ const EN = {
   "tip": "Tip: hold a number to add a note",
   "cancel": "Cancel",
   "ok": "OK",
+  // globe button: code of the current language, its accessible name, announcement
+  "lang.code": "EN",
+  "lang.label": "Language: English. Switch to German",
+  "lang.name": "English",
 
   "level.beginner": "Beginner",
   "level.expert": "Expert",
@@ -128,7 +132,104 @@ const EN = {
     `Either way one of ${A2} and ${B2} is ${d}, so the ${d} is removed from every cell that sees both.`
 };
 
-const TABLES = { en: EN, de: {} };
+const listDe = joinWith("und");
+
+// German (PRD 3.8). Technique names stay English: the "tech.*" keys are left out on
+// purpose and fall back to English (add them here to translate them later).
+const DE = {
+  "newGame": "Neues Spiel",
+  "level": "Stufe",
+  "mistakes": "Fehler",
+  "colours": "Farben",
+  "board": "Sudoku-Spielfeld",
+  "numbers": "Zahlen",
+  "preparing": "Rätsel wird vorbereitet …",
+  "hint": "Hinweis",
+  "coach": "Coach",
+  "close": "Schließen",
+  "next": "Weiter",
+  "fill": "Eintragen",
+  "help": ({ n, max }) => `Hilfe: ${n} von ${max} genutzt`,
+  "tip": "Tipp: Zahl lang drücken für eine Notiz",
+  "cancel": "Abbrechen",
+  "ok": "OK",
+  "lang.code": "DE",
+  "lang.label": "Sprache: Deutsch. Auf Englisch umschalten",
+  "lang.name": "Deutsch",
+
+  "level.beginner": "Leicht",
+  "level.expert": "Mittel",
+  "level.master": "Schwer",
+
+  "scheme.bw": "B/W",
+  "scheme.blue": "Klassisch Blau",
+  "scheme.sepia": "Sepia",
+  "scheme.dark": "Nacht",
+  "scheme.forest": "Wald",
+  "scheme.neon": "Neon",
+  "scheme.rainbow": "Regenbogen",
+
+  "dlg.mistake.title": ({ n, max }) => `Fehler ${n}/${max}`,
+  "dlg.mistake.text": "Beim nächsten Mal hilft vielleicht ein Hinweis.",
+  "dlg.lost.title": "Spiel verloren.",
+  "dlg.lost.text": "Noch einmal spielen?",
+  "dlg.lost.primary": "Neu spielen",
+  "dlg.solved.title": "Gelöst!",
+  "dlg.solved.text": "Gut gemacht.",
+  "dlg.confirm.title": "Spiel beenden?",
+  "dlg.confirm.text": "Der Fortschritt in diesem Spiel geht verloren.",
+
+  "notice.blocked": "Zuerst die rote Ziffer korrigieren oder löschen.",
+  "notice.clear": "Dieselbe Ziffer noch einmal tippen, um sie zu löschen.",
+
+  "cell.pos": ({ r, c }) => `Reihe ${r}, Spalte ${c}`,
+  "cell.given": "vorgegeben",
+  "cell.wrong": "falsch",
+  "cell.correct": "richtig",
+  "cell.empty": "leer",
+  "cell.notes": ({ digits }) => `Notizen ${digits}`,
+  "cell.cands": ({ digits }) => `Kandidaten ${digits}`,
+  "cell.removed": ({ digits }) => `${digits} entfernt`,
+
+  "say.correct": "Richtig.",
+  "say.wrong": ({ n, max }) => `Falsche Ziffer. ${n} von ${max} Fehlern.`,
+  "say.gameOver": "Drei Fehler. Spiel verloren.",
+  "say.solved": "Gelöst!",
+  "say.note": "Notiz gesetzt.",
+  "say.noteOff": "Notiz entfernt.",
+  "say.cleared": "Ziffer gelöscht.",
+  "say.hint": ({ d, where }) => `Hinweis: ${d} in ${where}.`,
+  "say.hintCleared": ({ where }) => `Hinweis: Die falsche Ziffer in ${where} wird entfernt.`,
+  "say.coach": ({ d, where }) => `Coach: ${d} in ${where}.`,
+  "say.coachCleared": ({ where }) => `Die falsche Ziffer in ${where} wird entfernt.`,
+
+  "coach.step": ({ k, n }) => `Schritt ${k} von ${n}`,
+  "coach.prep": "Dieser Schritt entfernt Kandidaten; noch kann kein Feld gefüllt werden.",
+  "coach.none": "Hier hilft keine Technik aus der Liste.",
+
+  "coach.cellLong": ({ r, c }) => `Reihe ${r}, Spalte ${c}`,
+  "coach.cellShort": ({ r, c }) => `r${r}s${c}`,
+  "coach.unit": ({ u }) => (u < 9 ? `Reihe ${u + 1}` : u < 18 ? `Spalte ${u - 8}` : `Block ${u - 17}`),
+  "coach.list": ({ items }) => listDe(items),
+  // "Reihen 2 und 7", "Spalten 1, 4 und 8"
+  "coach.lines": ({ units }) => (units[0] < 9 ? "Reihen " : "Spalten ") + listDe(units.map((u) => String(u < 9 ? u + 1 : u - 8))),
+  "coach.t.nakedSingle": ({ cell, d }) => `${cell} kann nur ${d} sein: Jede andere Ziffer steht schon in ihrer Reihe, Spalte oder ihrem Block.`,
+  "coach.t.nakedSingleAfter": ({ cell, d }) => `${cell} kann nur ${d} sein: Alle anderen Kandidaten sind entfernt.`,
+  "coach.t.hiddenSingle": ({ unit, d, cell }) => `In ${unit} passt die ${d} nur in ${cell}.`,
+  "coach.t.pointing": ({ box, line, d }) => `In ${box} kann die ${d} nur in ${line} stehen. Also wird die ${d} aus dem Rest von ${line} entfernt.`,
+  "coach.t.claiming": ({ line, box, d }) => `In ${line} kann die ${d} nur in ${box} stehen. Also wird die ${d} aus dem Rest von ${box} entfernt.`,
+  "coach.t.nakedSubset": ({ cells, digits, unit, triple }) =>
+    `${cells} können${triple ? " zusammen" : ""} nur ${digits} enthalten. Also werden ${digits} aus den anderen Feldern von ${unit} entfernt.`,
+  "coach.t.hiddenSubset": ({ unit, digits, cells }) =>
+    `In ${unit} passen ${digits} nur in ${cells}. Also werden alle anderen Kandidaten aus diesen Feldern entfernt.`,
+  "coach.t.fish": ({ base, cover, d }) =>
+    `In den ${base} passt die ${d} nur in die ${cover}. Also steht die ${d} in den ${cover} in diesen ${base.split(" ")[0]} und wird aus dem Rest der ${cover} entfernt.`,
+  "coach.t.xyWing": ({ P, x, y, A, B, A2, B2, p1, p2, d }) =>
+    `${P} kann nur ${p1} oder ${p2} sein. Ist es ${x}, muss ${A} die ${d} sein; ist es ${y}, muss ${B} die ${d} sein. ` +
+    `In jedem Fall ist ${A2} oder ${B2} die ${d}, also wird die ${d} aus jedem Feld entfernt, das beide sieht.`
+};
+
+const TABLES = { en: EN, de: DE };
 
 // Text `key` in `lang` with `values`; falls back to English, then to the key itself.
 export function t(lang, key, values = {}) {

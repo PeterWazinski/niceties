@@ -57,6 +57,23 @@ test("accessibility scan (axe): the Coach panel and its board marks in every col
   }
 });
 
+test.describe("German (PRD 3.8)", () => {
+  test.use({ locale: "de-DE" });
+
+  test("accessibility scan (axe) in German: main screen, the confirm dialog, the Coach panel", async ({ page }) => {
+    await openPosition(page, expertPosition().state);
+    await expect(page.locator("html")).toHaveAttribute("lang", "de");
+    await scan(page, "German main screen");
+    await page.locator("#coach").click();
+    await expect(page.locator("#coach-panel")).toBeVisible();
+    await scan(page, "German Coach panel");
+    await page.locator("#coach-close").click();
+    await page.locator("#new-game").click();
+    await expect(page.locator("#overlay")).toBeVisible();
+    await scan(page, "German confirm dialog");
+  });
+});
+
 test("accessibility scan (axe): the lost-game dialog", async ({ page }) => {
   const empties = emptyIndices(await values(page));
   await page.selectOption("#scheme", "dark");

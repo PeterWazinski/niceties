@@ -13,6 +13,7 @@ export { SCHEMES };
 
 const BULB = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21h6M10 17h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
+const GLOBE = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
 const CAP = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5zM6 11v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5M22 9v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 function template() {
@@ -28,7 +29,10 @@ function template() {
     `<button type="button" class="num" data-digit="${k + 1}">${k + 1}</button>`).join("");
   return `
     <div class="app">
-      <h1 class="title">Sudoku</h1>
+      <div class="head">
+        <h1 class="title">Sudoku</h1>
+        <button type="button" class="btn lang" id="lang" data-t-label="lang.label">${GLOBE}<span id="lang-code" data-t="lang.code"></span></button>
+      </div>
       <button type="button" class="btn primary" id="new-game" data-t="newGame"></button>
       <div class="status">
         <label class="field"><span class="field-label" data-t="level"></span>
@@ -151,6 +155,7 @@ export function createView(root, handlers = {}) {
   el.coach.addEventListener("click", () => handlers.onCoach && handlers.onCoach());
   el.coachNext.addEventListener("click", () => handlers.onCoachNext && handlers.onCoachNext());
   el.coachClose.addEventListener("click", () => handlers.onCoachClose && handlers.onCoachClose());
+  $("#lang").addEventListener("click", () => handlers.onLang && handlers.onLang());
   applyTexts();
 
   // Coach marks on the board: units, key cells, candidates of the involved cells.

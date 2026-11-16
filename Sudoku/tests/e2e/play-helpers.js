@@ -32,7 +32,7 @@ export async function waitIdle(page) {
 
 // Confirms the "Mistake i/3" popup; the wrong digit then fades out and the cell is empty again.
 export async function ackMistake(page) {
-  await expect(page.locator("#dialog-title")).toHaveText(/^Mistake \d\/3$/);
+  await expect(page.locator("#dialog-title")).toHaveText(/^(Mistake|Fehler) \d\/3$/);
   await page.locator("#dialog-new").click();
   await expect(page.locator("#overlay")).toBeHidden();
   await waitIdle(page);
@@ -42,7 +42,7 @@ export async function ackMistake(page) {
 // popup is confirmed (the popup is not saved, the wrong digit is).
 export async function keepWrong(page, i, d) {
   await enter(page, i, d);
-  await expect(page.locator("#dialog-title")).toHaveText(/^Mistake/);
+  await expect(page.locator("#dialog-title")).toHaveText(/^(Mistake|Fehler)/);
   await page.reload();
   await expect(page.locator("#app")).toHaveAttribute("data-ready", "true");
   await expect(page.locator("#overlay")).toBeHidden();

@@ -395,7 +395,7 @@ notices, the Coach explanations and all screen-reader texts (labels, announcemen
 | Help: n of 4 used | Hilfe: n von 4 genutzt |
 | Sudoku board / Numbers | Sudoku-Spielfeld / Zahlen |
 | Preparing puzzle… | Rätsel wird vorbereitet … |
-| Tip: hold a number to add a note | Tipp: Zahl gedrückt halten, um eine Notiz zu setzen |
+| Tip: hold a number to add a note | Tipp: Zahl lang drücken für eine Notiz (shortened in L2: the longer text wrapped on 375 px phones) |
 | Fix or clear the red digit first. | Zuerst die rote Ziffer korrigieren oder löschen. |
 | Tap the same digit again to clear it. | Dieselbe Ziffer noch einmal tippen, um sie zu löschen. |
 | Mistake n/3 · You may consider taking a hint next time. · OK | Fehler n/3 · Beim nächsten Mal hilft vielleicht ein Hinweis. · OK |
