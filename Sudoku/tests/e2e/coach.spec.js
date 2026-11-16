@@ -97,7 +97,7 @@ test("several steps: the step counter and the note make clear that no cell is fi
   await expect(page.locator("#live")).toContainText(`Step 1 of ${n}. `);
   await expect(page.locator("#live")).toContainText("no cell can be filled yet");
   for (let k = 1; k < n; k++) await page.locator("#coach-next").click();
-  await expect(page.locator("#coach-title")).toHaveText(new RegExp(`^Step ${n} of ${n} · (Hidden|Naked) Single · Beginner$`));
+  await expect(page.locator("#coach-title")).toHaveText(new RegExp(`^Step ${n} of ${n} · (Hidden|Naked) Single · Youngling$`));
   await expect(page.locator("#coach-note")).toBeHidden();
   await expect(page.locator("#coach-next")).toHaveText("Fill");
 });
@@ -105,7 +105,7 @@ test("several steps: the step counter and the note make clear that no cell is fi
 test("one step: no counter, no note", async ({ page }) => {
   await openPosition(page, BEGINNER.state);
   await page.locator("#coach").click();
-  await expect(page.locator("#coach-title")).toHaveText(/^(Hidden|Naked) Single · Beginner$/);
+  await expect(page.locator("#coach-title")).toHaveText(/^(Hidden|Naked) Single · Youngling$/);
   await expect(page.locator("#coach-note")).toBeHidden();
 });
 

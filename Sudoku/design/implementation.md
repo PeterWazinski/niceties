@@ -302,3 +302,9 @@ Gate → commit `Sudoku: phase 9 – polish, accessibility and release`.
   that switches live (also with the Coach open), technique names stay English. Planned
   and done in its own file: [implementation-i18n.md](implementation-i18n.md) (phases
   L1–L3; WebKit, axe and the real iPad still to do on the dev notebook).
+
+- [x] **Level names Youngling / Padawan / Jedi** (change request 2026-11-16, PRD 3.5,
+  3.8, decisions round 5): display names in both tables of `i18n.js` (German
+  Jüngling / Padawan / Jedi), also in the Coach title; ids unchanged, so saved games
+  and settings keep working. README, tests with level names (unit coach and German
+  texts, e2e coach, language, offline) updated; `VERSION` 11.

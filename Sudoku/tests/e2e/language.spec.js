@@ -21,7 +21,7 @@ test.describe("German device", () => {
     await expect(page.locator("#lang-code")).toHaveText("DE");
     await expect(page.locator("#lang")).toHaveAttribute("aria-label", "Sprache: Deutsch. Auf Englisch umschalten");
     await expect(page.locator(".field-label")).toHaveText(["Stufe", "Fehler", "Farben"]);
-    expect(await optionTexts(page, "#level")).toEqual(["Leicht", "Mittel", "Schwer"]);
+    expect(await optionTexts(page, "#level")).toEqual(["Jüngling", "Padawan", "Jedi"]);
     expect(await optionTexts(page, "#scheme")).toEqual(["B/W", "Klassisch Blau", "Sepia", "Nacht", "Wald", "Neon", "Regenbogen"]);
     await expect(page.locator("#hint")).toHaveText("Hinweis");
     await expect(page.locator("#coach")).toHaveText("Coach");
@@ -38,7 +38,7 @@ test.describe("German device", () => {
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
     await expect(page.locator("#lang-code")).toHaveText("EN");
     await expect(page.locator("#new-game")).toHaveText("New Game");
-    expect(await optionTexts(page, "#level")).toEqual(["Beginner", "Expert", "Master"]);
+    expect(await optionTexts(page, "#level")).toEqual(["Youngling", "Padawan", "Jedi"]);
     await expect(page.locator("#live")).toContainText("English");
     await page.locator("#lang").click();
     await expect(page.locator("#lang-code")).toHaveText("DE");

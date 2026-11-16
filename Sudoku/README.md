@@ -33,7 +33,8 @@ Specification: [design/PRD.md](design/PRD.md) · plan: [design/implementation.md
   nothing.
 - **Three mistakes lose the game:** the board shakes, the screen fades to grey
   and a popup offers *Play Again*.
-- **New Game** and the **Level** dropdown (Beginner, Expert, Master) ask before
+- **New Game** and the **Level** dropdown (Youngling, Padawan, Jedi – in German
+  Jüngling, Padawan, Jedi) ask before
   they abandon a game with progress. **Colours** switches the colour scheme
   (Black & White is the default; also Classic Blue, Sepia, Dark, Forest, Neon
   and Rainbow).
@@ -49,9 +50,9 @@ Specification: [design/PRD.md](design/PRD.md) · plan: [design/implementation.md
 
 | Level | Clues | Hardest technique needed |
 |---|---|---|
-| Beginner | 38–42 | singles |
-| Expert | 30–34 | + pairs, triples, pointing/claiming |
-| Master | 24–28 | + X-Wing, Swordfish, XY-Wing |
+| Youngling | 38–42 | singles |
+| Padawan | 30–34 | + pairs, triples, pointing/claiming |
+| Jedi | 24–28 | + X-Wing, Swordfish, XY-Wing |
 
 ## Offline and "Add to Home Screen"
 

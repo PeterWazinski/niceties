@@ -41,9 +41,10 @@ const EN = {
   "lang.label": "Language: English. Switch to German",
   "lang.name": "English",
 
-  "level.beginner": "Beginner",
-  "level.expert": "Expert",
-  "level.master": "Master",
+  // display names of the levels (ids stay beginner / expert / master)
+  "level.beginner": "Youngling",
+  "level.expert": "Padawan",
+  "level.master": "Jedi",
 
   "scheme.bw": "Black & White",
   "scheme.blue": "Classic Blue",
@@ -157,9 +158,9 @@ const DE = {
   "lang.label": "Sprache: Deutsch. Auf Englisch umschalten",
   "lang.name": "Deutsch",
 
-  "level.beginner": "Leicht",
-  "level.expert": "Mittel",
-  "level.master": "Schwer",
+  "level.beginner": "Jüngling",
+  "level.expert": "Padawan",
+  "level.master": "Jedi",
 
   "scheme.bw": "B/W",
   "scheme.blue": "Klassisch Blau",

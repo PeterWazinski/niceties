@@ -247,10 +247,10 @@ placement are dropped from the chain, so the user only sees what matters.
    The user's own pencil notes are **hidden** while the Coach is open and come
    back unchanged afterwards (the Coach never writes into them).
 2. The Coach panel replaces the number row/pad and shows the first step:
-   technique name and level (e.g. "Naked Pair · Expert") and one to three
+   technique name and level (e.g. "Naked Pair · Padawan") and one to three
    sentences of explanation with the concrete cells and digits; a long text
    scrolls inside the panel. When the chain has several steps, the title starts
-   with a **step counter** ("Step 1 of 3 · Pointing · Expert"), and every
+   with a **step counter** ("Step 1 of 3 · Pointing · Padawan"), and every
    elimination step starts with the note **"This step removes candidates; no cell
    can be filled yet."** (change request 2026-11-15, after testing on the iPad:
    without it a preparing step looked like the solution). The tool row turns into **Close · dots · Next/Fill**.
@@ -305,7 +305,9 @@ itself is saved as before.
 
 - **New Game** button: starts a new puzzle at the current level. If a game is in
   progress, ask for confirmation first ("Abandon this game?").
-- **Level dropdown**: `Beginner`, `Expert`, `Master`. Choosing a different level
+- **Level dropdown**: `Youngling`, `Padawan`, `Jedi` (German: `Jüngling`, `Padawan`,
+  `Jedi`; change request 2026-11-16, before: Beginner / Expert / Master). The ids in
+  code and storage stay `beginner`, `expert`, `master`. Choosing a different level
   starts a new game (with the same confirmation).
 - No other settings, no menu.
 
@@ -372,8 +374,9 @@ notices, the Coach explanations and all screen-reader texts (labels, announcemen
 - The app name stays **Sudoku** (title, Home Screen) in both languages.
 
 **Fixed terms.**
-- **Levels:** Beginner / Expert / Master → **Leicht / Mittel / Schwer** (also in the
-  Coach title, e.g. "Naked Pair · Mittel").
+- **Levels:** **Jüngling / Padawan / Jedi** (English: Youngling / Padawan / Jedi;
+  first decided as Leicht / Mittel / Schwer, changed the same day), also in the Coach
+  title, e.g. "Naked Pair · Padawan".
 - **Technique names stay English** in both languages (Naked Single, Hidden Single,
   Pointing, Claiming, Naked/Hidden Pair/Triple, X-Wing, Swordfish, XY-Wing); only the
   explanations are German. The texts are kept per language anyway, so German
@@ -724,10 +727,19 @@ in untangleMe), auto-notes, more symmetries picker, German UI, printing.
 |---|---|
 | Switch | Globe button in the header, label = current language (`🌐 EN` / `🌐 DE`), one tap toggles. |
 | First start | Device language: `de…` → German, otherwise English; a saved choice wins. |
-| Levels | Leicht / Mittel / Schwer. |
+| Levels | Leicht / Mittel / Schwer (superseded the same day, see round 5). |
 | Technique names | Stay English; the German table is ready for German names later. |
 | Cell names | "Reihe 4, Spalte 6", short "r4s6" (r = Reihe, s = Spalte; confirmed). |
 | During coaching | The panel redraws in the new language; names start long again. |
 | Colour schemes | B/W, Klassisch Blau, Sepia, Nacht, Wald, Neon, Regenbogen. |
 | Docs | README and design docs stay English. |
 | Wording | German texts as listed in 3.8, reviewed; the New Game question is "Spiel beenden?". |
+
+### Change request level names (review round 5, 2026-11-16)
+
+| Topic | Decision |
+|---|---|
+| Level names | Star Wars flavour: **Youngling / Padawan / Jedi** in English, **Jüngling / Padawan / Jedi** in German (3.5, 3.8). |
+| Coach title | Shows the same names ("Naked Pair · Padawan"). |
+| Ids | `beginner` / `expert` / `master` unchanged in code, storage and tests; only the display names change. |
+| Note | "Jedi" and "Padawan" are Lucasfilm trademarks; used only as level names in a free, ad-free hobby app, without logos, pictures or characters (owner's decision). |

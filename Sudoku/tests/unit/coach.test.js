@@ -103,7 +103,7 @@ test("cell names: long on first mention, short afterwards, per session", () => {
 test("texts: singles", () => {
   const ns = { technique: "nakedSingle", cell: at(3, 5), digit: 7 };
   assert.deepEqual(explain(ns), {
-    title: "Naked Single", level: "Beginner",
+    title: "Naked Single", level: "Youngling",
     text: "Row 4, column 6 can only be 7: every other digit already stands in its row, column or box."
   });
   assert.equal(explain(ns, cellNamer(), { afterEliminations: true }).text, "Row 4, column 6 can only be 7: all other candidates are gone.");
@@ -114,7 +114,7 @@ test("texts: singles", () => {
 test("texts: pointing and claiming", () => {
   const p = { technique: "pointing", digit: 5, box: 18, line: 9, cells: [at(0, 0), at(1, 0)], eliminations: [] };
   assert.equal(explain(p).text, "In box 1, the 5 can only be in column 1. So the 5 is removed from the rest of column 1.");
-  assert.equal(explain(p).level, "Expert");
+  assert.equal(explain(p).level, "Padawan");
   const c = { technique: "claiming", digit: 2, line: 4, box: 21, cells: [], eliminations: [] };
   assert.equal(explain(c).text, "In row 5, the 2 can only be in box 4. So the 2 is removed from the rest of box 4.");
 });
@@ -134,7 +134,7 @@ test("texts: subsets", () => {
 test("texts: fish", () => {
   const xw = { technique: "xWing", digit: 7, base: [1, 4], cover: [10, 17], cells: [], eliminations: [] };
   assert.deepEqual(explain(xw), {
-    title: "X-Wing", level: "Master",
+    title: "X-Wing", level: "Jedi",
     text: "In rows 2 and 5, the 7 fits only into columns 2 and 9. So in columns 2 and 9 the 7 must be in rows 2 and 5, and it is removed from the rest of columns 2 and 9."
   });
   const sf = { technique: "swordfish", digit: 3, base: [9, 12, 16], cover: [0, 4, 8], cells: [], eliminations: [] };

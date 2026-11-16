@@ -66,7 +66,7 @@ test("offline: the Coach explains and fills (PRD 3.4.1)", async ({ page }) => {
   await reloadOffline(page);
   await page.locator("#coach").click();
   await expect(page.locator("#coach-panel")).toBeVisible();
-  await expect(page.locator("#coach-title")).toHaveText(/^(Step \d+ of \d+ · )?.+ · (Beginner|Expert|Master)$/);
+  await expect(page.locator("#coach-title")).toHaveText(/^(Step \d+ of \d+ · )?.+ · (Youngling|Padawan|Jedi)$/);
   while (await page.locator("#coach-next").textContent() === "Next") await page.locator("#coach-next").click();
   const before = (await values(page)).filter((x) => x !== "").length;
   await page.locator("#coach-next").click();
@@ -87,7 +87,7 @@ test.describe("German offline (PRD 3.8)", () => {
     await expect(page.locator("#new-game")).toHaveText("New Game");
     await page.locator("#lang").click();
     await page.locator("#coach").click();
-    await expect(page.locator("#coach-title")).toHaveText(/ · (Leicht|Mittel|Schwer)$/);
+    await expect(page.locator("#coach-title")).toHaveText(/ · (Jüngling|Padawan|Jedi)$/);
   });
 });
 

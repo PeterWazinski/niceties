@@ -95,7 +95,8 @@ test("German UI texts of PRD 3.8", () => {
   assert.equal(t("de", "help", { n: 2, max: 4 }), "Hilfe: 2 von 4 genutzt");
   assert.equal(t("de", "dlg.mistake.title", { n: 1, max: 3 }), "Fehler 1/3");
   assert.equal(t("de", "dlg.confirm.title"), "Spiel beenden?");
-  assert.deepEqual(LEVELS.map((l) => t("de", "level." + l)), ["Leicht", "Mittel", "Schwer"]);
+  assert.deepEqual(LEVELS.map((l) => t("de", "level." + l)), ["Jüngling", "Padawan", "Jedi"]);
+  assert.deepEqual(LEVELS.map((l) => t("en", "level." + l)), ["Youngling", "Padawan", "Jedi"]);
   assert.deepEqual(SCHEMES.map((s) => t("de", "scheme." + s.id)), ["B/W", "Klassisch Blau", "Sepia", "Nacht", "Wald", "Neon", "Regenbogen"]);
   assert.equal(t("de", "cell.pos", { r: 4, c: 6 }), "Reihe 4, Spalte 6");
   assert.equal(t("de", "coach.step", { k: 1, n: 3 }), "Schritt 1 von 3");
@@ -116,13 +117,13 @@ test("German Coach: cell names long then short (r4s6), per session", () => {
 test("German Coach: singles, pointing, claiming", () => {
   const ns = { technique: "nakedSingle", cell: at(3, 5), digit: 7 };
   assert.deepEqual(de(ns), {
-    title: "Naked Single", level: "Leicht",
+    title: "Naked Single", level: "Jüngling",
     text: "Reihe 4, Spalte 6 kann nur 7 sein: Jede andere Ziffer steht schon in ihrer Reihe, Spalte oder ihrem Block."
   });
   assert.equal(de(ns, { afterEliminations: true }).text, "Reihe 4, Spalte 6 kann nur 7 sein: Alle anderen Kandidaten sind entfernt.");
   assert.equal(de({ technique: "hiddenSingle", cell: at(3, 5), digit: 7, unit: 22 }).text, "In Block 5 passt die 7 nur in Reihe 4, Spalte 6.");
   const p = { technique: "pointing", digit: 5, box: 18, line: 9, cells: [], eliminations: [] };
-  assert.deepEqual(de(p), { title: "Pointing", level: "Mittel",
+  assert.deepEqual(de(p), { title: "Pointing", level: "Padawan",
     text: "In Block 1 kann die 5 nur in Spalte 1 stehen. Also wird die 5 aus dem Rest von Spalte 1 entfernt." });
   const c = { technique: "claiming", digit: 2, line: 4, box: 21, cells: [], eliminations: [] };
   assert.equal(de(c).text, "In Reihe 5 kann die 2 nur in Block 4 stehen. Also wird die 2 aus dem Rest von Block 4 entfernt.");
@@ -141,7 +142,7 @@ test("German Coach: subsets", () => {
 
 test("German Coach: fish and XY-Wing", () => {
   const xw = { technique: "xWing", digit: 7, base: [1, 4], cover: [10, 17], cells: [], eliminations: [] };
-  assert.deepEqual(de(xw), { title: "X-Wing", level: "Schwer",
+  assert.deepEqual(de(xw), { title: "X-Wing", level: "Jedi",
     text: "In den Reihen 2 und 5 passt die 7 nur in die Spalten 2 und 9. Also steht die 7 in den Spalten 2 und 9 in diesen Reihen und wird aus dem Rest der Spalten 2 und 9 entfernt." });
   const sf = { technique: "swordfish", digit: 3, base: [9, 12, 16], cover: [0, 4, 8], cells: [], eliminations: [] };
   assert.equal(de(sf).text,
@@ -165,7 +166,7 @@ test("German Coach texts for real chains: no gaps, no English unit words", () =>
         steps.forEach((s, i) => {
           const { text, level: lv } = explain(s, name, { afterEliminations: i > 0, lang: "de" });
           assert.doesNotMatch(text, /undefined|NaN|\brow\b|\bcolumn\b|\bbox\b| and /, text);
-          assert.ok(["Leicht", "Mittel", "Schwer"].includes(lv));
+          assert.ok(["Jüngling", "Padawan", "Jedi"].includes(lv));
         });
         g[placement.cell] = placement.digit;
       }
