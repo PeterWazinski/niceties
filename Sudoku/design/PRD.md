@@ -2,7 +2,8 @@
 
 Status: **Final – ready for the implementation plan** · 2026-10-18 ·
 change request **Coach** (3.4.1, decisions round 3) added 2026-11-15 ·
-change request **German** (3.8, decisions round 4) added 2026-11-16
+change request **German** (3.8, decisions round 4) added 2026-11-16 ·
+change request **Star Wars quotes** (3.9, decisions round 6) added 2026-11-16
 
 A small, ad-free Sudoku for the browser. It follows the clean look of sudoku.com
 (see the screenshots in this folder) but has no ads, no scoring and no timer. It
@@ -122,7 +123,8 @@ The rules are strict, which is what makes Undo and Erase unnecessary:
    game in total (3.4). Hint fills a cell silently, Coach explains the technique
    first and then fills the cell (3.4.1).
 6. A digit whose nine copies are all placed is greyed out in the number row.
-7. Filling the last cell ends the game: a short "Solved!" message with **New Game**.
+7. Filling the last cell ends the game: a short "Solved!" message (with a quote, 3.9)
+   and **New Game**.
    No score, no time.
 
 **Why no Undo and no Erase button:** Undo would only matter for wrong digits. A
@@ -190,8 +192,11 @@ highlight as well.
 tap outside do nothing):
 
 > **Mistake 1/3**
-> You may consider taking a hint next time.
+> *Do. Or do not. There is no try.* — Yoda
 > [ OK ]
+
+The text is a Star Wars quote (3.9): encouraging after mistake 1, a warning after
+mistake 2. (Before 2026-11-16: "You may consider taking a hint next time.", dropped.)
 
 After OK the wrong digit **fades out slowly** (~1.2 s) and the cell is empty (and
 still selected). Input is blocked while it fades.
@@ -201,8 +206,10 @@ still selected). Input is blocked while it fades.
 popup appears:
 
 > **You lost the game.**
-> Play again?
+> *You aim like a Stormtrooper.*
 > [ Play Again ]
+
+The text is a Star Wars quote (3.9). (Before 2026-11-16: "Play again?".)
 
 Play Again starts a new puzzle at the current level (mistakes 0/3, hints 0/4).
 There is no way to carry on a lost game, and no hint can be taken. With reduced
@@ -401,9 +408,9 @@ notices, the Coach explanations and all screen-reader texts (labels, announcemen
 | Tip: hold a number to add a note | Tipp: Zahl lang drücken für eine Notiz (shortened in L2: the longer text wrapped on 375 px phones) |
 | Fix or clear the red digit first. | Zuerst die rote Ziffer korrigieren oder löschen. |
 | Tap the same digit again to clear it. | Dieselbe Ziffer noch einmal tippen, um sie zu löschen. |
-| Mistake n/3 · You may consider taking a hint next time. · OK | Fehler n/3 · Beim nächsten Mal hilft vielleicht ein Hinweis. · OK |
-| You lost the game. · Play again? · Play Again | Spiel verloren. · Noch einmal spielen? · Neu spielen |
-| Solved! · Well done. · New Game | Gelöst! · Gut gemacht. · Neues Spiel |
+| Mistake n/3 · (quote, 3.9) · OK | Fehler n/3 · (Zitat, 3.9) · OK |
+| You lost the game. · (quote) · Play Again | Spiel verloren. · (Zitat) · Neu spielen |
+| Solved! · (quote) · New Game | Gelöst! · (Zitat) · Neues Spiel |
 | Abandon this game? · Your progress in this game will be lost. · New Game · Cancel | Spiel beenden? · Der Fortschritt in diesem Spiel geht verloren. · Neues Spiel · Abbrechen |
 | Step k of n | Schritt k von n |
 | This step removes candidates; no cell can be filled yet. | Dieser Schritt entfernt Kandidaten; noch kann kein Feld gefüllt werden. |
@@ -434,6 +441,40 @@ notices, the Coach explanations and all screen-reader texts (labels, announcemen
 | Hidden pair / triple | "In U passen d1 und d2 nur in A und B. Also werden alle anderen Kandidaten aus diesen Feldern entfernt." |
 | X-Wing / Swordfish | "In den Reihen 2 und 5 passt die 7 nur in die Spalten 2 und 9. Also steht die 7 in den Spalten 2 und 9 in diesen Reihen und wird aus dem Rest der Spalten 2 und 9 entfernt." (and transposed) |
 | XY-Wing | "A kann nur x oder y sein. Ist es x, muss B die z sein; ist es y, muss C die z sein. In jedem Fall ist B oder C die z, also wird die z aus jedem Feld entfernt, das beide sieht." |
+
+### 3.9 Star Wars quotes in the dialogs
+
+The won, lost and mistake popups show a Star Wars quote instead of a fixed sentence
+(change request 2026-11-16, fits the level names Youngling / Padawan / Jedi).
+
+| Dialog | Title (unchanged) | Text | Button |
+|---|---|---|---|
+| Mistake 1/3 | Mistake 1/3 | a quote from the list **Mistake 1 (encouraging)** | OK |
+| Mistake 2/3 | Mistake 2/3 | a quote from the list **Mistake 2 (warning)** | OK |
+| Lost | You lost the game. | a quote from the list **Lost** | Play Again |
+| Solved | Solved! | a quote from the list **Won** (one list for all levels) | New Game |
+| New Game? (confirm) | unchanged, no quote | | |
+
+- **The lists** are written down for review in [quotes-en.md](quotes-en.md) and
+  [quotes-de.md](quotes-de.md): four lists (won, lost, mistake 1, mistake 2), each
+  entry in both languages with the same number. The first draft has 25 entries per
+  list; the owner reviews and edits them. After the review they become the data of
+  `js/quotes.js`; a unit test keeps the code and the two files in sync.
+- **Real film lines** show the speaker below the quote ("— Han Solo"), in a smaller,
+  muted line. **Own parodies** (most of the list) have no speaker line. Quotes are
+  short (one or two sentences); no pictures, logos or characters.
+- **Choice:** at random, through the seeded RNG of the game (rule 7: reproducible
+  tests), from a shuffled deck per list, so no quote repeats before the list has been
+  used up. The deck lives only in the page (not saved); after a reload it starts anew.
+- **Language:** both languages use the same entry; switching the language while a
+  popup is open shows the same quote in the other language (3.8).
+- **Reload:** a lost game shows its popup again after a reload (3.7); it may then show
+  a different quote from the same list.
+- **Screen readers:** the dialog's text (quote and speaker) is part of its accessible
+  description, as the sentence was before.
+- **Legal note:** "Star Wars", the characters and the film lines belong to
+  Lucasfilm/Disney. Short single lines with the speaker named, mostly own parodies, in
+  a free, ad-free hobby app; no logos, pictures or sound. Owner's decision (round 6).
 
 ## 4. Difficulty levels
 
@@ -576,6 +617,7 @@ Sudoku/
     techniques.js       human solving techniques (singles … fish, wings), used for grading, hints and Coach
     coach.js            Coach chain (steps up to the next placement, pruned) and explanation texts (pure)
     i18n.js             text tables English / German, t(key, values), Coach phrases per language (pure)
+    quotes.js           Star Wars quotes per list, English + German + speaker, deck drawing (pure)
     symmetry.js         symmetry types -> orbit lists
     generator.js        full grid + symmetric dig + grade (pure functions)
     generator.worker.js runs the generator off the main thread
@@ -669,11 +711,14 @@ Sudoku/
     globe button (`🌐 EN` / `🌐 DE`) toggles live, also with the Coach open; every
     visible and screen-reader text is translated, technique names stay English;
     the choice survives a reload; works offline.
+13. **Star Wars quotes** (3.9): mistake 1, mistake 2, lost and won popups show a quote
+    from their list (speaker line for real film lines), no repeat before a list is used
+    up, same quote in both languages, the hint sentence is gone.
 
 ## 10. Out of scope / future ideas
 
 Statistics, daily puzzle, share-a-puzzle link (a seed in the URL would be easy, as
-in untangleMe), auto-notes, more symmetries picker, German UI, printing.
+in untangleMe), auto-notes, more symmetries picker, printing (German UI: done, 3.8).
 
 ## 11. Decisions
 
@@ -743,3 +788,13 @@ in untangleMe), auto-notes, more symmetries picker, German UI, printing.
 | Coach title | Shows the same names ("Naked Pair · Padawan"). |
 | Ids | `beginner` / `expert` / `master` unchanged in code, storage and tests; only the display names change. |
 | Note | "Jedi" and "Padawan" are Lucasfilm trademarks; used only as level names in a free, ad-free hobby app, without logos, pictures or characters (owner's decision). |
+
+### Change request Star Wars quotes (review round 6, 2026-11-16)
+
+| Topic | Decision |
+|---|---|
+| Won quotes | One list for all levels. |
+| Mistake popup | The quote replaces the hint sentence ("You may consider taking a hint next time." is dropped). |
+| Mistake 1 / 2 | Mistake 1 encouraging, mistake 2 a warning; lost and won have their own lists. |
+| Speaker | Real film lines show "— Name"; parodies have none. |
+| Collection | Claude drafts 25 per list in `quotes-de.md` and `quotes-en.md` (mostly parodies, a few real lines with speaker); the owner reviews them before implementation. Real lines were written from memory: exact wording to be checked (Wookieepedia / Jedipedia), German dub wording not checked. |
