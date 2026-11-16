@@ -1,18 +1,18 @@
 // Coach engine (PRD 3.4.1), pure: from a board it builds the chain of steps up to
 // the next placement (easiest technique first), drops the steps that the placement
-// does not need, and turns every step into a short English explanation.
+// does not need, and turns every step into a short explanation (texts in i18n.js).
 import { ROW, COL, BOX, UNITS } from "./grid.js";
 import { candidates, nextStep, applyStep, validStep, techniqueLevel } from "./techniques.js";
 import { COACH_MAX_STEPS } from "./config.js";
+import { t, DEFAULT_LANG } from "./i18n.js";
 
 const bit = (d) => 1 << (d - 1);
 
-export const TECHNIQUE_TITLES = {
-  nakedSingle: "Naked Single", hiddenSingle: "Hidden Single", pointing: "Pointing", claiming: "Claiming",
-  nakedPair: "Naked Pair", hiddenPair: "Hidden Pair", nakedTriple: "Naked Triple", hiddenTriple: "Hidden Triple",
-  xWing: "X-Wing", xyWing: "XY-Wing", swordfish: "Swordfish"
-};
-const LEVEL_TITLES = { beginner: "Beginner", expert: "Expert", master: "Master" };
+// Technique names (English; per language in i18n.js).
+export const TECHNIQUE_TITLES = Object.fromEntries(
+  ["nakedSingle", "hiddenSingle", "pointing", "claiming", "nakedPair", "hiddenPair", "nakedTriple", "hiddenTriple", "xWing", "xyWing", "swordfish"]
+    .map((k) => [k, t(DEFAULT_LANG, "tech." + k)])
+);
 
 // ---- chain ----------------------------------------------------------------------
 
@@ -112,73 +112,69 @@ export function coachChain(grid, { prune: doPrune = true } = {}) {
 }
 
 // ---- texts ----------------------------------------------------------------------
+// The words come from i18n.js (PRD 3.8); this part only decides what is named, in
+// which order (the order decides long vs. short cell names).
 
-const unitName = (u) => (u < 9 ? `row ${u + 1}` : u < 18 ? `column ${u - 8}` : `box ${u - 17}`);
-const list = (xs) => (xs.length <= 1 ? xs.join("") : xs.slice(0, -1).join(", ") + " and " + xs[xs.length - 1]);
-// "rows 2 and 7", "columns 1, 4 and 8"
-const linesName = (us) => (us[0] < 9 ? "rows " : "columns ") + list(us.map((u) => String(u < 9 ? u + 1 : u - 8)));
-
-// Names cells for one coaching session: first mention "row 4, column 6", then "r4c6".
-export function cellNamer() {
+// Names cells for one coaching session: first mention "row 4, column 6", then "r4c6"
+// (German: "Reihe 4, Spalte 6", then "r4s6").
+export function cellNamer(lang = DEFAULT_LANG) {
   const seen = new Set();
   return (i) => {
     const r = ROW[i] + 1, c = COL[i] + 1;
-    if (seen.has(i)) return `r${r}c${c}`;
+    if (seen.has(i)) return t(lang, "coach.cellShort", { r, c });
     seen.add(i);
-    return `row ${r}, column ${c}`;
+    return t(lang, "coach.cellLong", { r, c });
   };
 }
 
 // { title, level, text } for a decorated step; `name` is the session's cellNamer.
 // afterEliminations: earlier steps of the chain removed candidates (changes the
 // wording of a naked single).
-export function explain(step, name = cellNamer(), { afterEliminations = false } = {}) {
-  const title = TECHNIQUE_TITLES[step.technique];
-  const level = LEVEL_TITLES[step.level || techniqueLevel(step.technique)];
+export function explain(step, name = cellNamer(), { afterEliminations = false, lang = DEFAULT_LANG } = {}) {
+  const tr = (key, values) => t(lang, key, values);
+  const title = tr("tech." + step.technique);
+  const level = tr("level." + (step.level || techniqueLevel(step.technique)));
+  const unit = (u) => tr("coach.unit", { u });
+  const list = (items) => tr("coach.list", { items });
   const d = step.digit;
   let text;
   switch (step.technique) {
     case "nakedSingle":
-      text = afterEliminations
-        ? `${cap(name(step.cell))} can only be ${d}: all other candidates are gone.`
-        : `${cap(name(step.cell))} can only be ${d}: every other digit already stands in its row, column or box.`;
+      text = tr(afterEliminations ? "coach.t.nakedSingleAfter" : "coach.t.nakedSingle", { cell: name(step.cell), d });
       break;
     case "hiddenSingle":
-      text = `In ${unitName(step.unit)}, the ${d} fits only into ${name(step.cell)}.`;
+      text = tr("coach.t.hiddenSingle", { unit: unit(step.unit), d, cell: name(step.cell) });
       break;
     case "pointing":
-      text = `In ${unitName(step.box)}, the ${d} can only be in ${unitName(step.line)}. So the ${d} is removed from the rest of ${unitName(step.line)}.`;
+      text = tr("coach.t.pointing", { box: unit(step.box), line: unit(step.line), d });
       break;
     case "claiming":
-      text = `In ${unitName(step.line)}, the ${d} can only be in ${unitName(step.box)}. So the ${d} is removed from the rest of ${unitName(step.box)}.`;
+      text = tr("coach.t.claiming", { line: unit(step.line), box: unit(step.box), d });
       break;
-    case "nakedPair": case "nakedTriple": {
-      const ds = list(step.digits.map(String));
-      const between = step.cells.length > 2 ? " between them" : "";
-      text = `${cap(list(step.cells.map(name)))} can only hold ${ds}${between}. So ${ds} are removed from the other cells of ${unitName(step.unit)}.`;
+    case "nakedPair": case "nakedTriple":
+      text = tr("coach.t.nakedSubset", {
+        cells: list(step.cells.map(name)), digits: list(step.digits.map(String)), unit: unit(step.unit), triple: step.cells.length > 2
+      });
       break;
-    }
     case "hiddenPair": case "hiddenTriple":
-      text = `In ${unitName(step.unit)}, ${list(step.digits.map(String))} fit only into ${list(step.cells.map(name))}. So all other candidates are removed from these cells.`;
+      text = tr("coach.t.hiddenSubset", { unit: unit(step.unit), digits: list(step.digits.map(String)), cells: list(step.cells.map(name)) });
       break;
-    case "xWing": case "swordfish": {
-      const base = linesName(step.base), cover = linesName(step.cover);
-      text = `In ${base}, the ${d} fits only into ${cover}. So in ${cover} the ${d} must be in ${base}, and it is removed from the rest of ${cover}.`;
+    case "xWing": case "swordfish":
+      text = tr("coach.t.fish", { base: tr("coach.lines", { units: step.base }), cover: tr("coach.lines", { units: step.cover }), d });
       break;
-    }
     case "xyWing": {
       const p = step.pivot, [a, b] = step.pincers;
-      const pd = digitsOf(step.shown[p]);
+      const [p1, p2] = digitsOf(step.shown[p]);
       const x = digitsOf(step.shown[a]).find((v) => v !== d), y = digitsOf(step.shown[b]).find((v) => v !== d);
-      const P = name(p), A = name(a), B = name(b);
-      text = `${cap(P)} can only be ${pd[0]} or ${pd[1]}. If it is ${x}, ${A} must be ${d}; if it is ${y}, ${B} must be ${d}. ` +
-        `Either way one of ${name(a)} and ${name(b)} is ${d}, so the ${d} is removed from every cell that sees both.`;
+      // mention order: pivot, both pincers, both pincers again (short)
+      const P = name(p), A = name(a), B = name(b), A2 = name(a), B2 = name(b);
+      text = tr("coach.t.xyWing", { P, x, y, A, B, A2, B2, p1, p2, d });
       break;
     }
     default:
       text = "";
   }
-  return { title, level, text };
+  return { title, level, text: cap(text) };
 }
 
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);

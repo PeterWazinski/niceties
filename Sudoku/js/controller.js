@@ -6,6 +6,7 @@ import {
   coachSteps, coachAvailable, clearWrongForCoach, coachFallback, coachFill
 } from "./game.js";
 import { explain, cellNamer } from "./coach.js";
+import { t, DEFAULT_LANG } from "./i18n.js";
 import { createGeneratorClient } from "./generator-client.js";
 import { createPool } from "./pool.js";
 import { createConfetti } from "./confetti.js";
@@ -17,8 +18,7 @@ import { LEVELS, MAX_MISTAKES, HINT_ANIM_REDUCED_MS, HINT_ANIM_MS, LOSS_SHAKE_MS
 const safeStorage = { getItem: safeGet, setItem: safeSet };
 
 // Something to lose? An untouched board (or a finished game) needs no confirmation.
-const BLOCKED_TEXT = "Fix or clear the red digit first.";
-const CLEAR_TEXT = "Tap the same digit again to clear it.";
+// texts: see i18n.js (keys "notice.blocked", "notice.clear", "say.*", "coach.*")
 
 const hasProgress = (s) => !s.solved && (s.mistakes > 0 || s.entries.some(Boolean) || s.notes.some(Boolean));
 
@@ -46,6 +46,10 @@ export function startApp(root) {
   let losing = false;      // the losing effect is running
   let pending = null;      // { run, cancel }: New Game waiting for the "abandon?" answer
   let tipShown = safeGet(TIP_KEY) === "1";
+  // language of every text (PRD 3.8); fixed English until the toggle exists
+  let lang = DEFAULT_LANG;
+  const tr = (key, values) => t(lang, key, values);
+  const where = (cell) => tr("cell.pos", { r: Math.floor(cell / 9) + 1, c: (cell % 9) + 1 });
   // Coach session (PRD 3.4.1): { steps, texts, placement, index } while the panel is open.
   // Not saved: a reload closes it.
   let coach = null;
@@ -80,7 +84,7 @@ export function startApp(root) {
     view.render(state);
     // a wrong digit stops the game: tell the player how to go on (how to clear it, or why other cells do not react)
     const stopped = hasWrong(state) && !state.lost && !state.solved && !mistakeShown;
-    view.setNotice(!stopped ? null : isWrong(state, state.selected) ? CLEAR_TEXT : BLOCKED_TEXT);
+    view.setNotice(!stopped ? null : tr(isWrong(state, state.selected) ? "notice.clear" : "notice.blocked"));
     // confetti rain when the game has just been solved (not for a restored game: solved games are never saved)
     if (state.solved && !celebrated) { celebrated = true; confetti.fire(); }
     if (!state.solved) celebrated = false;
@@ -91,17 +95,11 @@ export function startApp(root) {
 
   // Screen reader feedback for what just happened.
   function say(result) {
-    const text = {
-      correct: "Correct.",
-      wrong: () => `Wrong digit. ${state.mistakes} of ${MAX_MISTAKES} mistakes.`,
-      gameOver: "Three mistakes. You lost the game.",
-      solved: "Solved!",
-      note: "Note added.",
-      noteOff: "Note removed.",
-      cleared: "Digit cleared.",
-      blocked: BLOCKED_TEXT
+    const key = {
+      correct: "say.correct", wrong: "say.wrong", gameOver: "say.gameOver", solved: "say.solved",
+      note: "say.note", noteOff: "say.noteOff", cleared: "say.cleared", blocked: "notice.blocked"
     }[result];
-    if (text) view.announce(typeof text === "function" ? text() : text);
+    if (key) view.announce(tr(key, { n: state.mistakes, max: MAX_MISTAKES }));
   }
 
   // Runs an input action unless the game is busy.
@@ -150,8 +148,7 @@ export function startApp(root) {
     animating = true;
     view.setBusy(true);
     sync();
-    const where = `row ${Math.floor(r.cell / 9) + 1}, column ${(r.cell % 9) + 1}`;
-    view.announce(r.kind === "cleared" ? `Hint: the wrong digit in ${where} is removed.` : `Hint: ${r.digit} in ${where}.`);
+    view.announce(tr(r.kind === "cleared" ? "say.hintCleared" : "say.hint", { d: r.digit, where: where(r.cell) }));
     if (r.kind === "cleared") view.animateClear(r.cell, r.digit, ms);
     else view.animateReveal(r.cell, ms);
     setTimeout(() => { animating = false; view.setBusy(false); }, ms);
@@ -159,9 +156,7 @@ export function startApp(root) {
 
   // ---- Coach (PRD 3.4.1) ----------------------------------------------------------
 
-  const COACH_PREP_NOTE = "This step removes candidates; no cell can be filled yet.";
 
-  const where = (cell) => `row ${Math.floor(cell / 9) + 1}, column ${(cell % 9) + 1}`;
 
   function openCoach() {
     if (blocked() || pending) return;
@@ -175,7 +170,7 @@ export function startApp(root) {
       animating = true;
       view.setBusy(true);
       sync();
-      view.announce(`The wrong digit in ${where(cell)} is removed.`);
+      view.announce(tr("say.coachCleared", { where: where(cell) }));
       view.animateClear(cell, wrongDigits.get(cell), ms);
       setTimeout(() => { animating = false; view.setBusy(false); startCoach(); }, ms);
       return;
@@ -186,8 +181,8 @@ export function startApp(root) {
   function startCoach() {
     const { steps, placement } = coachSteps(state);
     if (placement) {
-      const name = cellNamer();
-      const texts = steps.map((step, i) => explain(step, name, { afterEliminations: i > 0 }));
+      const name = cellNamer(lang);
+      const texts = steps.map((step, i) => explain(step, name, { afterEliminations: i > 0, lang }));
       coach = { steps, texts, placement, index: 0 };
     } else {
       // not expected: every generated puzzle is solvable with the catalogue
@@ -201,15 +196,15 @@ export function startApp(root) {
 
   function showCoachStep() {
     const step = coach.steps[coach.index] || null;
-    const t = coach.texts[coach.index] || { title: "Coach", level: "", text: "No technique from the list applies here." };
+    const t = coach.texts[coach.index] || { title: tr("coach"), level: "", text: tr("coach.none") };
     const last = coach.index >= coach.steps.length - 1;
     const count = coach.steps.length;
     // several steps: "Step 1 of 3"; elimination steps say that no cell is filled yet
-    const counter = count > 1 ? `Step ${coach.index + 1} of ${count}` : "";
-    const note = last ? "" : COACH_PREP_NOTE;
+    const counter = count > 1 ? tr("coach.step", { k: coach.index + 1, n: count }) : "";
+    const note = last ? "" : tr("coach.prep");
     view.showCoach({ ...t, last, step, counter, note });
     view.focusCoachNext();
-    view.announce(`${counter ? counter + ". " : ""}${t.level ? `${t.title}, ${t.level}. ` : ""}${note ? note + " " : ""}${t.text} ${last ? "Fill" : "Next"}.`);
+    view.announce(`${counter ? counter + ". " : ""}${t.level ? `${t.title}, ${t.level}. ` : ""}${note ? note + " " : ""}${t.text} ${tr(last ? "fill" : "next")}.`);
   }
 
   function coachNext() {
@@ -224,7 +219,7 @@ export function startApp(root) {
     animating = true;
     view.setBusy(true);
     sync();
-    view.announce(`Coach: ${r.digit} in ${where(r.cell)}.`);
+    view.announce(tr("say.coach", { d: r.digit, where: where(r.cell) }));
     view.animateReveal(r.cell, ms);
     setTimeout(() => { animating = false; view.setBusy(false); }, ms);
   }

@@ -3,20 +3,21 @@
 import { highlights } from "./highlight.js";
 import { cellValue, isGiven, isWrong, isEditable, remaining, coachAvailable } from "./game.js";
 import { UNITS } from "./grid.js";
+import { t, DEFAULT_LANG } from "./i18n.js";
 import { MAX_MISTAKES, MAX_HINTS, LEVELS } from "./config.js";
 import { attachNumpad } from "./numpad.js";
 import { SCHEMES } from "./schemes.js";
 
 export { SCHEMES };
 
-const LEVEL_NAMES = { beginner: "Beginner", expert: "Expert", master: "Master" };
 
 const BULB = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21h6M10 17h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 const CAP = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5zM6 11v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5M22 9v6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 function template() {
-  const options = (list) => list.map(([v, n]) => `<option value="${v}">${n}</option>`).join("");
+  // Texts are filled in by setLanguage(): data-t = text content, data-t-label = aria-label.
+  const options = (list) => list.map(([v, key]) => `<option value="${v}" data-t="${key}"></option>`).join("");
   const cells = Array.from({ length: 81 }, (_, i) => {
     const notes = Array.from({ length: 9 }, () => "<span></span>").join("");
     return `<button type="button" class="cell" tabindex="-1" data-i="${i}" data-r="${Math.floor(i / 9)}" data-c="${i % 9}" data-box="${Math.floor(i / 27) * 3 + Math.floor((i % 9) / 3)}">` +
@@ -28,29 +29,29 @@ function template() {
   return `
     <div class="app">
       <h1 class="title">Sudoku</h1>
-      <button type="button" class="btn primary" id="new-game">New Game</button>
+      <button type="button" class="btn primary" id="new-game" data-t="newGame"></button>
       <div class="status">
-        <label class="field"><span class="field-label">Level</span>
-          <select id="level" class="select">${options(LEVELS.map((l) => [l, LEVEL_NAMES[l]]))}</select></label>
-        <div class="field mistakes"><span class="field-label">Mistakes</span>
+        <label class="field"><span class="field-label" data-t="level"></span>
+          <select id="level" class="select">${options(LEVELS.map((l) => [l, "level." + l]))}</select></label>
+        <div class="field mistakes"><span class="field-label" data-t="mistakes"></span>
           <span class="mistakes-value" id="mistakes" aria-live="polite">0/${MAX_MISTAKES}</span></div>
-        <label class="field"><span class="field-label">Colours</span>
-          <select id="scheme" class="select">${options(SCHEMES.map((s) => [s.id, s.name]))}</select></label>
+        <label class="field"><span class="field-label" data-t="colours"></span>
+          <select id="scheme" class="select">${options(SCHEMES.map((s) => [s.id, "scheme." + s.id]))}</select></label>
       </div>
-      <div class="board" id="board" role="group" aria-label="Sudoku board">${cells}<div class="preparing" id="preparing" hidden>Preparing puzzle…</div></div>
+      <div class="board" id="board" role="group" data-t-label="board">${cells}<div class="preparing" id="preparing" hidden data-t="preparing"></div></div>
       <div class="tools" id="tools">
-        <button type="button" class="btn tool" id="hint">${BULB}<span>Hint</span></button>
-        <button type="button" class="btn tool" id="coach-close" hidden>Close</button>
-        <div class="help-dots" id="help-dots" data-used="0">${"<span></span>".repeat(MAX_HINTS)}<span class="sr-only" id="help-text">Help: 0 of ${MAX_HINTS} used</span></div>
-        <button type="button" class="btn tool" id="coach">${CAP}<span>Coach</span></button>
-        <button type="button" class="btn tool primary" id="coach-next" hidden>Next</button>
+        <button type="button" class="btn tool" id="hint">${BULB}<span data-t="hint"></span></button>
+        <button type="button" class="btn tool" id="coach-close" hidden data-t="close"></button>
+        <div class="help-dots" id="help-dots" data-used="0">${"<span></span>".repeat(MAX_HINTS)}<span class="sr-only" id="help-text"></span></div>
+        <button type="button" class="btn tool" id="coach">${CAP}<span data-t="coach"></span></button>
+        <button type="button" class="btn tool primary" id="coach-next" hidden></button>
       </div>
-      <div class="numpad" id="numpad" role="group" aria-label="Numbers">${nums}</div>
-      <section class="coach-panel" id="coach-panel" aria-label="Coach" hidden>
+      <div class="numpad" id="numpad" role="group" data-t-label="numbers">${nums}</div>
+      <section class="coach-panel" id="coach-panel" data-t-label="coach" hidden>
         <p class="coach-title" id="coach-title"></p>
         <p class="coach-text" id="coach-text" tabindex="0"><span class="coach-note" id="coach-note"></span><span id="coach-body"></span></p>
       </section>
-      <p class="tip" id="tip" hidden>Tip: hold a number to add a note</p>
+      <p class="tip" id="tip" hidden data-t="tip"></p>
       <p class="notice" id="notice" hidden></p>
     </div>
     <canvas id="confetti" hidden aria-hidden="true"></canvas>
@@ -60,35 +61,39 @@ function template() {
         <h2 id="dialog-title"></h2>
         <p id="dialog-text"></p>
         <div class="dialog-actions">
-          <button type="button" class="btn primary" id="dialog-new">New Game</button>
-          <button type="button" class="btn" id="dialog-cancel">Cancel</button>
+          <button type="button" class="btn primary" id="dialog-new"></button>
+          <button type="button" class="btn" id="dialog-cancel" data-t="cancel"></button>
         </div>
       </div>
     </div>`;
 }
 
+// Text keys of the dialogs (i18n.js); the mistake title takes the mistake number.
 const DIALOGS = {
-  mistake: { title: (n) => `Mistake ${n}/${MAX_MISTAKES}`, text: "You may consider taking a hint next time.", primary: "OK" },
-  lost: { title: "You lost the game.", text: "Play again?", primary: "Play Again" },
-  solved: { title: "Solved!", text: "Well done.", primary: "New Game" },
-  confirm: { title: "Abandon this game?", text: "Your progress in this game will be lost.", primary: "New Game", cancel: true }
+  mistake: { title: "dlg.mistake.title", text: "dlg.mistake.text", primary: "ok" },
+  lost: { title: "dlg.lost.title", text: "dlg.lost.text", primary: "dlg.lost.primary" },
+  solved: { title: "dlg.solved.title", text: "dlg.solved.text", primary: "newGame" },
+  confirm: { title: "dlg.confirm.title", text: "dlg.confirm.text", primary: "newGame", cancel: true }
 };
 
 const digitsIn = (mask) => [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((d) => mask & (1 << (d - 1)));
 
 // coach = the step on screen (or null): while coaching, involved cells name their
 // candidates instead of the (hidden) notes.
-function cellLabel(state, i, coach) {
-  const pos = `row ${Math.floor(i / 9) + 1}, column ${(i % 9) + 1}`;
+function cellLabel(lang, state, i, coach) {
+  const tr = (key, values) => t(lang, key, values);
+  const pos = tr("cell.pos", { r: Math.floor(i / 9) + 1, c: (i % 9) + 1 });
   const v = cellValue(state, i);
-  if (v) return `${pos}, ${v}, ${isGiven(state, i) ? "given" : isWrong(state, i) ? "wrong" : "correct"}`;
+  if (v) return `${pos}, ${v}, ${tr(isGiven(state, i) ? "cell.given" : isWrong(state, i) ? "cell.wrong" : "cell.correct")}`;
+  const empty = `${pos}, ${tr("cell.empty")}`;
   if (coach) {
-    if (!(i in coach.shown)) return `${pos}, empty`;
+    if (!(i in coach.shown)) return empty;
     const removed = coach.removed.filter((e) => e.cell === i).map((e) => e.digit);
-    return `${pos}, empty, candidates ${digitsIn(coach.shown[i]).join(" ")}` + (removed.length ? `, ${removed.join(" ")} removed` : "");
+    return `${empty}, ${tr("cell.cands", { digits: digitsIn(coach.shown[i]).join(" ") })}` +
+      (removed.length ? `, ${tr("cell.removed", { digits: removed.join(" ") })}` : "");
   }
   const notes = digitsIn(state.notes[i]);
-  return `${pos}, empty` + (notes.length ? `, notes ${notes.join(" ")}` : "");
+  return empty + (notes.length ? `, ${tr("cell.notes", { digits: notes.join(" ") })}` : "");
 }
 
 export function createView(root, handlers = {}) {
@@ -113,6 +118,24 @@ export function createView(root, handlers = {}) {
   let playingLoss = false, dialogKind = null, focusBeforeDialog = null, announceFlip = false, lastClicked = null, tipWanted = false;
   let coachStep = null; // the decorated Coach step on screen, or null
   let lastState = null;
+  let lang = DEFAULT_LANG, dialogN = 0;
+  const tr = (key, values) => t(lang, key, values);
+
+  // Fills every text of the page in the current language (first render and every switch).
+  function applyTexts() {
+    for (const e of root.querySelectorAll("[data-t]")) setText(e, tr(e.dataset.t));
+    for (const e of root.querySelectorAll("[data-t-label]")) setAttr(e, "aria-label", tr(e.dataset.tLabel));
+    document.documentElement.lang = lang;
+  }
+
+  function fillDialog(kind, n) {
+    const d = DIALOGS[kind];
+    dialogN = n;
+    setText(el.dialogTitle, tr(d.title, { n, max: MAX_MISTAKES }));
+    setText(el.dialogText, tr(d.text));
+    setText(el.dialogNew, tr(d.primary));
+    el.dialogCancel.hidden = !d.cancel;
+  }
   // Safari does not focus a button when it is clicked: remember the last clicked control as a fallback.
   el.app.addEventListener("click", (e) => { lastClicked = e.target.closest("button, select"); }, true);
 
@@ -128,6 +151,7 @@ export function createView(root, handlers = {}) {
   el.coach.addEventListener("click", () => handlers.onCoach && handlers.onCoach());
   el.coachNext.addEventListener("click", () => handlers.onCoachNext && handlers.onCoachNext());
   el.coachClose.addEventListener("click", () => handlers.onCoachClose && handlers.onCoachClose());
+  applyTexts();
 
   // Coach marks on the board: units, key cells, candidates of the involved cells.
   function paintCoach() {
@@ -210,16 +234,24 @@ export function createView(root, handlers = {}) {
         el.coachNote.hidden = !show.note;
         setText(el.coachBody, show.text);
         el.coachText.scrollTop = 0;
-        setText(el.coachNext, show.last ? "Fill" : "Next");
+        setText(el.coachNext, tr(show.last ? "fill" : "next"));
       }
       paintCoach();
-      cells.forEach((c, i) => setAttr(c, "aria-label", lastState ? cellLabel(lastState, i, coachStep) : c.getAttribute("aria-label")));
+      cells.forEach((c, i) => setAttr(c, "aria-label", lastState ? cellLabel(lang, lastState, i, coachStep) : c.getAttribute("aria-label")));
     },
     focusCoachNext() { el.coachNext.focus(); },
     focusCoachButton() { el.coach.focus(); },
 
     // Moves the keyboard focus to a cell (arrow-key navigation).
     focusCell(i) { cells[i].focus(); },
+
+    // Switches every text to `lang` (PRD 3.8); the controller redraws the Coach panel
+    // and calls render() afterwards for the cell labels and the help text.
+    setLanguage(next) {
+      lang = next;
+      applyTexts();
+      if (dialogKind) fillDialog(dialogKind, dialogN);
+    },
 
     // kind: "mistake" | "lost" | "solved" | "confirm" | null (hide); `n` is the mistake number
     showDialog(kind, n) {
@@ -240,11 +272,7 @@ export function createView(root, handlers = {}) {
         focusBeforeDialog = null;
         return;
       }
-      const d = DIALOGS[kind];
-      el.dialogTitle.textContent = typeof d.title === "function" ? d.title(n) : d.title;
-      el.dialogText.textContent = d.text;
-      el.dialogNew.textContent = d.primary;
-      el.dialogCancel.hidden = !d.cancel;
+      fillDialog(kind, n);
       el.overlay.dataset.kind = kind;
       el.dialogNew.focus();
     },
@@ -294,7 +322,7 @@ export function createView(root, handlers = {}) {
         cell.classList.toggle("peer", h.peer.has(i));
         cell.classList.toggle("same", h.same.has(i));
         cell.classList.toggle("conflict", h.conflict.has(i));
-        setAttr(cell, "aria-label", cellLabel(state, i, coachStep));
+        setAttr(cell, "aria-label", cellLabel(lang, state, i, coachStep));
         setAttr(cell, "aria-pressed", h.sel.has(i) ? "true" : "false");
         // roving tab stop: one cell is reachable by Tab, the arrow keys move inside the board
         setAttr(cell, "tabindex", i === (state.selected >= 0 ? state.selected : 0) ? "0" : "-1");
@@ -304,7 +332,7 @@ export function createView(root, handlers = {}) {
       // help dots: Hint and Coach share MAX_HINTS helps, a filled dot is a used help
       setAttr(el.helpDots, "data-used", String(state.hints));
       [...el.helpDots.children].slice(0, MAX_HINTS).forEach((dot, k) => dot.classList.toggle("used", k < state.hints));
-      setText(el.helpText, `Help: ${state.hints} of ${MAX_HINTS} used`);
+      setText(el.helpText, tr("help", { n: state.hints, max: MAX_HINTS }));
       const noHelp = !coachAvailable(state) ? "true" : "false";
       setAttr(el.hint, "aria-disabled", noHelp);
       setAttr(el.coach, "aria-disabled", noHelp);

@@ -1,10 +1,10 @@
-// The colour schemes offered in the dropdown (their colours live in css/themes.css).
+// The colour schemes offered in the dropdown (colours in css/themes.css, names in i18n.js: "scheme.<id>").
 export const SCHEMES = [
-  { id: "bw", name: "Black & White", themeColor: "#ffffff" },
-  { id: "blue", name: "Classic Blue", themeColor: "#ffffff" },
-  { id: "sepia", name: "Sepia", themeColor: "#f4ecd8" },
-  { id: "dark", name: "Dark", themeColor: "#121417" },
-  { id: "forest", name: "Forest", themeColor: "#f3f7f1" },
-  { id: "neon", name: "Neon", themeColor: "#07060f" },
-  { id: "rainbow", name: "Rainbow", themeColor: "#fffdf7" }
+  { id: "bw", themeColor: "#ffffff" },
+  { id: "blue", themeColor: "#ffffff" },
+  { id: "sepia", themeColor: "#f4ecd8" },
+  { id: "dark", themeColor: "#121417" },
+  { id: "forest", themeColor: "#f3f7f1" },
+  { id: "neon", themeColor: "#07060f" },
+  { id: "rainbow", themeColor: "#fffdf7" }
 ];

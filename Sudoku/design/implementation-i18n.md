@@ -44,26 +44,36 @@ one commit per phase (`Sudoku: i18n phase N – <title>`). Never commit red.
 
 ---
 
-## Phase L1 – Text tables, no visible change
+## Phase L1 – Text tables, no visible change ✅ 2026-11-16
 
-- [ ] `i18n.js` (new, pure): English table with every text of the app (including the
-  screen-reader texts), `t()`, `detectLang()`, `isLang()`, English Coach phrase set
-- [ ] `coach.js`: titles, levels, unit/cell names, lists and templates from the phrase
-  set; `lang` option (default `en`); English output byte-identical to now
-- [ ] `view.js`: template, `LEVEL_NAMES`, `DIALOGS`, cell labels and help text from
-  `t()`; `setLanguage(lang)` (also used for the first render)
-- [ ] `controller.js`: notices, announcements, Coach note and counter from `t()`;
-  holds the current language (fixed `en` in this phase)
-- [ ] `schemes.js`: scheme names as text keys
-- [ ] `sw.js`: `js/i18n.js` in the precache list (the PWA test requires it), `VERSION` raised
+- [x] `i18n.js` (new, pure): English table with every text of the app (including the
+  screen-reader texts), `t(lang, key, values)`, `detectLang()`, `isLang()`, `keysOf()`;
+  the English Coach phrases (cell names, units, line names, lists, 11 templates) are
+  keys of the same table (`coach.*`), so German needs no extra code path
+- [x] `coach.js`: titles, levels, unit/cell names, lists and templates from the table;
+  `cellNamer(lang)`, `explain(step, name, { afterEliminations, lang })` (default `en`);
+  English output identical (the order of name calls is kept in `coach.js`)
+- [x] `view.js`: template texts as `data-t` / `data-t-label` keys, filled by
+  `applyTexts()`; `LEVEL_NAMES` gone; `DIALOGS` hold keys; cell labels and help text
+  from `t()`; `setLanguage(lang)` (also redraws an open dialog, sets `<html lang>`)
+- [x] `controller.js`: notices, announcements, Coach note and counter from `t()`;
+  holds the current language (`DEFAULT_LANG` in this phase)
+- [x] `schemes.js`: names removed, they are `scheme.<id>` keys
+- [x] `sw.js`: `js/i18n.js` in the precache list, `VERSION` 8 → 9
 
 Tests:
-- [ ] unit `i18n.test.js`: `t()` with values, fallback to `en`, `detectLang()`
-  (`de`, `de-DE`, `de-AT`, `en-US`, `fr`, empty list), `isLang()`
-- [ ] unit: every key used in `js/` exists in the English table (scan of `t(…, "key"`)
-- [ ] unit `coach.test.js`: all existing text tests unchanged and green (English output
-  identical)
-- [ ] e2e: **all existing tests unchanged and green** – the proof that L1 changes nothing
+- [x] unit `i18n.test.js` (6): languages, `detectLang()` (`de`, `de-DE`, `de-AT`,
+  `DE-ch`, `en-US`, `fr-FR` first, empty / missing / empty entries), `t()` with values,
+  fallback to `en`, unknown keys; no empty English text
+- [x] unit: every key used in `js/` exists in the English table (scan of `tr("…")`,
+  `t(lang, "…")`, `data-t`, dialog keys and ternaries), plus the dynamic keys of every
+  technique, level and scheme
+- [x] unit `coach.test.js`: all existing text tests unchanged and green
+- [x] e2e: **all existing tests unchanged** (no file in `tests/e2e` touched) and green:
+  desktop 112, emulated iPhone/iPad 336 (Chrome). WebKit, axe and visual on the
+  notebook as before
+
+Result: 179 unit tests green.
 
 Gate → commit `Sudoku: i18n phase L1 – text tables`.
 
