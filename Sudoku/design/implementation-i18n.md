@@ -135,16 +135,22 @@ Result: 188 unit tests green.
 
 Gate → commit `Sudoku: i18n phase L2 – German and the globe button`.
 
-## Phase L3 – Offline, docs, release
+## Phase L3 – Offline, docs, release ✅ 2026-11-16
 
-- [ ] `sw.js`: `VERSION` raised
-- [ ] e2e offline: German after an offline reload, the toggle works offline
-- [ ] `README.md` (Sudoku): language section (device language, globe toggle); project
-  layout lists `i18n.js`
-- [ ] `Sudoku/CLAUDE.md`: code map (`coach.js`, `i18n.js`), seven schemes, shared help
-  dots instead of `n/4` (stale since the Coach)
-- [ ] `implementation.md` "After the release": entry pointing to this file
-- [ ] PRD 9 criterion 12 mapped to tests (table below)
+- [x] `sw.js`: `VERSION` 9 → 10 (L2 changed shipped files)
+- [x] e2e offline: German after an offline reload, the toggle works offline, the
+  Coach title in German (`offline.spec.js`, locale `de-DE`)
+- [x] `README.md` (Sudoku): language section (device language, globe toggle,
+  technique names English), all seven schemes, `i18n` in the project layout
+- [x] `Sudoku/CLAUDE.md`: code map (`coach.js`, `i18n.js`), seven schemes, shared help
+  dots instead of `n/4`, the rule that every text goes into both tables of
+  `i18n.js`, how the e2e tests choose the language, links to the change-request plans
+- [x] `implementation.md` "After the release": entry pointing to this file
+- [x] PRD 9 criterion 12 mapped to tests (table below)
+
+Run: 188 unit tests; e2e desktop 125, emulated iPhone/iPad 375 (Chrome) – all green.
+Still on the dev notebook: real WebKit, `a11y.spec.js` (now with the German scan) and
+the real iPad – see the list in [implementation-coach.md](implementation-coach.md).
 
 Gate → commit `Sudoku: i18n phase L3 – offline and docs`.
 
@@ -154,12 +160,12 @@ Gate → commit `Sudoku: i18n phase L3 – offline and docs`.
 
 | Part | Test(s) |
 |---|---|
-| Device language at first start | unit `detectLang`; e2e language (locale de-DE / en-US) |
+| Device language at first start | unit `detectLang`, settings `loadLang`; e2e language (locale de-DE / en-US, invalid saved value) |
 | Globe toggles live, label = current language | e2e language |
 | Every visible and screen-reader text translated | unit key parity; e2e language (texts, labels, dialogs) |
 | Technique names stay English | unit coach (German titles); e2e language (Coach title) |
 | Choice survives a reload | unit settings; e2e language |
-| Works offline | e2e offline (L3) |
+| Works offline | e2e offline: "German after an offline reload, the language toggle works offline" (L3) |
 
 ## Risks to watch
 

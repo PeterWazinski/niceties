@@ -75,6 +75,22 @@ test("offline: the Coach explains and fills (PRD 3.4.1)", async ({ page }) => {
   await expect(page.locator("#help-dots")).toHaveAttribute("data-used", "1");
 });
 
+test.describe("German offline (PRD 3.8)", () => {
+  test.use({ locale: "de-DE" });
+
+  test("offline: German after an offline reload, the language toggle works offline", async ({ page }) => {
+    await loadOnline(page, "index.html?seed=12");
+    await reloadOffline(page);
+    await expect(page.locator("html")).toHaveAttribute("lang", "de");
+    await expect(page.locator("#new-game")).toHaveText("Neues Spiel");
+    await page.locator("#lang").click();
+    await expect(page.locator("#new-game")).toHaveText("New Game");
+    await page.locator("#lang").click();
+    await page.locator("#coach").click();
+    await expect(page.locator("#coach-title")).toHaveText(/ · (Leicht|Mittel|Schwer)$/);
+  });
+});
+
 test("a whole session talks only to the own origin", async ({ page, context }) => {
   const foreign = [];
   const origin = new URL(page.context()._options?.baseURL || "http://localhost:4174/").origin;

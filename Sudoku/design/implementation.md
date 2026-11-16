@@ -296,3 +296,9 @@ Gate → commit `Sudoku: phase 9 – polish, accessibility and release`.
   invalid id. Run in the cloud session: unit, desktop, emulated iPhone/iPad green;
   WebKit, axe and real-device checks: see the notebook list in
   [implementation-coach.md](implementation-coach.md) (phase C4).
+
+- [x] **German** (change request 2026-11-16, PRD 3.8): every text in English and
+  German (`i18n.js`), device language at first start, globe button EN/DE in the header
+  that switches live (also with the Coach open), technique names stay English. Planned
+  and done in its own file: [implementation-i18n.md](implementation-i18n.md) (phases
+  L1–L3; WebKit, axe and the real iPad still to do on the dev notebook).

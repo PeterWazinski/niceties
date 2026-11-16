@@ -35,9 +35,14 @@ Specification: [design/PRD.md](design/PRD.md) · plan: [design/implementation.md
   and a popup offers *Play Again*.
 - **New Game** and the **Level** dropdown (Beginner, Expert, Master) ask before
   they abandon a game with progress. **Colours** switches the colour scheme
-  (Black & White is the default).
-- Your colour scheme, level and the complete game in progress (including notes
-  and mistakes) are remembered in the browser.
+  (Black & White is the default; also Classic Blue, Sepia, Dark, Forest, Neon
+  and Rainbow).
+- **Language:** English and German. The game starts in the language of your
+  device (German on a German device, English otherwise); the **🌐 EN / 🌐 DE**
+  button in the header shows the current language and switches with one tap.
+  Technique names in the Coach stay English.
+- Your colour scheme, language, level and the complete game in progress
+  (including notes and mistakes) are remembered in the browser.
 - Keyboard (desktop): arrow keys move, `1`–`9` enter a digit, `Shift+1`–`9`
   toggle a note, `H` gives a hint, `C` opens the Coach (`Enter` = Next/Fill,
   `Esc` closes it), `Esc` cancels a question.
@@ -112,11 +117,12 @@ js/                               game logic (pure) and the DOM layer
   grid, rng, solver, symmetry     geometry, seeded random, bitmask solver, symmetries
   techniques, generator           human solving techniques, puzzle generation + grading
   coach                           Coach chain, pruning, board marks and explanation texts
+  i18n                            every text in English and German, device-language detection
   generator.worker, generator-client, pool
                                   generation off the main thread, one puzzle per level in storage
   game, highlight                 rules: locking, mistakes, notes, hint, coach fill; highlight sets
   view, numpad, controller        rendering, tap-vs-hold, wiring
-  settings, store, storage        remembered scheme/level, saved game, safe localStorage
+  settings, store, storage        remembered scheme/level/language, saved game, safe localStorage
 icons/, tools/make-icons.mjs      app icons and their generator
 tests/unit, tests/e2e             node:test and Playwright
 ```
