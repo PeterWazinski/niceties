@@ -35,7 +35,9 @@ node tools/make-quotes.mjs                 # after editing design/quotes-en.md /
   (puzzles are generated off the main thread), `confetti.js`, `main.js`.
 - CSS: `css/base.css` (layout: portrait one column, landscape board left and panel right; short
   landscape screens up to 520 px high use the one-row number strip), `css/themes.css` (seven colour
-  schemes via CSS variables; Neon and Rainbow add scheme-scoped effects at the end).
+  schemes via CSS variables; Star Wars – first in the list and the default – and Rainbow add
+  scheme-scoped effects at the end). Scheme ids and order are in `js/schemes.js`, names in `i18n.js`
+  (`scheme.<id>`); a removed scheme gets an entry in `RENAMED_SCHEMES` in `settings.js`.
 - `sw.js` is the service worker; `index.html` loads `main.js` as a module.
 
 ## Game rules in short (PRD 3.2 and 3.4)
@@ -67,6 +69,8 @@ node tools/make-quotes.mjs                 # after editing design/quotes-en.md /
   `coach-helpers.js`; `quotes.spec.js` loads an almost-solved game the same way.
 - Dialog texts are quotes now: check them against `QUOTES` from `js/quotes.js` (any entry of the right
   list), not against a fixed string.
+- The default scheme is Star Wars (dark): tests that need the light B/W look select it explicitly
+  (`visual.spec.js` does, so the `*-bw.png` baselines stay valid).
 - Checks that cannot run in the cloud session (real WebKit, axe, screenshot baselines, the real iPad,
   the wording of the real film quotes) are collected in [design/implementation-coach.md](design/implementation-coach.md)
   under "Still to do on the dev notebook".

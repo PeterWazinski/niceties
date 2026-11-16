@@ -221,7 +221,7 @@ covers the later changes up to the Star Wars scheme, which were
 tested here only on desktop Chrome and emulated iPhone/iPad viewports:
 - [ ] `npm run test:all` with real WebKit for the iPhone / iPad projects (now incl.
   the Coach step counter/note and the seven-scheme theme tests: Rainbow tints and
-  contrast, Neon glow and transparent cells)
+  contrast, Star Wars look – Neon was replaced by Star Wars)
 - [ ] `a11y.spec.js` incl. the new Coach axe scan; it now loops over **seven**
   schemes. Watch for axe findings on the two gradient elements, which axe cannot
   measure reliably: the Rainbow title (gradient text, `color: transparent`) and the
