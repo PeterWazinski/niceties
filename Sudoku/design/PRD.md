@@ -1,7 +1,8 @@
 # Sudoku – Product Requirements Document
 
 Status: **Final – ready for the implementation plan** · 2026-10-18 ·
-change request **Coach** (3.4.1, decisions round 3) added 2026-11-15
+change request **Coach** (3.4.1, decisions round 3) added 2026-11-15 ·
+change request **German** (3.8, decisions round 4) added 2026-11-16
 
 A small, ad-free Sudoku for the browser. It follows the clean look of sudoku.com
 (see the screenshots in this folder) but has no ads, no scoring and no timer. It
@@ -52,7 +53,7 @@ One screen, no navigation. Plain, flat, lots of white space, like sudoku.com.
 
 ```
 ┌──────────────────────────────┐
-│ Sudoku              [New Game]│  header
+│ Sudoku        [🌐 EN][New Game]│  header (language toggle, 3.8)
 ├──────────────────────────────┤
 │ Level ▾     Mistakes   Colours ▾│  status row
 │              0/3                │
@@ -338,12 +339,98 @@ The colour scheme switches live, with no reload. The browser's
 |---|---|
 | `sudoku.scheme` | scheme id, default `bw` |
 | `sudoku.level` | `beginner` \| `expert` \| `master`, default `beginner` |
+| `sudoku.lang` | `en` \| `de`; missing or invalid → device language (3.8) |
 | `sudoku.game` | the **complete game state**: givens, solution, entries, notes, mistakes, hints used, selected cell, level, lost or not. Written after every move; restored when the page is opened again, also after an iOS tab eviction. Deleted when the game is solved. |
 | `sudoku.pool` | pre-generated puzzles (5.4) |
 | `sudoku.tipShown` | the long-press tip has been dismissed by a first note |
 
 All reads/writes are wrapped in try/catch (private mode, quota); the game works
 without storage.
+
+### 3.8 Language (English / German)
+
+The whole UI exists in **English** and **German**: visible texts, dialogs, the tip,
+notices, the Coach explanations and all screen-reader texts (labels, announcements).
+
+**Choosing the language.**
+- **First start:** the device language decides: `navigator.languages[0]` (or
+  `navigator.language`) starting with `de` → German, anything else → English.
+- **Globe button** in the header, left of **New Game** (portrait), and in the title row
+  of the side panel (landscape): a globe icon plus the code of the **current** language
+  (`🌐 EN` / `🌐 DE`). **One tap toggles** English ↔ German. Accessible name:
+  "Language: English. Switch to German" / "Sprache: Deutsch. Auf Englisch umschalten".
+  Same size rules as the other buttons (≥ 44 px).
+- The choice is saved (`sudoku.lang`, like the colour scheme) and wins over the device
+  language from then on. An invalid stored value falls back to the device language.
+- Switching is **live**, no reload: every text redraws, the dropdown options too,
+  `<html lang>` switches (so VoiceOver pronounces German correctly), and the new
+  language is announced ("Deutsch" / "English"). The game itself is not affected.
+- **During coaching** the open Coach panel redraws in the new language: the current
+  step is explained again from the start of the session's naming, so cell names start
+  in long form again. The globe stays usable while the Coach is open (it does not
+  change the board).
+- The app name stays **Sudoku** (title, Home Screen) in both languages.
+
+**Fixed terms.**
+- **Levels:** Beginner / Expert / Master → **Leicht / Mittel / Schwer** (also in the
+  Coach title, e.g. "Naked Pair · Mittel").
+- **Technique names stay English** in both languages (Naked Single, Hidden Single,
+  Pointing, Claiming, Naked/Hidden Pair/Triple, X-Wing, Swordfish, XY-Wing); only the
+  explanations are German. The texts are kept per language anyway, so German
+  technique names can be added later by filling in the German table.
+- **Cells:** "Reihe 4, Spalte 6" at first mention, then **"r4s6"** (r = Reihe,
+  s = Spalte). Units: "Reihe 4", "Spalte 6", "Block 5"; plural "Reihen 2 und 7",
+  "Spalten 1, 4 und 8". Lists: "4 und 8", "1, 2 und 3".
+- **Colour schemes:** B/W, Klassisch Blau, Sepia, Nacht, Wald, Neon, Regenbogen.
+
+**German texts (UI).**
+
+| English | German |
+|---|---|
+| New Game | Neues Spiel |
+| Level / Mistakes / Colours | Stufe / Fehler / Farben |
+| Black & White, Classic Blue, Sepia, Dark, Forest, Neon, Rainbow | B/W, Klassisch Blau, Sepia, Nacht, Wald, Neon, Regenbogen |
+| Hint / Coach | Hinweis / Coach |
+| Close / Next / Fill | Schließen / Weiter / Eintragen |
+| Help: n of 4 used | Hilfe: n von 4 genutzt |
+| Sudoku board / Numbers | Sudoku-Spielfeld / Zahlen |
+| Preparing puzzle… | Rätsel wird vorbereitet … |
+| Tip: hold a number to add a note | Tipp: Zahl gedrückt halten, um eine Notiz zu setzen |
+| Fix or clear the red digit first. | Zuerst die rote Ziffer korrigieren oder löschen. |
+| Tap the same digit again to clear it. | Dieselbe Ziffer noch einmal tippen, um sie zu löschen. |
+| Mistake n/3 · You may consider taking a hint next time. · OK | Fehler n/3 · Beim nächsten Mal hilft vielleicht ein Hinweis. · OK |
+| You lost the game. · Play again? · Play Again | Spiel verloren. · Noch einmal spielen? · Neu spielen |
+| Solved! · Well done. · New Game | Gelöst! · Gut gemacht. · Neues Spiel |
+| Abandon this game? · Your progress in this game will be lost. · New Game · Cancel | Spiel beenden? · Der Fortschritt in diesem Spiel geht verloren. · Neues Spiel · Abbrechen |
+| Step k of n | Schritt k von n |
+| This step removes candidates; no cell can be filled yet. | Dieser Schritt entfernt Kandidaten; noch kann kein Feld gefüllt werden. |
+| No technique from the list applies here. | Hier hilft keine Technik aus der Liste. |
+
+**German texts (screen readers).**
+
+| English | German |
+|---|---|
+| row r, column c, d, given / wrong / correct | Reihe r, Spalte c, d, vorgegeben / falsch / richtig |
+| …, empty · notes 1 4 · candidates 4 8, 8 removed | …, leer · Notizen 1 4 · Kandidaten 4 8, 8 entfernt |
+| Correct. · Wrong digit. n of 3 mistakes. · Three mistakes. You lost the game. · Solved! | Richtig. · Falsche Ziffer. n von 3 Fehlern. · Drei Fehler. Spiel verloren. · Gelöst! |
+| Note added. · Note removed. · Digit cleared. | Notiz gesetzt. · Notiz entfernt. · Ziffer gelöscht. |
+| Hint: d in X. · Hint: the wrong digit in X is removed. | Hinweis: d in X. · Hinweis: Die falsche Ziffer in X wird entfernt. |
+| Coach: d in X. · The wrong digit in X is removed. | Coach: d in X. · Die falsche Ziffer in X wird entfernt. |
+| (step announcement) "Step k of n. Title, Level. Note Text Next/Fill." | "Schritt k von n. Titel, Stufe. Hinweistext Text Weiter/Eintragen." |
+
+**German Coach explanations** (same shapes as 3.4.1; `d` digit, `A`, `B`, `C` cells,
+`U` unit; examples with real values):
+
+| Technique | German text (shape) |
+|---|---|
+| Naked single | "A kann nur d sein: Jede andere Ziffer steht schon in ihrer Reihe, Spalte oder ihrem Block." (after eliminations: "A kann nur d sein: Alle anderen Kandidaten sind entfernt.") |
+| Hidden single | "In U passt die d nur in A." – "In Block 5 passt die 7 nur in Reihe 4, Spalte 6." |
+| Pointing | "In Block b kann die d nur in U stehen. Also wird die d aus dem Rest von U entfernt." |
+| Claiming | "In U kann die d nur in Block b stehen. Also wird die d aus dem Rest von Block b entfernt." |
+| Naked pair / triple | "A und B können nur d1 und d2 enthalten. Also werden d1 und d2 aus den anderen Feldern von U entfernt." (triple: "… können zusammen nur 1, 2 und 3 enthalten …") |
+| Hidden pair / triple | "In U passen d1 und d2 nur in A und B. Also werden alle anderen Kandidaten aus diesen Feldern entfernt." |
+| X-Wing / Swordfish | "In den Reihen 2 und 5 passt die 7 nur in die Spalten 2 und 9. Also steht die 7 in den Spalten 2 und 9 in diesen Reihen und wird aus dem Rest der Spalten 2 und 9 entfernt." (and transposed) |
+| XY-Wing | "A kann nur x oder y sein. Ist es x, muss B die z sein; ist es y, muss C die z sein. In jedem Fall ist B oder C die z, also wird die z aus jedem Feld entfernt, das beide sieht." |
 
 ## 4. Difficulty levels
 
@@ -485,6 +572,7 @@ Sudoku/
     solver.js           bitmask backtracking solver, solution counter (stop at 2)
     techniques.js       human solving techniques (singles … fish, wings), used for grading, hints and Coach
     coach.js            Coach chain (steps up to the next placement, pruned) and explanation texts (pure)
+    i18n.js             text tables English / German, t(key, values), Coach phrases per language (pure)
     symmetry.js         symmetry types -> orbit lists
     generator.js        full grid + symmetric dig + grade (pure functions)
     generator.worker.js runs the generator off the main thread
@@ -552,7 +640,8 @@ Sudoku/
   background pattern in the B/W scheme (red alone is weak for colour-blind users).
 - `prefers-reduced-motion`: no animation. Otherwise only subtle ones (selection fade, solved message).
 - Haptics: none (apart from an optional vibrate on a long press where supported). Sound: none.
-- All text in English (UI strings in one place, so a German version would be easy).
+- All text in English and German (3.8), every string in the text tables of `i18n.js`;
+  `<html lang>` follows the language.
 
 ## 9. Acceptance criteria (summary)
 
@@ -573,6 +662,10 @@ Sudoku/
     cells (removed ones red and struck through), hides and restores the user's notes,
     blocks input while open, and fills the cell like a Hint. Hint and Coach share
     one counter of four helps (dots); Close before Fill costs nothing. Works offline.
+12. **German** (3.8): a German device starts in German, any other in English; the
+    globe button (`🌐 EN` / `🌐 DE`) toggles live, also with the Coach open; every
+    visible and screen-reader text is translated, technique names stay English;
+    the choice survives a reload; works offline.
 
 ## 10. Out of scope / future ideas
 
@@ -595,7 +688,7 @@ in untangleMe), auto-notes, more symmetries picker, German UI, printing.
 | Game state | The complete game is saved and resumed (3.7) |
 | Tap on a filled cell | Highlights identical digits **and** row, column, box (3.3) |
 | Entry order | Cell first, then number; a number tap without a selected editable cell does nothing |
-| Language / colours | English only; start with B/W, Classic Blue, Sepia, Dark, Forest (3.6); Neon and Rainbow added 2026-11-16 |
+| Language / colours | English only at first (German added 2026-11-16, 3.8); start with B/W, Classic Blue, Sepia, Dark, Forest (3.6); Neon and Rainbow added 2026-11-16 |
 | Clue ranges | Taken as proposed in section 4 (38–42 / 30–34 / 24–28), symmetry as in 5.3 |
 
 ### Confirmed (review round 2)
@@ -624,3 +717,17 @@ in untangleMe), auto-notes, more symmetries picker, German UI, printing.
 | Keyboard | `C` opens the Coach; `Enter` = Next/Fill, `Esc` = Close. |
 | Short landscape | The explanation scrolls inside the panel. |
 | No help left | Coach inactive, also for peeking (assumption, confirm in review). |
+
+### Change request German (review round 4, 2026-11-16)
+
+| Topic | Decision |
+|---|---|
+| Switch | Globe button in the header, label = current language (`🌐 EN` / `🌐 DE`), one tap toggles. |
+| First start | Device language: `de…` → German, otherwise English; a saved choice wins. |
+| Levels | Leicht / Mittel / Schwer. |
+| Technique names | Stay English; the German table is ready for German names later. |
+| Cell names | "Reihe 4, Spalte 6", short "r4s6" (r = Reihe, s = Spalte; confirmed). |
+| During coaching | The panel redraws in the new language; names start long again. |
+| Colour schemes | B/W, Klassisch Blau, Sepia, Nacht, Wald, Neon, Regenbogen. |
+| Docs | README and design docs stay English. |
+| Wording | German texts as listed in 3.8, reviewed; the New Game question is "Spiel beenden?". |
