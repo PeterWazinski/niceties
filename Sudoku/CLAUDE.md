@@ -79,3 +79,32 @@ node tools/make-quotes.mjs                 # after editing design/quotes-en.md /
 - Checks that cannot run in the cloud session (real WebKit, axe, screenshot baselines, the real iPad,
   the wording of the real film quotes) are collected in [design/implementation-coach.md](design/implementation-coach.md)
   under "Still to do on the dev notebook".
+
+## Refactoring backlog (review 2026-11-16, not done yet)
+
+Behaviour must stay exactly the same; the existing unit and e2e tests are the safety net.
+
+**A – small cleanup** (low risk, do any time):
+- [ ] `confetti.js` and `shockwave.js` share ~40 identical lines (env defaults, canvas sizing,
+  `finish()`, `stop()`, frame loop): extract a shared `canvas-effect.js`.
+- [ ] `controller.js`: the animation pattern (duration from `reducedMotion()`, `animating = true`,
+  `view.setBusy(true)`, `setTimeout` to unblock) appears 4× – one helper.
+- [ ] `controller.js`: building the Coach texts (`cellNamer` + `explain` per step) appears 2×
+  (`startCoach`, `toggleLang`) – one function.
+- [ ] Dead code: `TECHNIQUE_TITLES` in `coach.js` (titles come from `i18n.js`; only a test uses it).
+  Test-only exports: `parseGrid` / `gridToString` (`grid.js`), `QUOTE_LISTS` (`quotes.js`) – keep
+  or move to test helpers.
+- [ ] Test duplicates: `fakeCanvas` / `fakeEnv` (confetti and shockwave unit tests), `almostSolved()`
+  (`quotes.spec.js`, `shockwave.spec.js`), `hex()` (`coach.spec.js`, `themes.spec.js`) – shared helpers.
+- [ ] Naming: `HINT_ANIM_MS` / `HINT_ANIM_REDUCED_MS` also time the Coach – rename to `FILL_ANIM_*`.
+
+**B – split the two god functions** (medium effort, before the next bigger feature):
+- [ ] `controller.js` → `startApp()` is one ~350-line closure (21 inner functions, ~15 shared
+  variables: input, keyboard, mistake popups, Hint, Coach, language, dialogs, New Game, pool,
+  saving, celebration). Move the Coach flow (~100 lines) and the win celebration into their own
+  modules.
+- [ ] `view.js` → `createView()` is ~270 lines (board, dialogs, Coach panel and marks, language,
+  animations). Move the dialogs and the Coach panel / board marks into their own modules.
+
+**Not worth it:** renaming `state.hints` (it counts Hint *and* Coach helps) – saved games would need
+a migration; the meaning is documented in `game.js` and here.
