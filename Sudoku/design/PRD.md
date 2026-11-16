@@ -124,7 +124,10 @@ The rules are strict, which is what makes Undo and Erase unnecessary:
    first and then fills the cell (3.4.1).
 6. A digit whose nine copies are all placed is greyed out in the number row.
 7. Filling the last cell ends the game: a short "Solved!" message (with a quote, 3.9)
-   and **New Game**.
+   and **New Game**. A celebration runs over it: **confetti** in every scheme except
+   **Star Wars**, which has a **shockwave** instead (a soft flash on the last cell, a
+   flat ring of light racing outward, sparks; about 1.7 s; change request
+   2026-11-16). With reduced motion there is neither.
    No score, no time.
 
 **Why no Undo and no Erase button:** Undo would only matter for wrong digits. A
@@ -811,3 +814,12 @@ in untangleMe), auto-notes, more symmetries picker, printing (German UI: done, 3
 | Neon | Removed (too close to Star Wars); a saved `neon` moves to `starwars`. |
 | Blue | "Classic Blue" is renamed **Blue** ("Blau"). |
 | Other proposals | Dark Side, Hologram and Desert Suns were shown as mockups and not taken. |
+
+### Change request Star Wars celebration (review round 8, 2026-11-16)
+
+| Topic | Decision |
+|---|---|
+| Effect | Shockwave only (flash, flat ring, sparks); the lightspeed part of the preview was dropped. No pictures of ships or stations. |
+| Where | Only in the Star Wars scheme; every other scheme keeps the confetti. The scheme active when the last cell is filled decides. |
+| Start | At the last filled cell (the selected cell). |
+| Reduced motion | No shockwave (as for the confetti). |

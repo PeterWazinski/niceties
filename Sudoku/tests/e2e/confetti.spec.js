@@ -4,6 +4,9 @@ import { enter, puzzleFor, emptyIndices, dialog } from "./play-helpers.js";
 
 // Default motion settings: confetti is only shown when the user does not ask for reduced motion.
 test.use({ reducedMotion: "no-preference" });
+// Confetti belongs to every scheme except Star Wars (the default, which has the
+// shockwave, shockwave.spec.js): these tests play in Black & White.
+test.beforeEach(async ({ page }) => { await page.addInitScript(() => localStorage.setItem("sudoku.scheme", "bw")); });
 
 const P = puzzleFor(12);
 const confetti = (page) => page.locator("#confetti");

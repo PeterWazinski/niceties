@@ -12,6 +12,7 @@ import { createRng } from "./rng.js";
 import { createGeneratorClient } from "./generator-client.js";
 import { createPool } from "./pool.js";
 import { createConfetti } from "./confetti.js";
+import { createShockwave } from "./shockwave.js";
 import { loadSettings, saveScheme, saveLevel, loadLang, saveLang } from "./settings.js";
 import { loadGame, saveGame, clearGame } from "./store.js";
 import { safeGet, safeSet } from "./storage.js";
@@ -81,21 +82,25 @@ export function startApp(root) {
       else startNewGame(state.level);
     },
     onDialogCancel: () => cancelPending(),
-    onScheme: (id) => { view.setScheme(id); saveScheme(id); },
+    onScheme: (id) => { view.setScheme(id); saveScheme(id); scheme = id; },
     onLevel: (level) => { closeCoach(false); requestNewGame(level); },
     onLang: () => toggleLang()
   });
   view.setLanguage(lang);
 
   const confetti = createConfetti(view.el.confetti, { reducedMotion });
+  // Star Wars celebrates with a shockwave, every other scheme with confetti (PRD 3.6)
+  const shockwave = createShockwave(view.el.shockwave, { reducedMotion });
+  let scheme = settings.scheme;
+  const celebrate = () => (scheme === "starwars" ? shockwave.fire(view.cellCenter(state.selected)) : confetti.fire());
 
   function sync() {
     view.render(state);
     // a wrong digit stops the game: tell the player how to go on (how to clear it, or why other cells do not react)
     const stopped = hasWrong(state) && !state.lost && !state.solved && !mistakeShown;
     view.setNotice(!stopped ? null : tr(isWrong(state, state.selected) ? "notice.clear" : "notice.blocked"));
-    // confetti rain when the game has just been solved (not for a restored game: solved games are never saved)
-    if (state.solved && !celebrated) { celebrated = true; confetti.fire(); }
+    // confetti or shockwave when the game has just been solved (not for a restored game: solved games are never saved)
+    if (state.solved && !celebrated) { celebrated = true; celebrate(); }
     if (!state.solved) celebrated = false;
     view.setTipVisible(!tipShown && !coach);
     const kind = pending ? "confirm" : state.solved ? "solved" : mistakeShown ? "mistake" : state.lost && !losing ? "lost" : null;
@@ -298,6 +303,7 @@ export function startApp(root) {
     if (loading) return;
     loading = true;
     confetti.stop();
+    shockwave.stop();
     saveLevel(level);
     // Show the "Preparing" note only if it takes a moment.
     const spinner = setTimeout(() => view.setPreparing(true), 150);

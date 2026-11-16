@@ -32,7 +32,8 @@ node tools/make-quotes.mjs                 # after editing design/quotes-en.md /
 - DOM: `view.js` (render, dialogs, animations), `controller.js` (taps, keyboard, popups, animation
   flow, new game), `numpad.js` (tap vs. long press), `store.js` / `settings.js` / `storage.js`
   (localStorage, keys start with `sudoku.`), `pool.js` + `generator-client.js` + `generator.worker.js`
-  (puzzles are generated off the main thread), `confetti.js`, `main.js`.
+  (puzzles are generated off the main thread), `confetti.js` (win celebration in every scheme but Star
+  Wars), `shockwave.js` (win celebration in Star Wars: flash, ring, sparks), `main.js`.
 - CSS: `css/base.css` (layout: portrait one column, landscape board left and panel right; short
   landscape screens up to 520 px high use the one-row number strip), `css/themes.css` (seven colour
   schemes via CSS variables; Star Wars – first in the list and the default – and Rainbow add
@@ -71,6 +72,7 @@ node tools/make-quotes.mjs                 # after editing design/quotes-en.md /
   list), not against a fixed string.
 - The default scheme is Star Wars (dark): tests that need the light B/W look select it explicitly
   (`visual.spec.js` does, so the `*-bw.png` baselines stay valid).
+  `confetti.spec.js` plays in B/W (Star Wars celebrates with the shockwave, `shockwave.spec.js`).
 - Checks that cannot run in the cloud session (real WebKit, axe, screenshot baselines, the real iPad,
   the wording of the real film quotes) are collected in [design/implementation-coach.md](design/implementation-coach.md)
   under "Still to do on the dev notebook".

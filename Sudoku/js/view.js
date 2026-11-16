@@ -60,6 +60,7 @@ function template() {
       <p class="notice" id="notice" hidden></p>
     </div>
     <canvas id="confetti" hidden aria-hidden="true"></canvas>
+    <canvas id="shockwave" hidden aria-hidden="true"></canvas>
     <div class="sr-only" id="live" role="status" aria-live="polite"></div>
     <div class="overlay" id="overlay" hidden>
       <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-text dialog-by">
@@ -119,7 +120,7 @@ export function createView(root, handlers = {}) {
     level: $("#level"), scheme: $("#scheme"), newGame: $("#new-game"), hint: $("#hint"), tip: $("#tip"), notice: $("#notice"),
     coach: $("#coach"), coachClose: $("#coach-close"), coachNext: $("#coach-next"), coachPanel: $("#coach-panel"),
     coachTitle: $("#coach-title"), coachText: $("#coach-text"), coachNote: $("#coach-note"), coachBody: $("#coach-body"), helpDots: $("#help-dots"), helpText: $("#help-text"),
-    confetti: $("#confetti"), live: $("#live"), overlay: $("#overlay"), dialogTitle: $("#dialog-title"), dialogText: $("#dialog-text"), dialogBy: $("#dialog-by"),
+    confetti: $("#confetti"), shockwave: $("#shockwave"), live: $("#live"), overlay: $("#overlay"), dialogTitle: $("#dialog-title"), dialogText: $("#dialog-text"), dialogBy: $("#dialog-by"),
     dialogNew: $("#dialog-new"), dialogCancel: $("#dialog-cancel"), preparing: $("#preparing")
   };
   let playingLoss = false, dialogKind = null, focusBeforeDialog = null, announceFlip = false, lastClicked = null, tipWanted = false;
@@ -259,6 +260,12 @@ export function createView(root, handlers = {}) {
 
     // Moves the keyboard focus to a cell (arrow-key navigation).
     focusCell(i) { cells[i].focus(); },
+    // Centre of a cell in CSS px (where the Star Wars shockwave starts), or null.
+    cellCenter(i) {
+      if (!cells[i]) return null;
+      const r = cells[i].getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    },
 
     // Switches every text to `lang` (PRD 3.8); the controller redraws the Coach panel
     // and calls render() afterwards for the cell labels and the help text.

@@ -343,3 +343,17 @@ Gate → commit `Sudoku: phase 9 – polish, accessibility and release`.
   Neon gone and Blue renamed, Neon migration, German scheme names, Coach contrast over
   all seven schemes; `visual.spec.js` selects B/W explicitly so the baselines stay valid.
   `VERSION` 13.
+
+- [x] **Shockwave instead of confetti in the Star Wars scheme** (change request
+  2026-11-16, PRD 3.2 item 7, decisions round 8): preview of shockwave + lightspeed
+  (video and key frames); the owner kept the shockwave only, for Star Wars only.
+  `js/shockwave.js` (new, same shape as `confetti.js`: injectable clock / frames /
+  reduced motion; soft flash, flat tilted ring in three glow strokes, 220 sparks,
+  1.7 s), own canvas `#shockwave` above the dialog, `view.cellCenter()`; the controller
+  picks shockwave or confetti by the current scheme, starting at the last filled
+  cell; New Game stops both. Tests: unit `shockwave.test.js` (6), e2e
+  `shockwave.spec.js` (6: fires in Star Wars and not the confetti, above the dialog
+  and click-through, draws over the viewport and starts at the last cell (`data-origin`; a
+  pixel check of the flash was timing-dependent on busy runs), other schemes
+  keep the confetti, the scheme at the end decides, New Game stops it, reduced motion);
+  `confetti.spec.js` plays in B/W now. `VERSION` 14.

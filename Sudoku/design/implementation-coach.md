@@ -238,6 +238,8 @@ tested here only on desktop Chrome and emulated iPhone/iPad viewports:
     draws filters differently from Chrome); digits sharp; the mistake shake, hint
     fade and confetti stay smooth with the filter on; the dark splash screen and
     status bar of the Home Screen app
+  - [ ] Star Wars win (`VERSION` 14): the shockwave looks right and runs smoothly on
+    the iPhone and iPad; the other schemes still show the confetti
   - [ ] Rainbow: box tints and lilac highlights look right in Safari; gradient title
     and New Game button render (`-webkit-background-clip: text`)
   - [ ] Both: the Safari / Home Screen status bar takes the scheme's `theme-color`

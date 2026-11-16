@@ -394,7 +394,7 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); ou
 
 /* ---- confetti (above the dialog, never blocks input) ---- */
 
-#confetti {
+#confetti, #shockwave {
   position: fixed;
   top: 0;
   left: 0;
@@ -403,4 +403,4 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); ou
   pointer-events: none;
   z-index: 20;
 }
-#confetti[hidden] { display: none; }
+#confetti[hidden], #shockwave[hidden] { display: none; }

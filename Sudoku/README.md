@@ -33,6 +33,9 @@ Specification: [design/PRD.md](design/PRD.md) · plan: [design/implementation.md
   nothing.
 - **Three mistakes lose the game:** the board shakes, the screen fades to grey
   and a popup offers *Play Again*.
+- **Winning:** confetti rains over the *Solved!* message – in the Star Wars scheme
+  a shockwave of light races out from the last cell instead. Neither appears with
+  "Reduce Motion" switched on.
 - **Star Wars quotes:** the mistake popups (encouraging after the first, a warning
   after the second), the lost and the solved popup each show a Star Wars quote –
   some real film lines with their speaker, mostly parodies. The lists live in
@@ -129,6 +132,7 @@ js/                               game logic (pure) and the DOM layer
                                   generation off the main thread, one puzzle per level in storage
   game, highlight                 rules: locking, mistakes, notes, hint, coach fill; highlight sets
   view, numpad, controller        rendering, tap-vs-hold, wiring
+  confetti, shockwave             win celebrations (shockwave only in Star Wars)
   settings, store, storage        remembered scheme/level/language, saved game, safe localStorage
 icons/, tools/make-icons.mjs      app icons and their generator
 tools/make-quotes.mjs             writes js/quotes.js from design/quotes-*.md
