@@ -216,11 +216,30 @@ Gate → commit `Sudoku: coach phase C3 – coach UI`.
 - [x] `implementation.md` "After the release": entry for the Coach, pointing to this file
 - [x] PRD 9 criterion 11 mapped to tests (table below)
 
-Still to do on the dev notebook (cannot run in the cloud session):
-- [ ] `npm run test:all` with real WebKit for the iPhone / iPad projects
-- [ ] `a11y.spec.js` incl. the new Coach axe scan
-- [ ] `visual.spec.js --update-snapshots`, look at the new images, commit them
-- [ ] Try it on the real iPhone / iPad (GitHub Pages)
+Still to do on the dev notebook (cannot run in the cloud session). The list also
+covers the later changes up to the Neon/Rainbow schemes (`2598eb1`), which were
+tested here only on desktop Chrome and emulated iPhone/iPad viewports:
+- [ ] `npm run test:all` with real WebKit for the iPhone / iPad projects (now incl.
+  the Coach step counter/note and the seven-scheme theme tests: Rainbow tints and
+  contrast, Neon glow and transparent cells)
+- [ ] `a11y.spec.js` incl. the new Coach axe scan; it now loops over **seven**
+  schemes. Watch for axe findings on the two gradient elements, which axe cannot
+  measure reliably: the Rainbow title (gradient text, `color: transparent`) and the
+  Rainbow **New Game** button (white text on a gradient, the orange stop is the
+  weakest part). If axe reports them, give the title a solid fallback colour or
+  darken the stop
+- [ ] `visual.spec.js --update-snapshots`, look at the new images, commit them (the
+  spec shoots B/W only, so the new schemes need no baselines)
+- [ ] Try it on the real iPhone / iPad (GitHub Pages; reload once or twice after
+  each deploy until the service worker shows `VERSION` 8):
+  - [ ] Coach: step counter and note readable; long texts scroll in portrait
+  - [ ] Neon in Safari: the board's `drop-shadow` filter and the digit halos render
+    (WebKit draws filters differently from Chrome); digits sharp enough; the
+    mistake shake, hint fade and confetti stay smooth with the filter on
+  - [ ] Neon: coral error red clearly different from the pink player digits
+  - [ ] Rainbow: box tints and lilac highlights look right in Safari; gradient title
+    and New Game button render (`-webkit-background-clip: text`)
+  - [ ] Both: the Safari / Home Screen status bar takes the scheme's `theme-color`
 
 Gate → commit `Sudoku: coach phase C4 – offline and docs`.
 

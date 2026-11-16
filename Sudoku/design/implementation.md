@@ -294,4 +294,5 @@ Gate → commit `Sudoku: phase 9 – polish, accessibility and release`.
   every tint, highlights replace the tint; Neon: glow present, plain cells
   transparent, highlights opaque; B/W has neither); settings unit test uses another
   invalid id. Run in the cloud session: unit, desktop, emulated iPhone/iPad green;
-  WebKit, axe and visual on the dev notebook.
+  WebKit, axe and real-device checks: see the notebook list in
+  [implementation-coach.md](implementation-coach.md) (phase C4).
