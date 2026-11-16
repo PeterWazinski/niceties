@@ -4,6 +4,7 @@ import { highlights } from "./highlight.js";
 import { cellValue, isGiven, isWrong, isEditable, remaining, coachAvailable } from "./game.js";
 import { UNITS } from "./grid.js";
 import { t, DEFAULT_LANG } from "./i18n.js";
+import { quoteText } from "./quotes.js";
 import { MAX_MISTAKES, MAX_HINTS, LEVELS } from "./config.js";
 import { attachNumpad } from "./numpad.js";
 import { SCHEMES } from "./schemes.js";
@@ -61,9 +62,10 @@ function template() {
     <canvas id="confetti" hidden aria-hidden="true"></canvas>
     <div class="sr-only" id="live" role="status" aria-live="polite"></div>
     <div class="overlay" id="overlay" hidden>
-      <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-text">
+      <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dialog-title" aria-describedby="dialog-text dialog-by">
         <h2 id="dialog-title"></h2>
         <p id="dialog-text"></p>
+        <p id="dialog-by" class="dialog-by" hidden></p>
         <div class="dialog-actions">
           <button type="button" class="btn primary" id="dialog-new"></button>
           <button type="button" class="btn" id="dialog-cancel" data-t="cancel"></button>
@@ -73,10 +75,11 @@ function template() {
 }
 
 // Text keys of the dialogs (i18n.js); the mistake title takes the mistake number.
+// Mistake, lost and solved show a Star Wars quote as their text (PRD 3.9, quotes.js).
 const DIALOGS = {
-  mistake: { title: "dlg.mistake.title", text: "dlg.mistake.text", primary: "ok" },
-  lost: { title: "dlg.lost.title", text: "dlg.lost.text", primary: "dlg.lost.primary" },
-  solved: { title: "dlg.solved.title", text: "dlg.solved.text", primary: "newGame" },
+  mistake: { title: "dlg.mistake.title", primary: "ok" },
+  lost: { title: "dlg.lost.title", primary: "dlg.lost.primary" },
+  solved: { title: "dlg.solved.title", primary: "newGame" },
   confirm: { title: "dlg.confirm.title", text: "dlg.confirm.text", primary: "newGame", cancel: true }
 };
 
@@ -116,13 +119,13 @@ export function createView(root, handlers = {}) {
     level: $("#level"), scheme: $("#scheme"), newGame: $("#new-game"), hint: $("#hint"), tip: $("#tip"), notice: $("#notice"),
     coach: $("#coach"), coachClose: $("#coach-close"), coachNext: $("#coach-next"), coachPanel: $("#coach-panel"),
     coachTitle: $("#coach-title"), coachText: $("#coach-text"), coachNote: $("#coach-note"), coachBody: $("#coach-body"), helpDots: $("#help-dots"), helpText: $("#help-text"),
-    confetti: $("#confetti"), live: $("#live"), overlay: $("#overlay"), dialogTitle: $("#dialog-title"), dialogText: $("#dialog-text"),
+    confetti: $("#confetti"), live: $("#live"), overlay: $("#overlay"), dialogTitle: $("#dialog-title"), dialogText: $("#dialog-text"), dialogBy: $("#dialog-by"),
     dialogNew: $("#dialog-new"), dialogCancel: $("#dialog-cancel"), preparing: $("#preparing")
   };
   let playingLoss = false, dialogKind = null, focusBeforeDialog = null, announceFlip = false, lastClicked = null, tipWanted = false;
   let coachStep = null; // the decorated Coach step on screen, or null
   let lastState = null;
-  let lang = DEFAULT_LANG, dialogN = 0;
+  let lang = DEFAULT_LANG, dialogN = 0, dialogQuote = null;
   const tr = (key, values) => t(lang, key, values);
 
   // Fills every text of the page in the current language (first render and every switch).
@@ -132,11 +135,18 @@ export function createView(root, handlers = {}) {
     document.documentElement.lang = lang;
   }
 
-  function fillDialog(kind, n) {
+  // quote = { list, index } for mistake / lost / solved (PRD 3.9): the same entry in
+  // either language, so a language switch shows the same quote translated
+  function fillDialog(kind, n, quote) {
     const d = DIALOGS[kind];
     dialogN = n;
+    dialogQuote = quote || null;
     setText(el.dialogTitle, tr(d.title, { n, max: MAX_MISTAKES }));
-    setText(el.dialogText, tr(d.text));
+    const q = quote ? quoteText(quote.list, quote.index, lang) : null;
+    setText(el.dialogText, q ? q.text : d.text ? tr(d.text) : "");
+    el.dialogText.classList.toggle("quote", !!q);
+    setText(el.dialogBy, q && q.by ? `— ${q.by}` : "");
+    el.dialogBy.hidden = !(q && q.by);
     setText(el.dialogNew, tr(d.primary));
     el.dialogCancel.hidden = !d.cancel;
   }
@@ -255,11 +265,12 @@ export function createView(root, handlers = {}) {
     setLanguage(next) {
       lang = next;
       applyTexts();
-      if (dialogKind) fillDialog(dialogKind, dialogN);
+      if (dialogKind) fillDialog(dialogKind, dialogN, dialogQuote);
     },
 
-    // kind: "mistake" | "lost" | "solved" | "confirm" | null (hide); `n` is the mistake number
-    showDialog(kind, n) {
+    // kind: "mistake" | "lost" | "solved" | "confirm" | null (hide); `n` is the mistake number;
+    // quote = { list, index } of the quote to show (drawn by the controller when the dialog opens)
+    showDialog(kind, n, quote) {
       if (kind === dialogKind) return;
       const wasOpen = dialogKind !== null;
       dialogKind = kind;
@@ -277,7 +288,7 @@ export function createView(root, handlers = {}) {
         focusBeforeDialog = null;
         return;
       }
-      fillDialog(kind, n);
+      fillDialog(kind, n, quote);
       el.overlay.dataset.kind = kind;
       el.dialogNew.focus();
     },

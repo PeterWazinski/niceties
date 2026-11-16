@@ -33,6 +33,11 @@ Specification: [design/PRD.md](design/PRD.md) · plan: [design/implementation.md
   nothing.
 - **Three mistakes lose the game:** the board shakes, the screen fades to grey
   and a popup offers *Play Again*.
+- **Star Wars quotes:** the mistake popups (encouraging after the first, a warning
+  after the second), the lost and the solved popup each show a Star Wars quote –
+  some real film lines with their speaker, mostly parodies. The lists live in
+  `design/quotes-en.md` and `design/quotes-de.md`; after editing them run
+  `node tools/make-quotes.mjs`.
 - **New Game** and the **Level** dropdown (Youngling, Padawan, Jedi – in German
   Jüngling, Padawan, Jedi) ask before
   they abandon a game with progress. **Colours** switches the colour scheme
@@ -119,11 +124,13 @@ js/                               game logic (pure) and the DOM layer
   techniques, generator           human solving techniques, puzzle generation + grading
   coach                           Coach chain, pruning, board marks and explanation texts
   i18n                            every text in English and German, device-language detection
+  quotes                          Star Wars quotes for the popups (generated), shuffled deck
   generator.worker, generator-client, pool
                                   generation off the main thread, one puzzle per level in storage
   game, highlight                 rules: locking, mistakes, notes, hint, coach fill; highlight sets
   view, numpad, controller        rendering, tap-vs-hold, wiring
   settings, store, storage        remembered scheme/level/language, saved game, safe localStorage
 icons/, tools/make-icons.mjs      app icons and their generator
+tools/make-quotes.mjs             writes js/quotes.js from design/quotes-*.md
 tests/unit, tests/e2e             node:test and Playwright
 ```

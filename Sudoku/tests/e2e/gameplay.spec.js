@@ -50,7 +50,7 @@ test("mistake 1 and 2: a modal popup, nothing else reacts until OK, then the dig
   await enter(page, a, wrongFor(P, a));
   await expect(dialog(page)).toBeVisible();
   await expect(page.locator("#dialog-title")).toHaveText("Mistake 1/3");
-  await expect(page.locator("#dialog-text")).toContainText("hint");
+  await expect(page.locator("#dialog-text")).toHaveClass(/quote/); // a Star Wars quote (PRD 3.9, quotes.spec.js)
   await expect(page.locator("#dialog-new")).toHaveText("OK");
   await expect(page.locator("#dialog-cancel")).toBeHidden();
   await expect(page.locator(".app")).toHaveAttribute("inert", "");
@@ -281,7 +281,7 @@ test("the third wrong digit loses the game: popup with Play Again only, the boar
   await expect(mistakes(page)).toHaveText("3/3");
   await expect(dialog(page)).toBeVisible();
   await expect(page.locator("#dialog-title")).toHaveText("You lost the game.");
-  await expect(page.locator("#dialog-text")).toHaveText("Play again?");
+  await expect(page.locator("#dialog-text")).toHaveClass(/quote/); // a Star Wars quote (PRD 3.9, quotes.spec.js)
   await expect(page.locator("#dialog-new")).toHaveText("Play Again");
   await expect(page.locator("#dialog-cancel")).toBeHidden();
   await expect(page.locator("#dialog-hint")).toHaveCount(0);

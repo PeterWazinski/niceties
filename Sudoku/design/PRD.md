@@ -466,8 +466,9 @@ The won, lost and mistake popups show a Star Wars quote instead of a fixed sente
 - **Choice:** at random, through the seeded RNG of the game (rule 7: reproducible
   tests), from a shuffled deck per list, so no quote repeats before the list has been
   used up. The deck lives only in the page (not saved); after a reload it starts anew.
-- **Language:** both languages use the same entry; switching the language while a
-  popup is open shows the same quote in the other language (3.8).
+- **Language:** each entry exists in both languages; the popup shows it in the current
+  language (3.8). The page keeps the entry, not the text, so a redraw in the other
+  language would show the same quote (the globe itself is behind the popup).
 - **Reload:** a lost game shows its popup again after a reload (3.7); it may then show
   a different quote from the same list.
 - **Screen readers:** the dialog's text (quote and speaker) is part of its accessible
@@ -712,8 +713,8 @@ Sudoku/
     visible and screen-reader text is translated, technique names stay English;
     the choice survives a reload; works offline.
 13. **Star Wars quotes** (3.9): mistake 1, mistake 2, lost and won popups show a quote
-    from their list (speaker line for real film lines), no repeat before a list is used
-    up, same quote in both languages, the hint sentence is gone.
+    from their list in the current language (speaker line for real film lines), no
+    repeat before a list is used up, the hint sentence is gone.
 
 ## 10. Out of scope / future ideas
 

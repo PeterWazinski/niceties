@@ -56,12 +56,9 @@ const EN = {
 
   // dialogs
   "dlg.mistake.title": ({ n, max }) => `Mistake ${n}/${max}`,
-  "dlg.mistake.text": "You may consider taking a hint next time.",
   "dlg.lost.title": "You lost the game.",
-  "dlg.lost.text": "Play again?",
   "dlg.lost.primary": "Play Again",
   "dlg.solved.title": "Solved!",
-  "dlg.solved.text": "Well done.",
   "dlg.confirm.title": "Abandon this game?",
   "dlg.confirm.text": "Your progress in this game will be lost.",
 
@@ -171,12 +168,9 @@ const DE = {
   "scheme.rainbow": "Regenbogen",
 
   "dlg.mistake.title": ({ n, max }) => `Fehler ${n}/${max}`,
-  "dlg.mistake.text": "Beim nächsten Mal hilft vielleicht ein Hinweis.",
   "dlg.lost.title": "Spiel verloren.",
-  "dlg.lost.text": "Noch einmal spielen?",
   "dlg.lost.primary": "Neu spielen",
   "dlg.solved.title": "Gelöst!",
-  "dlg.solved.text": "Gut gemacht.",
   "dlg.confirm.title": "Spiel beenden?",
   "dlg.confirm.text": "Der Fortschritt in diesem Spiel geht verloren.",
 

@@ -217,7 +217,7 @@ Gate → commit `Sudoku: coach phase C3 – coach UI`.
 - [x] PRD 9 criterion 11 mapped to tests (table below)
 
 Still to do on the dev notebook (cannot run in the cloud session). The list also
-covers the later changes up to German (L3), which were
+covers the later changes up to the Star Wars quotes, which were
 tested here only on desktop Chrome and emulated iPhone/iPad viewports:
 - [ ] `npm run test:all` with real WebKit for the iPhone / iPad projects (now incl.
   the Coach step counter/note and the seven-scheme theme tests: Rainbow tints and
@@ -243,6 +243,10 @@ tested here only on desktop Chrome and emulated iPhone/iPad viewports:
   - [ ] German (`VERSION` 10): a German iPad starts in German; 🌐 toggles live; the
     header (title, 🌐, Neues Spiel) and the tool row fit on the iPhone; VoiceOver
     reads German with German pronunciation; Coach texts read naturally
+- [ ] Star Wars quotes (`VERSION` 12): check the real film lines in
+  `design/quotes-en.md` against Wookieepedia and the German ones in `quotes-de.md`
+  against the German dub (Jedipedia); after any change run `node tools/make-quotes.mjs`;
+  look at the popups on the iPhone (long quotes, speaker line)
 
 Gate → commit `Sudoku: coach phase C4 – offline and docs`.
 

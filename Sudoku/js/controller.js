@@ -7,6 +7,8 @@ import {
 } from "./game.js";
 import { explain, cellNamer } from "./coach.js";
 import { t, detectLang } from "./i18n.js";
+import { createQuoteDeck } from "./quotes.js";
+import { createRng } from "./rng.js";
 import { createGeneratorClient } from "./generator-client.js";
 import { createPool } from "./pool.js";
 import { createConfetti } from "./confetti.js";
@@ -27,6 +29,10 @@ export function startApp(root) {
   // ?seed=N is a test hook: puzzles are generated from N, N+1, ... (no pool), so games are reproducible.
   const deterministic = params.has("seed");
   let seedCounter = deterministic ? Number(params.get("seed")) || 1 : 0;
+  // Star Wars quotes for the popups (PRD 3.9): a shuffled deck per list, seeded like the
+  // puzzles (?seed gives reproducible quotes in tests)
+  const quotes = createQuoteDeck(createRng(deterministic ? seedCounter * 7919 + 17 : Math.floor(Math.random() * 4294967296)));
+  let shownDialog = null, shownQuote = null;
   const settings = loadSettings();
   const paramLevel = LEVELS.includes(params.get("level")) ? params.get("level") : null;
   const reducedMotion = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -92,7 +98,15 @@ export function startApp(root) {
     if (state.solved && !celebrated) { celebrated = true; confetti.fire(); }
     if (!state.solved) celebrated = false;
     view.setTipVisible(!tipShown && !coach);
-    view.showDialog(pending ? "confirm" : state.solved ? "solved" : mistakeShown ? "mistake" : state.lost && !losing ? "lost" : null, mistakeShown);
+    const kind = pending ? "confirm" : state.solved ? "solved" : mistakeShown ? "mistake" : state.lost && !losing ? "lost" : null;
+    // a quote is drawn once, when a dialog opens (mistake 1 encouraging, mistake 2 a warning)
+    const dialogId = kind === "mistake" ? "mistake" + mistakeShown : kind;
+    if (dialogId !== shownDialog) {
+      const list = { mistake1: "mistake1", mistake2: "mistake2", lost: "lost", solved: "won" }[dialogId];
+      shownQuote = list ? { list, index: quotes.draw(list) } : null;
+      shownDialog = dialogId;
+    }
+    view.showDialog(kind, mistakeShown, shownQuote);
     if (state.solved) clearGame(); else saveGame(state);
   }
 

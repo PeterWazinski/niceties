@@ -5,6 +5,7 @@ import { openGame, cell, values } from "./helpers.js";
 import { enter, num, keepWrong, threeMistakes, puzzleFor, emptyIndices, wrongFor, dialog, waitIdle } from "./play-helpers.js";
 import { expertPosition, openPosition, panel } from "./coach-helpers.js";
 import { explain, cellNamer } from "../../js/coach.js";
+import { QUOTES } from "../../js/quotes.js";
 
 test.use({ reducedMotion: "reduce" });
 
@@ -74,7 +75,7 @@ test.describe("German device", () => {
     const empties = emptyIndices(await values(page));
     await enter(page, empties[0], wrongFor(P, empties[0]));
     await expect(page.locator("#dialog-title")).toHaveText("Fehler 1/3");
-    await expect(page.locator("#dialog-text")).toHaveText("Beim nächsten Mal hilft vielleicht ein Hinweis.");
+    expect(QUOTES.mistake1.map((q) => q.de)).toContain(await page.locator("#dialog-text").textContent());
     await expect(page.locator("#dialog-new")).toHaveText("OK");
     await page.locator("#dialog-new").click();
     await waitIdle(page);
@@ -93,7 +94,7 @@ test.describe("German device", () => {
     await openGame(page);
     await threeMistakes(page, puzzleFor(12), await values(page));
     await expect(page.locator("#dialog-title")).toHaveText("Spiel verloren.");
-    await expect(page.locator("#dialog-text")).toHaveText("Noch einmal spielen?");
+    expect(QUOTES.lost.map((q) => q.de)).toContain(await page.locator("#dialog-text").textContent());
     await expect(page.locator("#dialog-new")).toHaveText("Neu spielen");
   });
 

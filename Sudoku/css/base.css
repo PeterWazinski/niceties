@@ -313,6 +313,10 @@ button:focus-visible, select:focus-visible { outline: 3px solid var(--focus); ou
 }
 .dialog h2 { margin: 0 0 8px; font-size: 24px; }
 .dialog p { margin: 0 0 18px; color: var(--muted); font-size: 16px; }
+/* Star Wars quote (PRD 3.9): the quote in italics, the speaker small below it */
+.dialog p.quote { color: var(--ink); font-style: italic; font-size: 17px; line-height: 1.35; }
+.dialog p.dialog-by { margin: -12px 0 18px; font-size: 14px; }
+.dialog p.dialog-by[hidden] { display: none; }
 .dialog-actions { display: flex; flex-direction: column; gap: 10px; }
 .dialog-actions .btn { min-height: 52px; }
 .dialog-actions [hidden] { display: none; }

@@ -308,3 +308,25 @@ Gate → commit `Sudoku: phase 9 – polish, accessibility and release`.
   Jüngling / Padawan / Jedi), also in the Coach title; ids unchanged, so saved games
   and settings keep working. README, tests with level names (unit coach and German
   texts, e2e coach, language, offline) updated; `VERSION` 11.
+
+- [x] **Star Wars quotes in the popups** (change request 2026-11-16, PRD 3.9, decisions
+  round 6): the mistake 1 (encouraging), mistake 2 (warning), lost and solved popups show
+  a quote instead of a fixed sentence; real film lines with a speaker line, mostly
+  parodies; 4 lists × 25 in `design/quotes-en.md` / `quotes-de.md` (reviewed by the owner).
+  - [x] `tools/quotes-md.mjs` (parser) and `tools/make-quotes.mjs` write `js/quotes.js`
+    (pure: `QUOTES`, `quoteText()`, `createQuoteDeck(rng)` – shuffled deck per list, no
+    quote twice in a row, also across rounds)
+  - [x] `controller.js`: one deck, seeded like the puzzles (`?seed` → reproducible); a
+    quote is drawn once when a dialog opens; `view.js`: quote in italics, speaker line
+    `#dialog-by` (also in `aria-describedby`), redraw in the current language keeps the
+    entry; the old sentences ("You may consider taking a hint next time.", "Play
+    again?", "Well done." and their German texts) removed from `i18n.js`
+  - [x] `sw.js`: `js/quotes.js` precached, `VERSION` 12
+  - [x] Tests: unit `quotes.test.js` (7: code = Markdown files, four lists, 25 each,
+    both languages, length ≤ 120, speakers, parser, `quoteText`, deck rounds and seeds);
+    e2e `quotes.spec.js` (8: mistake 1 / 2, lost incl. reload, solved, confirm without
+    quote, `aria-describedby`, no repeat across games, German); gameplay and language
+    specs adapted
+  - [ ] Check the wording of the real film lines (Wookieepedia) and of the German lines
+    (Jedipedia, German dub) – see the notebook list in
+    [implementation-coach.md](implementation-coach.md)
