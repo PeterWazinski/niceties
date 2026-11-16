@@ -9,7 +9,7 @@ export const LONG_PRESS_MS = 350;
 
 export const LEVELS = ["beginner", "expert", "master"];
 export const DEFAULT_LEVEL = "beginner";
-export const DEFAULT_SCHEME = "bw";
+export const DEFAULT_SCHEME = "starwars"; // since 2026-11-16 (before: "bw")
 
 // Clue (given) ranges per level, PRD 4. Technique requirements are added with the grader.
 export const LEVEL_CONFIG = {

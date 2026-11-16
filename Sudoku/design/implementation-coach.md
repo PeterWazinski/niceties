@@ -217,7 +217,7 @@ Gate → commit `Sudoku: coach phase C3 – coach UI`.
 - [x] PRD 9 criterion 11 mapped to tests (table below)
 
 Still to do on the dev notebook (cannot run in the cloud session). The list also
-covers the later changes up to the Star Wars quotes, which were
+covers the later changes up to the Star Wars scheme, which were
 tested here only on desktop Chrome and emulated iPhone/iPad viewports:
 - [ ] `npm run test:all` with real WebKit for the iPhone / iPad projects (now incl.
   the Coach step counter/note and the seven-scheme theme tests: Rainbow tints and
@@ -233,10 +233,11 @@ tested here only on desktop Chrome and emulated iPhone/iPad viewports:
 - [ ] Try it on the real iPhone / iPad (GitHub Pages; reload once or twice after
   each deploy until the service worker shows `VERSION` 8):
   - [ ] Coach: step counter and note readable; long texts scroll in portrait
-  - [ ] Neon in Safari: the board's `drop-shadow` filter and the digit halos render
-    (WebKit draws filters differently from Chrome); digits sharp enough; the
-    mistake shake, hint fade and confetti stay smooth with the filter on
-  - [ ] Neon: coral error red clearly different from the pink player digits
+  - [ ] Star Wars (default since `VERSION` 13, replaced Neon) in Safari: the starfield
+    background, the board's `drop-shadow` glow and the digit halos render (WebKit
+    draws filters differently from Chrome); digits sharp; the mistake shake, hint
+    fade and confetti stay smooth with the filter on; the dark splash screen and
+    status bar of the Home Screen app
   - [ ] Rainbow: box tints and lilac highlights look right in Safari; gradient title
     and New Game button render (`-webkit-background-clip: text`)
   - [ ] Both: the Safari / Home Screen status bar takes the scheme's `theme-color`

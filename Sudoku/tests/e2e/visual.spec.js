@@ -4,6 +4,7 @@ import { openGame, cell, values } from "./helpers.js";
 // Screenshot baselines of the Black & White layout, one per device project.
 test("visual: B/W layout with a selection", async ({ page }, info) => {
   await openGame(page);
+  await page.selectOption("#scheme", "bw"); // the baselines show B/W (the default is Star Wars since 2026-11-16)
   const v = await values(page);
   await cell(page, v.findIndex((x) => x !== "")).click();
   await page.mouse.move(0, 0);

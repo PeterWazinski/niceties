@@ -47,11 +47,11 @@ const EN = {
   "level.master": "Jedi",
 
   "scheme.bw": "Black & White",
-  "scheme.blue": "Classic Blue",
+  "scheme.starwars": "Star Wars",
+  "scheme.blue": "Blue",
   "scheme.sepia": "Sepia",
   "scheme.dark": "Dark",
   "scheme.forest": "Forest",
-  "scheme.neon": "Neon",
   "scheme.rainbow": "Rainbow",
 
   // dialogs
@@ -160,11 +160,11 @@ const DE = {
   "level.master": "Jedi",
 
   "scheme.bw": "B/W",
-  "scheme.blue": "Klassisch Blau",
+  "scheme.starwars": "Star Wars",
+  "scheme.blue": "Blau",
   "scheme.sepia": "Sepia",
   "scheme.dark": "Nacht",
   "scheme.forest": "Wald",
-  "scheme.neon": "Neon",
   "scheme.rainbow": "Regenbogen",
 
   "dlg.mistake.title": ({ n, max }) => `Fehler ${n}/${max}`,

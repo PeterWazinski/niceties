@@ -23,7 +23,7 @@ const { loadGame, saveGame, clearGame, GAME_KEY } = await import("../../js/store
 
 test("settings: defaults on a clean profile", () => {
   install();
-  assert.deepEqual(loadSettings(), { scheme: "bw", level: "beginner" });
+  assert.deepEqual(loadSettings(), { scheme: "starwars", level: "beginner" });
 });
 
 test("settings: saved values come back", () => {
@@ -36,7 +36,7 @@ test("settings: saved values come back", () => {
 
 test("settings: invalid stored values fall back to the defaults, invalid values are not saved", () => {
   const m = install({ [SCHEME_KEY]: "plaid", [LEVEL_KEY]: "easy" });
-  assert.deepEqual(loadSettings(), { scheme: "bw", level: "beginner" });
+  assert.deepEqual(loadSettings(), { scheme: "starwars", level: "beginner" });
   saveScheme("plaid"); saveLevel("easy");
   assert.equal(m.get(SCHEME_KEY), "plaid", "unchanged: invalid value ignored");
   assert.equal(m.get(LEVEL_KEY), "easy");
@@ -50,7 +50,7 @@ test("settings: only the sudoku. prefix is used", () => {
 
 test("settings and store survive a storage that throws", () => {
   installBroken();
-  assert.deepEqual(loadSettings(), { scheme: "bw", level: "beginner" });
+  assert.deepEqual(loadSettings(), { scheme: "starwars", level: "beginner" });
   assert.doesNotThrow(() => { saveScheme("dark"); saveLevel("master"); });
   const s = newGame(generate("beginner", createRng(1)));
   assert.doesNotThrow(() => saveGame(s));
@@ -112,4 +112,11 @@ test("language (PRD 3.8): saved choice wins over the device language, invalid on
   installBroken();
   assert.equal(loadLang("de"), "de");
   assert.doesNotThrow(() => saveLang("en"));
+});
+
+test("a saved Neon scheme moves to Star Wars (Neon was replaced on 2026-11-16)", () => {
+  install({ [SCHEME_KEY]: "neon" });
+  assert.equal(loadSettings().scheme, "starwars");
+  install({ [SCHEME_KEY]: "starwars" });
+  assert.equal(loadSettings().scheme, "starwars");
 });

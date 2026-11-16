@@ -97,7 +97,7 @@ test("German UI texts of PRD 3.8", () => {
   assert.equal(t("de", "dlg.confirm.title"), "Spiel beenden?");
   assert.deepEqual(LEVELS.map((l) => t("de", "level." + l)), ["Jüngling", "Padawan", "Jedi"]);
   assert.deepEqual(LEVELS.map((l) => t("en", "level." + l)), ["Youngling", "Padawan", "Jedi"]);
-  assert.deepEqual(SCHEMES.map((s) => t("de", "scheme." + s.id)), ["B/W", "Klassisch Blau", "Sepia", "Nacht", "Wald", "Neon", "Regenbogen"]);
+  assert.deepEqual(SCHEMES.map((s) => t("de", "scheme." + s.id)), ["Star Wars", "B/W", "Blau", "Sepia", "Nacht", "Wald", "Regenbogen"]);
   assert.equal(t("de", "cell.pos", { r: 4, c: 6 }), "Reihe 4, Spalte 6");
   assert.equal(t("de", "coach.step", { k: 1, n: 3 }), "Schritt 1 von 3");
   assert.equal(t("de", "lang.code"), "DE");

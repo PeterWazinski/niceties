@@ -320,23 +320,25 @@ itself is saved as before.
 
 ### 3.6 Colour schemes
 
-Dropdown in the status row. **Black & White** is the default. Proposed set (all
+Dropdown in the status row. **Star Wars** is the first entry and the default for a
+new player (since 2026-11-16; before: Black & White). Proposed set (all
 defined as CSS variable sets, so more can be added in minutes):
 
 | Scheme | Notes |
 |---|---|
-| **Black & White** (default) | White paper, black lines/givens, greys for highlights, dark grey for player digits, red for errors |
-| Classic Blue | The sudoku.com look from the screenshots |
+| **Black & White** (default until 2026-11-16) | White paper, black lines/givens, greys for highlights, dark grey for player digits, red for errors |
+| Blue | The sudoku.com look from the screenshots (named "Classic Blue" until 2026-11-16) |
 | Sepia | Warm paper, brown ink – easy on the eyes |
 | Dark | Near-black background, light digits |
 | Forest | Soft greens |
-| Neon | Near-black background, cyan grid lines and white givens with a soft glow, pink player digits, coral red for errors (change request 2026-11-16) |
+| Star Wars | First in the list and the default: starfield page, deep-blue cells, a blue glowing frame like a blade, white givens and light-blue player digits with a soft halo, title in spaced capitals, coral red for errors (change request 2026-11-16; replaced Neon, which had been added the same day) |
 | Rainbow | Light page, each 3×3 box its own pastel tint (red → pink), dark givens, violet player digits; highlights in lilac layers instead of the tint; rainbow title and New Game button (change request 2026-11-16) |
 
 Every scheme must keep givens, player digits, the three highlight levels and the
 error red clearly distinguishable (minimum contrast 4.5:1 for digits; in Rainbow
-on every box tint). Neon's glow was halved after the first proposal so the digits
-stay sharp.
+on every box tint). Star Wars uses opaque cells, so only the frame glows and the
+highlight layers keep their colours; its error red is a lighter coral, because the
+first proposal's red reached only 3.2:1 on the selected cell.
 The colour scheme switches live, with no reload. The browser's
 `theme-color` meta tag follows the scheme.
 
@@ -346,7 +348,7 @@ The colour scheme switches live, with no reload. The browser's
 
 | Key | Value |
 |---|---|
-| `sudoku.scheme` | scheme id, default `bw` |
+| `sudoku.scheme` | scheme id, default `starwars` (before 2026-11-16: `bw`); a saved `neon` becomes `starwars` |
 | `sudoku.level` | `beginner` \| `expert` \| `master`, default `beginner` |
 | `sudoku.lang` | `en` \| `de`; missing or invalid → device language (3.8) |
 | `sudoku.game` | the **complete game state**: givens, solution, entries, notes, mistakes, hints used, selected cell, level, lost or not. Written after every move; restored when the page is opened again, also after an iOS tab eviction. Deleted when the game is solved. |
@@ -391,7 +393,7 @@ notices, the Coach explanations and all screen-reader texts (labels, announcemen
 - **Cells:** "Reihe 4, Spalte 6" at first mention, then **"r4s6"** (r = Reihe,
   s = Spalte). Units: "Reihe 4", "Spalte 6", "Block 5"; plural "Reihen 2 und 7",
   "Spalten 1, 4 und 8". Lists: "4 und 8", "1, 2 und 3".
-- **Colour schemes:** B/W, Klassisch Blau, Sepia, Nacht, Wald, Neon, Regenbogen.
+- **Colour schemes:** Star Wars, B/W, Blau, Sepia, Nacht, Wald, Regenbogen.
 
 **German texts (UI).**
 
@@ -399,7 +401,7 @@ notices, the Coach explanations and all screen-reader texts (labels, announcemen
 |---|---|
 | New Game | Neues Spiel |
 | Level / Mistakes / Colours | Stufe / Fehler / Farben |
-| Black & White, Classic Blue, Sepia, Dark, Forest, Neon, Rainbow | B/W, Klassisch Blau, Sepia, Nacht, Wald, Neon, Regenbogen |
+| Star Wars, Black & White, Blue, Sepia, Dark, Forest, Rainbow | Star Wars, B/W, Blau, Sepia, Nacht, Wald, Regenbogen |
 | Hint / Coach | Hinweis / Coach |
 | Close / Next / Fill | Schließen / Weiter / Eintragen |
 | Help: n of 4 used | Hilfe: n von 4 genutzt |
@@ -655,7 +657,7 @@ Sudoku/
 - **Generator isolation:** `generator.js` is plain ES module code, imported by
   the worker and by the node tests, with no DOM or worker APIs inside.
 - **Colour schemes:** `data-scheme="bw"` on `<html>`; `themes.css` defines
-  variables. Adding a scheme = adding one block + one dropdown entry. Neon and
+  variables. Adding a scheme = adding one block + one dropdown entry. Star Wars and
   Rainbow add a few scheme-scoped effect rules at the end of `themes.css` (glow;
   box tints through a per-cell `--cell-bg` and the cell's `data-box`).
 - **Responsive:** `min(100vw − gutters, 100dvh − chrome)` for the board size,
@@ -699,7 +701,7 @@ Sudoku/
 5a. Tap enters a digit, long press toggles a note; both only in an editable cell that is selected.
 5b. Reloading the page restores the complete game, including notes, mistakes, hints used and a lost game.
 6. Levels Beginner/Expert/Master produce puzzles with the clue ranges and techniques of section 4; every puzzle is unique and (by default) 180° symmetric.
-7. A colour-scheme dropdown with B/W as default; the choice and the level survive a reload.
+7. A colour-scheme dropdown with Star Wars as default (B/W until 2026-11-16); the choice and the level survive a reload.
 8. Layout fits an iPhone (6") and an iPad (10") in portrait without scrolling; iPad landscape uses the side panel.
 9. After one online load, the game can be played to completion and a new game started with the device in airplane mode.
 10. *New Game* appears in < 300 ms in the normal case (from the pool).
@@ -777,7 +779,7 @@ in untangleMe), auto-notes, more symmetries picker, printing (German UI: done, 3
 | Technique names | Stay English; the German table is ready for German names later. |
 | Cell names | "Reihe 4, Spalte 6", short "r4s6" (r = Reihe, s = Spalte; confirmed). |
 | During coaching | The panel redraws in the new language; names start long again. |
-| Colour schemes | B/W, Klassisch Blau, Sepia, Nacht, Wald, Neon, Regenbogen. |
+| Colour schemes | B/W, Klassisch Blau, Sepia, Nacht, Wald, Neon, Regenbogen (round 7: Star Wars first, Neon removed, Blau). |
 | Docs | README and design docs stay English. |
 | Wording | German texts as listed in 3.8, reviewed; the New Game question is "Spiel beenden?". |
 
@@ -799,3 +801,13 @@ in untangleMe), auto-notes, more symmetries picker, printing (German UI: done, 3
 | Mistake 1 / 2 | Mistake 1 encouraging, mistake 2 a warning; lost and won have their own lists. |
 | Speaker | Real film lines show "— Name"; parodies have none. |
 | Collection | Claude drafts 25 per list in `quotes-de.md` and `quotes-en.md` (mostly parodies, a few real lines with speaker); the owner reviews them before implementation. Real lines were written from memory: exact wording to be checked (Wookieepedia / Jedipedia), German dub wording not checked. |
+
+### Change request Star Wars scheme (review round 7, 2026-11-16)
+
+| Topic | Decision |
+|---|---|
+| Star Wars scheme | The "Light Side" proposal becomes the scheme **Star Wars** (same name in German), first in the list. |
+| Default | Star Wars is the default for a new player (B/W before). Saved choices are kept. |
+| Neon | Removed (too close to Star Wars); a saved `neon` moves to `starwars`. |
+| Blue | "Classic Blue" is renamed **Blue** ("Blau"). |
+| Other proposals | Dark Side, Hologram and Desert Suns were shown as mockups and not taken. |

@@ -41,8 +41,8 @@ Specification: [design/PRD.md](design/PRD.md) · plan: [design/implementation.md
 - **New Game** and the **Level** dropdown (Youngling, Padawan, Jedi – in German
   Jüngling, Padawan, Jedi) ask before
   they abandon a game with progress. **Colours** switches the colour scheme
-  (Black & White is the default; also Classic Blue, Sepia, Dark, Forest, Neon
-  and Rainbow).
+  (Star Wars – a starfield with a glowing blue board – is the default; also Black &
+  White, Blue, Sepia, Dark, Forest and Rainbow).
 - **Language:** English and German. The game starts in the language of your
   device (German on a German device, English otherwise); the **🌐 EN / 🌐 DE**
   button in the header shows the current language and switches with one tap.

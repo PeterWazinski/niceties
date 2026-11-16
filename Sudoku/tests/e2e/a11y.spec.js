@@ -6,7 +6,7 @@ import { expertPosition, openPosition } from "./coach-helpers.js";
 
 test.use({ reducedMotion: "reduce" });
 
-const SCHEMES = ["bw", "blue", "sepia", "dark", "forest", "neon", "rainbow"];
+const SCHEMES = ["starwars", "bw", "blue", "sepia", "dark", "forest", "rainbow"];
 const P = puzzleFor(12);
 
 test.beforeEach(async ({ page }) => { await openGame(page); });

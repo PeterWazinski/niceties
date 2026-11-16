@@ -5,7 +5,7 @@ import { MAX_MISTAKES, LONG_PRESS_MS, LEVELS, LEVEL_CONFIG, DEFAULT_LEVEL, DEFAU
 test("game constants match the PRD", () => {
   assert.equal(MAX_MISTAKES, 3);
   assert.equal(LONG_PRESS_MS, 350);
-  assert.equal(DEFAULT_SCHEME, "bw");
+  assert.equal(DEFAULT_SCHEME, "starwars");
   assert.equal(DEFAULT_LEVEL, "beginner");
 });
 

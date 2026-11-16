@@ -2,15 +2,16 @@ import { test, expect } from "@playwright/test";
 import { openGame, contrast, cell, values } from "./helpers.js";
 import { emptyIndices } from "./play-helpers.js";
 
-const SCHEMES = ["bw", "blue", "sepia", "dark", "forest", "neon", "rainbow"];
+const SCHEMES = ["starwars", "bw", "blue", "sepia", "dark", "forest", "rainbow"];
 
 test.beforeEach(async ({ page }) => { await openGame(page); });
 
-test("Black & White is the default scheme", async ({ page }) => {
-  await expect(page.locator("html")).toHaveAttribute("data-scheme", "bw");
-  await expect(page.locator("#scheme")).toHaveValue("bw");
+test("Star Wars is the default scheme (since 2026-11-16)", async ({ page }) => {
+  await expect(page.locator("html")).toHaveAttribute("data-scheme", "starwars");
+  await expect(page.locator("#scheme")).toHaveValue("starwars");
   const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(bg).toBe("rgb(255, 255, 255)");
+  expect(bg).toBe("rgb(4, 5, 11)");
+  expect(await page.locator('meta[name="theme-color"]').getAttribute("content")).toBe("#04050b");
 });
 
 test("the dropdown offers the seven schemes", async ({ page }) => {
@@ -86,7 +87,7 @@ test("the layout does not change when the scheme changes", async ({ page }) => {
   expect(after).toEqual(before);
 });
 
-// ---- Neon and Rainbow (change request 2026-11-16) -----------------------------------
+// ---- Star Wars and Rainbow (change requests 2026-11-16) ------------------------------
 
 const hex = (rgb) => "#" + rgb.match(/\d+(\.\d+)?/g).slice(0, 3).map((v) => Number(v).toString(16).padStart(2, "0")).join("");
 const rootVar = (page, name) => page.evaluate((n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim(), name);
@@ -126,22 +127,29 @@ test("Rainbow: highlighted cells use the highlight layers, not the box tint", as
   await expect.poll(async () => hex(await cell(page, i).evaluate((e) => getComputedStyle(e).backgroundColor))).toBe(sel);
 });
 
-test("Neon: digits and grid lines glow; plain cells are transparent, highlighted ones are not", async ({ page }) => {
-  await page.selectOption("#scheme", "neon");
-  const given = await page.$eval('.cell[data-state="given"] .digit', (e) => getComputedStyle(e).textShadow);
-  expect(given).not.toBe("none");
-  const filter = await page.locator("#board").evaluate((e) => getComputedStyle(e).filter);
-  expect(filter).toContain("drop-shadow");
+test("Star Wars: first in the list, starfield page, glowing frame and digits, title in capitals", async ({ page }) => {
+  expect(await page.$eval("#scheme option", (o) => o.value)).toBe("starwars");
+  await page.selectOption("#scheme", "starwars");
+  const bodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundImage);
+  expect(bodyBg).toContain("radial-gradient");
+  expect(await page.locator("#board").evaluate((e) => getComputedStyle(e).filter)).toContain("drop-shadow");
+  expect(await page.$eval('.cell[data-state="given"] .digit', (e) => getComputedStyle(e).textShadow)).not.toBe("none");
+  expect(await page.locator(".title").evaluate((e) => getComputedStyle(e).textTransform)).toBe("uppercase");
+  await expect(page.locator(".title")).toHaveText("Sudoku"); // only the look changes, not the text
+  // cells are opaque: highlights keep their layer colours
   const i = emptyIndices(await values(page))[0];
   await cell(page, i).click();
   const sel = await rootVar(page, "--sel-bg");
-  await expect.poll(() => page.$$eval(".cell", (els) => getComputedStyle(els.find((e) => !e.className.match(/peer|same|sel|conflict/))).backgroundColor))
-    .toBe("rgba(0, 0, 0, 0)");
   await expect.poll(async () => hex(await cell(page, i).evaluate((e) => getComputedStyle(e).backgroundColor))).toBe(sel);
 });
 
+test("Neon is gone; the old Classic Blue is now called Blue", async ({ page }) => {
+  expect(await page.$$eval("#scheme option", (os) => os.map((o) => o.value))).not.toContain("neon");
+  expect(await page.$eval('#scheme option[value="blue"]', (o) => o.textContent)).toBe("Blue");
+});
+
 test("glow and tints stay in their schemes: Black & White has neither", async ({ page }) => {
-  await page.selectOption("#scheme", "neon");
+  await page.selectOption("#scheme", "starwars");
   await page.selectOption("#scheme", "bw");
   expect(await page.$eval('.cell[data-state="given"] .digit', (e) => getComputedStyle(e).textShadow)).toBe("none");
   expect(await page.locator("#board").evaluate((e) => getComputedStyle(e).filter)).toBe("none");

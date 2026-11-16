@@ -330,3 +330,16 @@ Gate → commit `Sudoku: phase 9 – polish, accessibility and release`.
   - [ ] Check the wording of the real film lines (Wookieepedia) and of the German lines
     (Jedipedia, German dub) – see the notebook list in
     [implementation-coach.md](implementation-coach.md)
+
+- [x] **Star Wars scheme replaces Neon, default for new players** (change request
+  2026-11-16, PRD 3.6, decisions round 7): four Star Wars mockups (Light Side, Dark Side,
+  Hologram, Desert Suns), the owner chose Light Side. `themes.css`: the `starwars` block
+  (starfield page, opaque cells, glowing frame, digit halo, title in capitals; selected
+  cell `#1a3f74` and error `#ff8a80` instead of the mockup's colours for 4.5:1); Neon
+  block and effects removed. `schemes.js`: `starwars` first, `neon` gone;
+  `config.js` `DEFAULT_SCHEME = "starwars"`; `index.html` and the manifest start dark
+  (`#04050b`); `settings.js` moves a saved `neon` to `starwars`; "Classic Blue" →
+  "Blue" / "Blau". Tests: scheme lists, default scheme (unit and e2e), Star Wars look,
+  Neon gone and Blue renamed, Neon migration, German scheme names, Coach contrast over
+  all seven schemes; `visual.spec.js` selects B/W explicitly so the baselines stay valid.
+  `VERSION` 13.

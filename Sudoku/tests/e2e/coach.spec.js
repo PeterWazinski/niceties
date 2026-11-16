@@ -261,7 +261,7 @@ test("coaching colours: key and removed candidates reach 4.5:1 in every scheme",
   const { state } = EXPERT;
   await openPosition(page, state);
   await page.locator("#coach").click();
-  for (const s of ["bw", "blue", "sepia", "dark", "forest"]) {
+  for (const s of ["starwars", "bw", "blue", "sepia", "dark", "forest", "rainbow"]) {
     await page.evaluate((id) => { document.documentElement.dataset.scheme = id; }, s);
     const pairs = await page.evaluate(() => {
       const out = [];

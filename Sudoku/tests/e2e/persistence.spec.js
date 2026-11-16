@@ -16,10 +16,10 @@ async function openReal(page) {
   await expect(page.locator(".cell")).toHaveCount(81);
 }
 
-test("a clean profile starts with Black & White and Beginner", async ({ page }) => {
+test("a clean profile starts with Star Wars and Beginner", async ({ page }) => {
   await openReal(page);
-  await expect(page.locator("html")).toHaveAttribute("data-scheme", "bw");
-  await expect(page.locator("#scheme")).toHaveValue("bw");
+  await expect(page.locator("html")).toHaveAttribute("data-scheme", "starwars");
+  await expect(page.locator("#scheme")).toHaveValue("starwars");
   await expect(page.locator("#level")).toHaveValue("beginner");
   const [lo, hi] = LEVEL_RANGE.beginner;
   expect(clues(await values(page))).toBeGreaterThanOrEqual(lo);
@@ -202,7 +202,7 @@ test("the game works when localStorage is unavailable", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("data-scheme", "dark");
   await page.reload();
   await expect(page.locator("#app")).toHaveAttribute("data-ready", "true");
-  await expect(page.locator("html")).toHaveAttribute("data-scheme", "bw"); // nothing remembered
+  await expect(page.locator("html")).toHaveAttribute("data-scheme", "starwars"); // nothing remembered
 });
 
 test("every localStorage key of the game starts with sudoku.", async ({ page }) => {

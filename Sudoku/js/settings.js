@@ -9,8 +9,12 @@ export const SCHEME_KEY = "sudoku.scheme";
 export const LEVEL_KEY = "sudoku.level";
 export const LANG_KEY = "sudoku.lang";
 
+// Schemes that were replaced: a saved old id moves to its successor.
+const RENAMED_SCHEMES = { neon: "starwars" };
+
 export function loadSettings() {
-  const scheme = safeGet(SCHEME_KEY), level = safeGet(LEVEL_KEY);
+  const saved = safeGet(SCHEME_KEY), level = safeGet(LEVEL_KEY);
+  const scheme = RENAMED_SCHEMES[saved] || saved;
   return {
     scheme: SCHEMES.some((s) => s.id === scheme) ? scheme : DEFAULT_SCHEME,
     level: LEVELS.includes(level) ? level : DEFAULT_LEVEL

@@ -23,7 +23,7 @@ test.describe("German device", () => {
     await expect(page.locator("#lang")).toHaveAttribute("aria-label", "Sprache: Deutsch. Auf Englisch umschalten");
     await expect(page.locator(".field-label")).toHaveText(["Stufe", "Fehler", "Farben"]);
     expect(await optionTexts(page, "#level")).toEqual(["Jüngling", "Padawan", "Jedi"]);
-    expect(await optionTexts(page, "#scheme")).toEqual(["B/W", "Klassisch Blau", "Sepia", "Nacht", "Wald", "Neon", "Regenbogen"]);
+    expect(await optionTexts(page, "#scheme")).toEqual(["Star Wars", "B/W", "Blau", "Sepia", "Nacht", "Wald", "Regenbogen"]);
     await expect(page.locator("#hint")).toHaveText("Hinweis");
     await expect(page.locator("#coach")).toHaveText("Coach");
     await expect(page.locator("#tip")).toHaveText("Tipp: Zahl lang drücken für eine Notiz");
