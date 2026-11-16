@@ -96,7 +96,9 @@ The game is a static folder; there is nothing to build.
 2. The game is then served at `https://<user>.github.io/<repo>/Sudoku/`.
    All URLs inside the app are relative, so the sub-path works.
 3. After changing app files, increase `VERSION` in `sw.js`, so that devices fetch
-   the new version.
+   the new version. An open or installed app picks it up on its next start: the new
+   version installs in the background and the page reloads itself once (the game in
+   progress is kept).
 
 All projects of the repository share one origin; this game prefixes its
 `localStorage` keys with `sudoku.` and its caches with `sudoku-` and its service

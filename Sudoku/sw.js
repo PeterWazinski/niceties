@@ -1,7 +1,9 @@
 // Service worker: makes the game load and play offline (PRD 6).
 // All app files are cached when the worker installs; afterwards they are served
-// cache-first and refreshed in the background. Bump VERSION with every release.
-const VERSION = "14";
+// cache-first and refreshed in the background. Bump VERSION with every release: the new
+// worker caches every file fresh from the network (not from the browser's HTTP cache)
+// and takes over at once; main.js then reloads the page once.
+const VERSION = "15";
 // ?v=... only exists for the update test; a normal registration uses VERSION.
 const CACHE = "sudoku-v" + (new URL(self.location.href).searchParams.get("v") || VERSION);
 
@@ -43,7 +45,10 @@ const PRECACHE = [
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(PRECACHE)).then(() => self.skipWaiting()));
+  // cache: "reload" skips the browser's HTTP cache (GitHub Pages lets it keep files ~10
+  // minutes), so a new version never caches a stale file of the old one
+  const fresh = PRECACHE.map((u) => new Request(u, { cache: "reload" }));
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(fresh)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (event) => {

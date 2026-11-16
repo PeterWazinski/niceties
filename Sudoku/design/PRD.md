@@ -580,6 +580,13 @@ completely playable offline, including *New Game*.
 - A **service worker** pre-caches the whole app (`index.html`, CSS, JS, worker,
   icons, manifest) at install. Strategy: cache-first, with background update
   (stale-while-revalidate); cache name carries a version so updates replace old files.
+- **Updates show on the first open** (change 2026-11-16, after a release still showed
+  the old version on the iPad): a new worker caches every file with
+  `cache: "reload"` (not from the browser's HTTP cache, which GitHub Pages lets keep
+  files ~10 minutes), takes over at once (`skipWaiting`, `clients.claim`), and the
+  page reloads itself **once** when an existing worker is replaced (`controllerchange`
+  in `main.js`; not on the first visit, never in a loop). The game is saved after
+  every move, so the reload loses nothing.
 - Puzzles are generated on the device, so *New Game* needs no network.
 - A **Web App Manifest** with icons allows "Add to Home Screen" (standalone, no
   Safari chrome, more room for the board). Recommended in the README, not forced.

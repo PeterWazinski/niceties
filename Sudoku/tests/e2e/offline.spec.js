@@ -128,11 +128,46 @@ test("the app works from a sub-path like GitHub Pages: service worker scope and 
 test("a new cache version replaces the old caches and leaves foreign caches alone", async ({ page }) => {
   await loadOnline(page, "index.html?seed=12");
   await page.evaluate(async () => { await caches.open("sudoku-v0-ancient"); await caches.open("other-site-cache"); });
-  await page.evaluate(() => navigator.serviceWorker.register("sw.js?v=99"));
-  await expect.poll(() => page.evaluate(async () => (await caches.keys()).sort()), { timeout: 15000 })
-    .toEqual(["other-site-cache", "sudoku-v99"]);
-  // the new version has the whole app cached
-  expect(await page.evaluate(async () => (await (await caches.open("sudoku-v99")).keys()).length)).toBeGreaterThanOrEqual(25);
+  // the new worker takes over and the page reloads itself (main.js); the reloaded page
+  // registers plain sw.js again, which is one more version in this test. Every read may
+  // meet a navigation, so poll until the caches have settled.
+  await page.evaluate(() => navigator.serviceWorker.register("sw.js?v=99")).catch(() => {});
+  const state = () => page.evaluate(async () => {
+    const keys = (await caches.keys()).sort();
+    const own = keys.filter((k) => k.startsWith("sudoku-"));
+    const size = own.length === 1 ? (await (await caches.open(own[0])).keys()).length : 0;
+    return { foreign: keys.filter((k) => !k.startsWith("sudoku-")), own: own.length, ancient: keys.includes("sudoku-v0-ancient"), size };
+  }).catch(() => null);
+  // old caches are gone, foreign ones stay, exactly one version is left, with the whole app
+  await expect.poll(state, { timeout: 20000 }).toEqual({ foreign: ["other-site-cache"], own: 1, ancient: false, size: expect.any(Number) });
+  await expect.poll(async () => ((await state()) || {}).size || 0, { timeout: 15000 }).toBeGreaterThanOrEqual(25);
+});
+
+test("a new version takes over at once: the page reloads itself once, the game survives", async ({ page }) => {
+  await page.addInitScript(() => { sessionStorage.setItem("loads", String(Number(sessionStorage.getItem("loads") || 0) + 1)); });
+  await loadOnline(page, "index.html?seed=12");
+  const P = puzzleFor(12);
+  const i = emptyIndices(await values(page))[0];
+  await enter(page, i, P.solution[i]);
+  expect(await page.evaluate(() => sessionStorage.getItem("loads"))).toBe("1"); // the first visit does not reload
+  // a release: a worker with another version installs and claims the page
+  await page.evaluate(() => navigator.serviceWorker.register("sw.js?v=98")).catch(() => {});
+  const loads = () => page.evaluate(() => Number(sessionStorage.getItem("loads"))).catch(() => 0);
+  await expect.poll(loads, { timeout: 20000 }).toBeGreaterThanOrEqual(2);
+  // (the reloaded page registers plain sw.js again – in the test that is one more
+  // "version", so one more reload may follow; then it must settle: no loop)
+  await page.waitForTimeout(2500);
+  const settled = await loads();
+  await page.waitForTimeout(2500);
+  expect(await loads(), "no reload loop").toBe(settled);
+  expect(settled).toBeLessThanOrEqual(3);
+  await expect(page.locator("#app")).toHaveAttribute("data-ready", "true");
+  await expect(cell(page, i)).toHaveAttribute("data-value", String(P.solution[i]));
+});
+
+test("the new worker caches every file fresh from the network (cache: reload)", async ({ page }) => {
+  const sw = await (await page.request.get("sw.js")).text();
+  expect(sw).toMatch(/new Request\(u, \{ cache: "reload" \}\)/);
 });
 
 test("manifest and icons can be loaded and are valid", async ({ page }) => {

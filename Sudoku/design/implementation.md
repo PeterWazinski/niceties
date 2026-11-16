@@ -357,3 +357,13 @@ Gate → commit `Sudoku: phase 9 – polish, accessibility and release`.
   pixel check of the flash was timing-dependent on busy runs), other schemes
   keep the confetti, the scheme at the end decides, New Game stops it, reduced motion);
   `confetti.spec.js` plays in B/W now. `VERSION` 14.
+
+- [x] **Updates show on the first open** (2026-11-16, PRD 6): a win in Star Wars still
+  showed confetti on the iPad – analysis: the code was right (a real win without the
+  test seed fired the shockwave, also with a saved "neon"), the page ran on the version
+  cached before the release. Fix: `sw.js` installs with `cache: "reload"`; `main.js`
+  reloads the page once when an existing worker is replaced (`controllerchange`), not
+  on the first visit and never twice. Tests (`offline.spec.js`): the page reloads
+  itself after a new version and the game survives, no reload loop; the install
+  bypasses the HTTP cache; the cache-version test now waits for the settled state
+  (the self-reload re-registers the worker). `VERSION` 15.

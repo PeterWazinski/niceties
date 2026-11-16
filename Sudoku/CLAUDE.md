@@ -39,7 +39,10 @@ node tools/make-quotes.mjs                 # after editing design/quotes-en.md /
   schemes via CSS variables; Star Wars – first in the list and the default – and Rainbow add
   scheme-scoped effects at the end). Scheme ids and order are in `js/schemes.js`, names in `i18n.js`
   (`scheme.<id>`); a removed scheme gets an entry in `RENAMED_SCHEMES` in `settings.js`.
-- `sw.js` is the service worker; `index.html` loads `main.js` as a module.
+- `sw.js` is the service worker; `index.html` loads `main.js` as a module. A new `VERSION` installs
+  fresh (`cache: "reload"`), takes over at once, and `main.js` reloads the page once on
+  `controllerchange` – so e2e tests that register another worker must expect a navigation
+  (`offline.spec.js` shows how).
 
 ## Game rules in short (PRD 3.2 and 3.4)
 
